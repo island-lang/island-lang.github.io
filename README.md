@@ -58,12 +58,12 @@ func getAverageForTripleId(tripleId: int): int
 	let b
 	let c
 
-	case:
-		tripleId == 0:
+	match tripleId:
+		0:
 			a = 0
 			b = 1
 			c = 2
-		tripleId == 1:
+		1:
 			a = 9
 			b = 8
 			c = 7
@@ -208,7 +208,7 @@ func indexOf(list: int[], target: int): int
 
 ## Functions and Procedures
 
-In Funca, a function is guaranteed to act like true mathematical function. A `func` cannot cause or observe any side effects whatsoever and must return the same value given the same arguments. In a sense, a Funca function is even "purer" than a Haskell function, since calling a Haskell function might still practically induce a side effect, despite returning an opaque return type (e.g. `IO string` or `IO ()`).
+In Funca, a function is guaranteed to act like true mathematical function. A `func` cannot cause or observe any side effects whatsoever and must return the same value given the same arguments. In a sense, a Funca function is even "purer" than a Haskell function, since calling a Haskell function might still technically induce a side effect, despite returning an opaque return type (e.g. `IO string` or `IO ()`).
 
 To allow for side effects, `procs` (procedures) are used instead:
 
