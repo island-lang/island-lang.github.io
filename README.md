@@ -300,10 +300,10 @@ proc main()
 	// Custom constructor
 	let person2 = new Person(1)
 
-	// Read property
+	// Get property value
 	let full = person3.fullName
 
-	// Read indexer
+	// Get value through indexer
 	let l = person3[1]
 ```
 
