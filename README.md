@@ -1,10 +1,10 @@
 # Funca programming language
 
-_Note this is a very early design draft and is being continuously modified. It isn't clear at this time whether the language would be eventually implemented or mostly used as an experimentation platform for various language design ideas and concepts._
+_Note this is a very early (and incomplete) design draft and is being continuously modified. It isn't certain at this time whether the language would be eventually implemented or mostly used as an experimentation platform for various ideas and concepts._
 
-Funca is a practical, gradually (or semi-purely) functional, statically typed programming language aiming for simple, approachable, imperative-style syntax and familiar object-oriented concepts while uncompromisingly maintaining full immutability and a clear separation between computations (pure functions in the mathematical sense) and actions (procedures) without requiring the use and understanding of advanced mathematical abstractions (e.g. monads).
+Funca is a practical, (semi-) purely functional, statically typed programming language aiming for simple, approachable, imperative-style syntax and familiar object-oriented concepts while uncompromisingly maintaining full immutability (no mutable state) and a clear separation between computations (pure functions in the mathematical sense) and actions (procedures) without requiring the use and understanding of advanced mathematical abstractions (e.g. monads).
 
-Funca introduces a number of innovative features and constructs that try to synthesize and improve on ideas from a wide range of programming languages and paradigms, ranging from academic-type purely functional languages (Haskell, Miranda, Pure, Clean), hybrid languages (Scala, F#), imperative languages (C#, Kotlin, Go) and dynamic languages (Python, TypeScript).
+Funca introduces a number of innovative features and constructs that try to synthesize and improve on ideas from a wide range of programming languages and paradigms, ranging from academic-type purely functional languages (Haskell, Miranda, Pure, Clean), hybrid languages (Scala, F#), imperative languages (C#, Kotlin, Go) and dynamic languages (Python, JavaScript/TypeScript).
 
 All Funca variables and objects are fully (and deeply) immutable. Once a variable or field has been initialized with a value, it cannot be changed, forever. Despite this apparently strict constraint it manages to provide the programmer with convenient syntax and abstractions, many of which were once associated exclusively with imperative programming. These include:
 
@@ -12,14 +12,14 @@ All Funca variables and objects are fully (and deeply) immutable. Once a variabl
 * For loops: including a constrained form of iteration-scope variable reassignment, carefully designed to emulate purely functional recursion in a more convenient and flexible form.
 * Iterators and generators.
 * Classes and features (also known as traits), with support for inheritance.
-* Closures: Which effectively render as an indirect form of currying.
+* Closures: which effectively render as an indirect form of currying.
 * Exception handling (try-catch): Errors are treated as phantom return values and thus do not degrade function purity.
 * Async/await and async iterators/generators (for procedure contexts).
 
 As well as:
 
 * Non-nullability by default
-* Pattern matching, including in case statements
+* Pattern matching, including in if/case statements
 * Generic and existential types in classes and functions/procedures
 * Enums, with support for both numbers and strings as value types
 * Currying: with a low-impact, novice-friendly syntax and a unique extension that allows for non-ordered parameter selection.
@@ -85,7 +85,7 @@ func fibonacci_recursive(index: int): int
 		otherwise:  return fibonacci_recursive(index - 2) + fibonacci_recursive(index - 1)
 ```
 
-Functions can be written in different ways:
+Functions can be defined in different ways:
 ```
 // Function declaration, multiple statements possible, overloading possible
 func multiple2(a: int): int
@@ -107,16 +107,16 @@ let multiple2 = (a: int) => a * 2
 func example1_case(a: int, b: int[]): int
 	case:
 		a == -1 && b.length == 0: return []
-		a == 0 && b.length > 1:   return b[1:]
-		a == 1 && b.length > 2:   return b[2:]
+		a == 0 && b.length >= 2:   return b[1:]
+		a == 1 && b.length >= 3:   return b[2:]
 		otherwise:                return b[3:]
 
 func example1_match(a: int, b: int[]): int
 	match a, b:
-		-1, []:           return []
-		0, [_, ...]:      return b[1:]
-		1, [_, _, ...]:   return b[2:]
-		otherwise:        return b[3:]
+		-1, []:              return []
+		0, [_, _, ...]:      return b[1:]
+		1, [_, _, _, ...]:   return b[2:]
+		otherwise:           return b[3:]
 
 func example2_case(a: int, b: int[]): int
 	case:
@@ -141,7 +141,7 @@ func example2_match(a: int, b: int[]): int
 
 For loops appear somewhat similarly but behave a quite differently from their counterparts in traditional imperative languages.
 
-The general form is `for ...<loop and outer scope variable declarations>.. while <condition>`.
+The general form is `for ...<loop and outer scope variable declarations>.. [while <condition>]`.
 
 Every possible execution branch in the loop body must end with either:
 * `continue <next variable values>`
@@ -228,7 +228,21 @@ proc main()
 
 Despite procedures allowing for side effects outside of the program scope, they still strictly follow the immutability principle: variables defined in `proc` scope still cannot be reassigned in any case.
 
-A procedure can be further subdivided into two levels:
+Procedures, similarly functions, can be defined in multiple ways:
+```
+// Procedure declaration, multiple statements possible, overloading possible
+proc printName(name: string)
+	do print(`Your name is $(name)`)
+
+// Procedure declaration, single expression body, overloading possible
+proc printName(name: string) => do print(`Your name is $(name)`)
+
+// Lambda expression, single expression body, overloading not supported
+// The expression is automatically classified as a 'proc' due to the call to 'print'
+let printName = (name: string) => do print(`Your name is $(name)`)
+```
+
+Procedures are further subdivided into two categories:
 
 * `effector proc` is a procedure inducing an action, _causing_ a side effect. `effector proc`s can only be called from other `effector proc`s.
 * `spectator proc` is a procedure _observing_ a side effect. This is analogous to spectators in a sports event. They can watch the game but not influence it. However, their presence might still induce a limited form of a side-effect: too many spectators could congest the stadium or create conflicts, or noise, similarly to how having too many disk read operations could slow down or congest the storage medium or bus channel (but not actually write to the disk). `spectator proc`s cannot call `effector proc`s.
@@ -243,7 +257,7 @@ spectator proc getMousePosition(): (int, int)
 	...
 ```
 
-(By default, the `effector`/`spectator` classification is detected automatically and does not need to be explicitly stated unless the procedure body performs a an OS call, interops with a method imported from a different language, or is within an interface or base class declaration)
+(By default, the `effector`/`spectator` classification is detected automatically and doesn't need to be explicitly stated unless the procedure body either performs a an OS call, interops with a method imported from a different language, or is within an interface or base class declaration)
 
 
 ## Classes
@@ -318,14 +332,13 @@ let modifiedMap = someMap alter ["a"] = 13, ["c"] = 100
 
 ## Class inheritance
 
-Like in OO languages, classes can inherit from at most one base class (single inheritance). Classes are nominal.
+Like in most OO languages, classes can inherit from at most one base class (single inheritance). Classes are nominal.
 
 ```
 class Animal
 	name: string = "Animal"
 	age: int = 0
 	maxHeight: int
-
 
 	new(maxHeight: int)
 		.maxHeight = maxHeight
@@ -366,7 +379,7 @@ class Dog extends Animal
 
 ## Features (AKA traits, interfaces with default method implementations)
 
-A `feature` is similar to a `trait` in Scala or an `interface` with a default implementation in Java 8. Features are structural, this means that a `class` does not have to explicitly state it implements one as long as it follows the structure. The `integrates` keywords is used to either:
+A `feature` is similar to a `trait` in Scala or an `interface` with a default method implementations in Java 8. Features are structural, this means that a `class` does not have to explicitly state it implements one as long as it follows the structure. The `integrates` keywords is used to either:
 
 * Ensure that a class correctly implements a feature.
 * Import the default method implementations from the feature's definition.
@@ -416,7 +429,7 @@ proc main()
 // Which is equivalent to
 
 proc main()
-	for randObject = Random(do getCurrentTime())
+	for randObject = (new Random(do getCurrentTime())).next()
 		match randObject:
 			null:
 				break
@@ -463,7 +476,7 @@ class Generator_genFunc implements Iterable<int>
 
 ## Currying and closures
 
-Funca takes a very lightweight approach to currying. The `bind` operator simply takes a function call expression (though doesn't actually call it) and creates a new function with the given argument(s) fixed to the corresponding parameters.:
+Funca takes a very lightweight approach to currying. The `bind` operator simply takes a function call expression (though doesn't actually call it) and creates a new function with the given argument(s) fixed to the corresponding parameters:
 
 ```
 func example(a: int, b: int, c: int): int
