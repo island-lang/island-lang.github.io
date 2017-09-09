@@ -100,8 +100,8 @@ let multiple2 = (a: int) => a * 2
 
 ## Case and pattern matching
 
-* `case` statements are similar to `switch(..) case:` in other languages, but support a form of pattern matching for lists and tuples (e.g. `b ~= [_, _, let xs...]`).
-* `match` statements are similar to pattern matching in functional languages and operate over a set of predefined variables.
+* `case` statements are similar to `if..else if..else` in other languages, but also support a form of pattern matching for lists and tuples (e.g. `b ~= [_, _, let xs...]`).
+* `match` statements are similar to `switch() case` and pattern matching in functional languages and operate over a set of predefined variables.
 
 ```
 func example1_case(a: int, b: int[]): int
