@@ -228,7 +228,7 @@ proc main()
 
 Despite procedures allowing for side effects outside of the program scope, they still strictly follow the immutability principle: variables defined in `proc` scope still cannot be reassigned in any case.
 
-Procedures, similarly functions, can be defined in multiple ways:
+Similarly to functions, procedures can be defined in multiple ways:
 ```
 // Procedure declaration, multiple statements possible, overloading possible
 proc printName(name: string)
