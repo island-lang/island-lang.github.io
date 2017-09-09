@@ -106,10 +106,10 @@ let multiple2 = (a: int) => a * 2
 ```
 func example1_case(a: int, b: int[]): int
 	case:
-		a == -1 && b.length == 0: return []
+		a == -1 && b.length == 0:  return []
 		a == 0 && b.length >= 2:   return b[1:]
 		a == 1 && b.length >= 3:   return b[2:]
-		otherwise:                return b[3:]
+		otherwise:                 return b[3:]
 
 func example1_match(a: int, b: int[]): int
 	match a, b:
