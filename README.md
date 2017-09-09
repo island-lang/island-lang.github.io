@@ -307,7 +307,7 @@ proc main()
 	let l = person3[1]
 ```
 
-## Modifying fields, arrays and maps
+## Altering fields, arrays and maps
 
 Object fields cannot be modified, but the object can be conveniently cloned and altered:
 ```
