@@ -139,7 +139,7 @@ func example2_match(a: int, b: int[]): int
 
 ## For loops
 
-For loops appear somewhat similarly but behave a quite differently from their counterparts in traditional imperative languages.
+For loops appear somewhat similarly but behave a bit differently from their counterparts in traditional imperative languages.
 
 The general header form is `for ...<loop and outer scope variable declarations>.. [while <condition>]`.
 
