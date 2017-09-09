@@ -210,7 +210,7 @@ func indexOf(list: int[], target: int): int
 
 In Funca, a function is guaranteed to act like true mathematical function. A `func` cannot cause or observe any side effects whatsoever and must return the same value given the same arguments. In a sense, a Funca function is even "purer" than a Haskell function, since calling a Haskell function might still technically induce a side effect, despite returning an opaque return type (e.g. `IO string` or `IO ()`).
 
-To allow for side effects, `procs` (procedures) are used instead:
+To allow for side effects, `proc`s (procedures) are used instead:
 
 ```
 proc getMousePosition(): (int, int)
@@ -369,7 +369,7 @@ class Dog extends Animal
 A `feature` is similar to a `trait` in Scala or an `interface` with a default implementation in Java 8. Features are structural, this means that a `class` does not have to explicitly state it implements one as long as it follows the structure. The `integrates` keywords is used to either:
 
 * Ensure that a class correctly implements a feature.
-* Import the default implementation from the feature's definition.
+* Import the default method implementations from the feature's definition.
 
 ```
 feature Greeter
@@ -402,7 +402,7 @@ class Random integrates Iterable<int>
 	value: int
 
 	new(seed: int)
-		seed = seed
+		.seed = seed
 		value = ....
 
 	func next() => new Random(value)
