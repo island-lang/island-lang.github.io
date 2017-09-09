@@ -141,7 +141,7 @@ func example2_match(a: int, b: int[]): int
 
 For loops appear somewhat similarly but behave a quite differently from their counterparts in traditional imperative languages.
 
-The general form is `for ...<loop scope variable declarations>.. while <condition>`.
+The general form is `for ...<loop and outer scope variable declarations>.. while <condition>`.
 
 Every possible execution branch in the loop body must end with either:
 * `continue <next variable values>`
@@ -221,7 +221,7 @@ proc getMousePosition(): (int, int)
 
 ```
 proc main()
-	(x, y) = do getMousePosition()
+	(let x, let y) = do getMousePosition()
 ```
 
 (_Note: unlike the concept of a 'procedure' in older languages like Ada and Pascal. A Funca procedure can have return values and thus effectively act like a normal function_)
@@ -250,7 +250,7 @@ spectator proc getMousePosition(): (int, int)
 
 Like variables, all objects or structures are (deeply) immutable, this means that class members can only be assigned during construction.
 
-Like in OO languages, classes can have functions, procedures, parameterized constructors, fields, properties (getters only) and indexers (read-only). Constructors are always pure functions thus are not allowed invoke a procedures (i.e. `do ...`)
+Like in OO languages, classes can have functions, procedures, parameterized constructors, fields, properties (getters only) and indexers (read-only). Constructors are always pure functions thus are not allowed invoke procedures (i.e. `do ...`)
 
 ```
 class Person
@@ -259,8 +259,8 @@ class Person
 	age: int
 
 	new(id: int)
-		case:
-			id == 1:
+		match id:
+			1:
 				firstName = "Anonymous"
 				lastName = ""
 				age = 25
@@ -349,6 +349,7 @@ class Cat extends Animal
 		.age = age
 
 	effector proc meow()
+		...
 
 class Dog extends Animal
 	name = "Dog"
@@ -360,6 +361,7 @@ class Dog extends Animal
 		.age = age
 
 	effector proc bark()
+		...
 ```
 
 ## Features (AKA traits, interfaces with default method implementations)
@@ -415,11 +417,15 @@ proc main()
 
 proc main()
 	for randObject = Random(do getCurrentTime())
-		do print(randObject.value)
-		continue randObject = randObject.next()
+		match randObject:
+			null:
+				break
+			otherwise:
+				do print(randObject.value)
+				continue randObject = randObject.next()
 ```
 
-Iterators support procedures as well:
+Iterators can support procedures as well:
 
 ```
 feature IterableSpectator<T>
@@ -433,7 +439,7 @@ feature IterableEffector<T>
 
 ## Generators
 
-Generators have a syntax very similar to JavaScript (ES2016) generators, and are syntactic sugar to iterator objects:
+Generators have a syntax very similar to JavaScript (ES2016) generators, and are syntactic sugar to iterator classes:
 
 ```
 func* genFunc()
@@ -465,12 +471,12 @@ func example(a: int, b: int, c: int): int
 
 // Standard currying:
 let curriedFunc1 = bind example(5)
-let result = curriedExample1(2, 3) // returns 523
+let result = curriedFunc1(2, 3) // returns 523
 
 // Parameter name based:
 // (note this breaks the ordinary sequence of parameters thus requires special attention)
 let curriedFunc2 = bind example(b = 7)
-let result = curriedExample1(a = 2, c = 3) // returns 273
+let result = curriedFunc2(a = 2, c = 3) // returns 273
 ```
 
 Closures can be seen as a form of currying with the captured argument acting as a hidden argument to the function:
@@ -483,13 +489,13 @@ func closureExample(a: int): () => int
 	let capturingFunc = (c: int) => b + c
 
 	// Even though the function captures a local variable, it can still be returned as its captured value is
-	// considered constant. In a way - that can be also be seen as an indirct form of currying.
+	// considered constant. In a way - that can be also be seen as an indirect form of currying.
 	return capturingFunc
 ```
 
 ## Exception handling (try .. catch .. finally)
 
-Every procedure or function (under consideration) can potentially throw an exception. The error is considered a phantom return value, thus function purity is not affected (same arguments produce a predictable exception).
+Every procedure or function (still under consideration) can potentially throw an exception. The error is considered a phantom return value, thus function purity is not affected (given the same arguments a function would produce a predictable exception).
 
 ```
 proc mightThrowProc(filename: string) => do FileSystem.open(filename)
@@ -499,13 +505,13 @@ proc main()
 	try
 		mightThrowProc("myfile.txt")
 	catch e
-		print(e)
+		do print(e)
 
 	// Under consideration:
 	try
 		result = mightThrowFunc(0)
 	catch e
-		print(e)
+		do print(e)
 ```
 
 ## Enums
