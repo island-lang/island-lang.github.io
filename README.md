@@ -462,7 +462,7 @@ func* genFunc()
 
 // Desugared to
 
-class Generator_genFunc implements Iterable<int>
+class Generator_genFunc integrates Iterable<int>
 	let step: int = -1
 	let value: int? = null
 
