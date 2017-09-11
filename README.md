@@ -476,19 +476,19 @@ class Generator_genFunc integrates Iterable<int>
 
 ## Partial function application and closures
 
-The `bind` operator simply takes a function call expression (though doesn't actually call it) and creates a new function with the given argument(s) fixed to the corresponding parameters:
+The `partial` operator simply takes a function call expression (though doesn't actually call it) and creates a new function with the given argument(s) fixed to the corresponding parameters:
 
 ```
 func example(a: int, b: int, c: int): int
 	return a*100 + b*10 + c*1
 
 // Odered:
-let partialFunc1 = bind example(5)
+let partialFunc1 = partial example(5)
 let result = partialFunc1(2, 3) // returns 523
 
 // Parameter name based:
 // (note this breaks the ordinary sequence of parameters thus requires special attention)
-let partialFunc2 = bind example(b = 7)
+let partialFunc2 = partial example(b = 7)
 let result = partialFunc2(a = 2, c = 3) // returns 273
 ```
 
