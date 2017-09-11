@@ -12,7 +12,7 @@ All Funca variables and objects are fully (and deeply) immutable. Once a variabl
 * For loops: including a constrained form of iteration-scope variable reassignment, carefully designed to emulate purely functional recursion in a more convenient and flexible form.
 * Iterators and generators.
 * Classes and features (also known as traits), with support for inheritance.
-* Closures: which effectively render as an indirect form of currying.
+* Closures
 * Exception handling (try-catch): Errors are treated as phantom return values and thus do not degrade function purity.
 * Async/await and async iterators/generators (for procedure contexts).
 
@@ -22,7 +22,7 @@ As well as:
 * Pattern matching, including in if/case statements
 * Generic and existential types in classes and functions/procedures
 * Enums, with support for both numbers and strings as value types
-* Currying: with a low-impact, novice-friendly syntax and a unique extension that allows for non-ordered parameter selection.
+* Partial function application: with a low-impact, novice-friendly syntax and a unique extension that allows for non-ordered parameter selection.
 * List comprehensions
 * Extension methods and properties
 * Side-effect annotations (i.e. `func`s and `proc`s, `effector`s and `spectator`s)
@@ -474,35 +474,35 @@ class Generator_genFunc integrates Iterable<int>
 			otherwise:  return null
 ```
 
-## Currying and closures
+## Partial function application and closures
 
-Funca takes a very lightweight approach to currying. The `bind` operator simply takes a function call expression (though doesn't actually call it) and creates a new function with the given argument(s) fixed to the corresponding parameters:
+The `bind` operator simply takes a function call expression (though doesn't actually call it) and creates a new function with the given argument(s) fixed to the corresponding parameters:
 
 ```
 func example(a: int, b: int, c: int): int
 	return a*100 + b*10 + c*1
 
-// Standard currying:
-let curriedFunc1 = bind example(5)
-let result = curriedFunc1(2, 3) // returns 523
+// Odered:
+let partialFunc1 = bind example(5)
+let result = partialFunc1(2, 3) // returns 523
 
 // Parameter name based:
 // (note this breaks the ordinary sequence of parameters thus requires special attention)
-let curriedFunc2 = bind example(b = 7)
-let result = curriedFunc2(a = 2, c = 3) // returns 273
+let partialFunc2 = bind example(b = 7)
+let result = partialFunc2(a = 2, c = 3) // returns 273
 ```
 
-Closures can be seen as a form of currying with the captured argument acting as a hidden argument to the function:
+Closures can be seen as a form of partial application with the captured argument acting as a hidden argument to the function:
 
 ```
 func closureExample(a: int): () => int
 	let b = a + 1
 
-	// b is considered a "phantom" argument to the capturing function:
+	// b is considered to be an implicit argument to the capturing function:
 	let capturingFunc = (c: int) => b + c
 
 	// Even though the function captures a local variable, it can still be returned as its captured value is
-	// considered constant. In a way - that can be also be seen as an indirect form of currying.
+	// considered constant.
 	return capturingFunc
 ```
 
