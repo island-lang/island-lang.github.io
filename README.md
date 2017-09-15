@@ -2,7 +2,7 @@
 
 _Note this is a very early (and incomplete) design draft and is being continuously modified. It isn't certain at this time whether the language would be eventually implemented or only used as an experimentation platform for various ideas and concepts._
 
-Soil (standing for **S**equential **o**bject **i**mmutable **l**azy) is a statically typed programming language aiming towards simple, approachable, imperative-style syntax and familiar object-oriented concepts while uncompromisingly maintaining full immutability and a clear separation between computations (pure functions in the mathematical sense) and actions (procedures) without requiring the use and understanding of advanced mathematical abstractions (e.g. monads).
+**Soil** (standing for **S**equential **o**bject **i**mmutable **l**azy) is a statically typed programming language aiming towards simple, approachable, imperative-style syntax and familiar object-oriented concepts while uncompromisingly maintaining full immutability and a clear separation between computations (pure functions in the mathematical sense) and actions (procedures) without requiring the use and understanding of advanced mathematical abstractions (e.g. monads).
 
 Soil introduces a number of innovative features and constructs that try to synthesize and improve on ideas from a wide range of programming languages and paradigms, ranging from academic-style purely functional languages (Haskell, Pure, Clean), hybrid languages (Scala, F#), imperative languages (C#, Java, Go) and dynamic languages (Python, JavaScript/TypeScript).
 
