@@ -134,8 +134,6 @@ func example2_case(a: int, b: int[]): int
 		a == 3 && b == []:                return 100
 		a == 4 && b == []:                return 101
 		otherwise:                        return 0
-
-
 ```
 
 ## For loops
