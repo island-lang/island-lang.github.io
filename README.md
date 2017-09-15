@@ -1,14 +1,14 @@
-# Soil programming language
+# Island programming language
 
 _Note this is a very early (and incomplete) design draft and is being continuously modified. It isn't certain at this time whether the language would be eventually implemented or only used as an experimentation platform for various ideas and concepts._
 
-**Soil** (standing for **S**equential **o**bject **i**mmutable **l**azy) is a statically typed programming language aiming towards simple, approachable, imperative-style syntax and familiar object-oriented concepts while uncompromisingly maintaining full immutability and a clear separation between computations (pure functions in the mathematical sense) and actions (procedures) without requiring the use and understanding of advanced mathematical abstractions (e.g. monads).
+**Island** (standing for **I**mmutable **s**equential **l**azy **n**on-**d**estructive) is a statically typed programming language aiming towards simple, approachable, imperative-style syntax and familiar object-oriented concepts while uncompromisingly maintaining full immutability and a clear separation between computations (pure functions in the mathematical sense) and actions (procedures) without requiring the use and understanding of advanced mathematical abstractions (e.g. monads).
 
-Soil introduces a number of innovative features and constructs that try to synthesize and improve on ideas from a wide range of programming languages and paradigms, ranging from academic-style purely functional languages (Haskell, Pure, Clean), hybrid languages (Scala, F#), imperative languages (C#, Java, Go) and dynamic languages (Python, JavaScript/TypeScript).
+Island introduces a number of innovative features and constructs that try to synthesize and improve on ideas from a wide range of programming languages and paradigms, ranging from academic-style purely functional languages (Haskell, Pure, Clean), hybrid languages (Scala, F#), imperative languages (C#, Java, Go) and dynamic languages (Python, JavaScript/TypeScript).
 
-Soil is not an imperative language, nor a traditional functional language. It may be seen to represent a cross of the two paradigms, where in its deeper core it can be decomposed to and evaluated as a reasonably idiomatic purely functional execution flow.
+Island is not an imperative language, nor a traditional functional language. It may be seen to represent a cross of the two paradigms, where in its deeper core it can be decomposed to and evaluated as a reasonably idiomatic purely functional execution flow.
 
-All Soil variables and objects are fully (and deeply) immutable. Once a variable or field has been initialized with a value, it cannot be changed, forever. Despite this apparent strict constraint it manages to provide the programmer with convenient syntax and abstractions, many of which were once associated exclusively with imperative programming. These include:
+All Island variables and objects are fully (and deeply) immutable. Once a variable or field has been initialized with a value, it cannot be changed, forever. Despite this apparent strict constraint it manages to provide the programmer with convenient syntax and abstractions, many of which were once associated exclusively with imperative programming. These include:
 
 * Statement blocks and conditional variable assignment
 * For loops: including a constrained form of iteration-scope variable reassignment, carefully designed to emulate purely functional recursion in a more convenient and flexible form.
@@ -207,7 +207,7 @@ func indexOf(list: int[], target: int): int
 
 ## Functions and Procedures
 
-A function is guaranteed to act like true mathematical function. A `func` cannot cause or observe any side effects and must return the exact same value given the same arguments (referential transparency). In a sense, a Soil function is even "purer" than a Haskell function, since calling a Haskell function might still technically induce a side effect, despite returning an opaque return type (e.g. `IO string` or `IO ()`).
+A function is guaranteed to act like true mathematical function. A `func` cannot cause or observe any side effects and must return the exact same value given the same arguments (referential transparency). In a sense, an Island function is even "purer" than a Haskell function, since calling a Haskell function might still technically induce a side effect, despite returning an opaque return type (e.g. `IO string` or `IO ()`).
 
 To allow for side effects, `proc`s (procedures) are used instead:
 
@@ -223,7 +223,7 @@ proc main()
 	(let x, let y) = do getMousePosition()
 ```
 
-(_Note: unlike the concept of a 'procedure' in older languages like Ada and Pascal. A Soil procedure can have return values and thus effectively act like a normal function_)
+(_Note: unlike the concept of a 'procedure' in older languages like Ada and Pascal. A Island procedure can have return values and thus effectively act like a normal function_)
 
 Despite procedures allowing for side-effects outside the program scope, they still strictly follow the immutability principle: variables and objects defined in `proc` scopes still cannot be reassigned or mutated in any way.
 
