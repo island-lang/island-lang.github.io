@@ -96,7 +96,7 @@ func multiply2(a: int): int => a * 2
 let multiply2 = (a: int) => a * 2
 ```
 
-## Case and pattern matching
+## Pattern and case matching
 
 * `match` statements are similar to pattern matching in some functional languages and operate over a predefined set of variables.
 * `case` statements are similar to `if..else if..else` in other languages, but additionally support a form of pattern matching for lists, tuples and objects (e.g. `b ~= [_, _, let xs...]`).
