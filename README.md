@@ -1,31 +1,34 @@
-# Funca programming language
+# Soil programming language
 
-_Note this is a very early (and incomplete) design draft and is being continuously modified. It isn't certain at this time whether the language would be eventually implemented or mostly used as an experimentation platform for various ideas and concepts._
+_Note this is a very early (and incomplete) design draft and is being continuously modified. It isn't certain at this time whether the language would be eventually implemented or only used as an experimentation platform for various ideas and concepts._
 
-Funca is a practical, (semi-) purely functional, statically typed programming language aiming for simple, approachable, imperative-style syntax and familiar object-oriented concepts while uncompromisingly maintaining full immutability (no mutable state) and a clear separation between computations (pure functions in the mathematical sense) and actions (procedures) without requiring the use and understanding of advanced mathematical abstractions (e.g. monads).
+Soil (standing for **S**equential **o**bject **i**mmutable **l**azy) is a statically typed programming language aiming towards simple, approachable, imperative-style syntax and familiar object-oriented concepts while uncompromisingly maintaining full immutability and a clear separation between computations (pure functions in the mathematical sense) and actions (procedures) without requiring the use and understanding of advanced mathematical abstractions (e.g. monads).
 
-Funca introduces a number of innovative features and constructs that try to synthesize and improve on ideas from a wide range of programming languages and paradigms, ranging from academic-type purely functional languages (Haskell, Miranda, Pure, Clean), hybrid languages (Scala, F#), imperative languages (C#, Kotlin, Go) and dynamic languages (Python, JavaScript/TypeScript).
+Soil introduces a number of innovative features and constructs that try to synthesize and improve on ideas from a wide range of programming languages and paradigms, ranging from academic-style purely functional languages (Haskell, Pure, Clean), hybrid languages (Scala, F#), imperative languages (C#, Java, Go) and dynamic languages (Python, JavaScript/TypeScript).
 
-All Funca variables and objects are fully (and deeply) immutable. Once a variable or field has been initialized with a value, it cannot be changed, forever. Despite this apparently strict constraint it manages to provide the programmer with convenient syntax and abstractions, many of which were once associated exclusively with imperative programming. These include:
+Soil is not an imperative language, nor a traditional functional language. It may be seen to represent a cross of the two paradigms, where in its deeper core it can be decomposed to and evaluated as a reasonably idiomatic purely functional execution flow.
+
+All Soil variables and objects are fully (and deeply) immutable. Once a variable or field has been initialized with a value, it cannot be changed, forever. Despite this apparent strict constraint it manages to provide the programmer with convenient syntax and abstractions, many of which were once associated exclusively with imperative programming. These include:
 
 * Statement blocks and conditional variable assignment
 * For loops: including a constrained form of iteration-scope variable reassignment, carefully designed to emulate purely functional recursion in a more convenient and flexible form.
 * Iterators and generators.
 * Classes and features (also known as traits), with support for inheritance.
 * Closures
-* Exception handling (try-catch): Errors are treated as phantom return values and thus do not degrade function purity.
+* Exception handling (try-catch): Errors are treated as implicit return values and thus do not degrade function purity.
 * Async/await and async iterators/generators (for procedure contexts).
+* Channels (for procedure contexts)
 
 As well as:
 
-* Non-nullability by default
+* Non-nullability and flow-sensitive nullable types
 * Pattern matching, including in if/case statements
 * Generic and existential types in classes and functions/procedures
 * Enums, with support for both numbers and strings as value types
 * Partial function application: with a low-impact, novice-friendly syntax and a unique extension that allows for non-ordered parameter selection.
 * List comprehensions
 * Extension methods and properties
-* Side-effect annotations (i.e. `func`s and `proc`s, `effector`s and `spectator`s)
+* Side-effect annotations (i.e. `func`s and `proc`s, `effect proc`s and `view proc`s)
 * "Elvis" operator (nullability aware dereference chaining)
 * Type aliases
 * Contracts, including a basic level of static verification built into the compiler
@@ -33,7 +36,7 @@ As well as:
 
 ## Variables
 
-The `let` keyword is used define a new variable. A variable can be typed e.g. `let a: string`, or its type be inferred:
+The `let` keyword is used to introduce a new variable. A variable can be typed e.g. `let a: string`, or its type be automatically inferred:
 
 ```
 let a: string = "abc"
@@ -42,10 +45,7 @@ let b = 123
 
 Variables can be defined in bulk:
 ```
-let:
-	a = 1
-	b = 2
-	c = "hi"
+let a = 1, b = 2, c = "hi"
 ```
 
 Since variables can only be assigned once, there's no need for a `const` keyword. Every variable assigned with a literal is effectively a constant.
@@ -54,9 +54,7 @@ Variables can be assigned conditionally, through a deferred declaration, for exa
 
 ```
 func getAverageForTripleId(tripleId: int): int
-	let a
-	let b
-	let c
+	let a, b, c
 
 	match tripleId:
 		0:
@@ -88,28 +86,22 @@ func fibonacci_recursive(index: int): int
 Functions can be defined in different ways:
 ```
 // Function declaration, multiple statements possible, overloading possible
-func multiple2(a: int): int
+func multiply2(a: int): int
 	return a * 2
 
 // Function declaration, single expression body, overloading possible
-func multiple2(a: int): int => a * 2
+func multiply2(a: int): int => a * 2
 
 // Lambda expression, single expression body, overloading not supported
-let multiple2 = (a: int) => a * 2
+let multiply2 = (a: int) => a * 2
 ```
 
 ## Case and pattern matching
 
-* `case` statements are similar to `if..else if..else` in other languages, but also support a form of pattern matching for lists and tuples (e.g. `b ~= [_, _, let xs...]`).
-* `match` statements are similar to `switch() case` and pattern matching in functional languages and operate over a set of predefined variables.
+* `match` statements are similar to pattern matching in some functional languages and operate over a predefined set of variables.
+* `case` statements are similar to `if..else if..else` in other languages, but additionally support a form of pattern matching for lists, tuples and objects (e.g. `b ~= [_, _, let xs...]`).
 
 ```
-func example1_case(a: int, b: int[]): int
-	case:
-		a == -1 && b.length == 1:  return b[0:1]
-		a == 0 && b.length == 2:   return b[1:]
-		a == 1 && b.length >= 3:   return b[2:]
-		otherwise:                 return []
 
 func example1_match(a: int, b: int[]): int
 	match a, b:
@@ -117,6 +109,22 @@ func example1_match(a: int, b: int[]): int
 		0, [_, _]:           return b[1:]
 		1, [_, _, _, ...]:   return b[2:]
 		otherwise:           return []
+
+func example1_case(a: int, b: int[]): int
+	case:
+		a == -1 && b.length == 1:  return b[0:1]
+		a == 0 && b.length == 2:   return b[1:]
+		a == 1 && b.length >= 3:   return b[2:]
+		otherwise:                 return []
+
+func example2_match(a: int, b: int[]): int
+	match a, b:
+		0, [let x]:           return x
+		1, [let x, let y]:    return (x + y) / 2
+		2, [_, _, let xs...]: return listAverage(xs)
+		3, []:                return 100
+		4, []:                return 101
+		otherwise:            return 0
 
 func example2_case(a: int, b: int[]): int
 	case:
@@ -127,19 +135,12 @@ func example2_case(a: int, b: int[]): int
 		a == 4 && b == []:                return 101
 		otherwise:                        return 0
 
-func example2_match(a: int, b: int[]): int
-	match a, b:
-		0, [let x]:           return x
-		1, [let x, let y]:    return (x + y) / 2
-		2, [_, _, let xs...]: return listAverage(xs)
-		3, []:                return 100
-		4, []:                return 101
-		otherwise:            return 0
+
 ```
 
 ## For loops
 
-For loops appear somewhat similarly but behave a bit differently from their counterparts in traditional imperative languages.
+For loops appear somewhat similar but behave a bit differently from their counterparts in traditional imperative languages.
 
 The general header form is `for ...<loop and outer scope variable declarations>.. [while <condition>]`.
 
@@ -160,9 +161,9 @@ func binarySearch(sortedList: int[], target: int): int
 
 	return result
 ```
-`let` variables are internal to the loop body. `out` variables are exposed to the outer scope, so act as the "outputs" of the loop.
+`let` variables are internal to the loop body. `out` variables are exposed to the outer scope, thus effectively act as the "outputs" of the loop.
 
-`continue high = middle - 1` might look, at first, like variable mutation, which would violate the immutability principle of the language. However, it is not actually a mutation as the reassignment is constrained to take effect at the beginning of the next iteration. This is similar to how loops are expressed through tail recursive function calls:
+`continue high = middle - 1` might look, at first, like variable mutation, which would violate the immutability principle of the language. However, it is not actually a mutation as the reassignment is constrained to take effect at the beginning of the next iteration. This is similar to how loops are expressed through tail recursive functions:
 
 ```
 func binarySearch(sortedList: int[], target: int): int
@@ -179,7 +180,7 @@ func binarySearch(sortedList: int[], target: int): int
 	return iterate(0, sortedList.length - 1, -1)
 ```
 
-The `return` keyword can also be called from within the loop body (this would more difficult to implement through a recursion):
+The `return` keyword can also be called from within the loop body (this behavior would be more difficult to implement through a recursion):
 
 ```
 func compareStrings(str1: string, str2: string): int
@@ -198,7 +199,7 @@ func compareStrings(str1: string, str2: string): int
 The `for..in` (or `foreach` in some languages) functionality is supported as well (and will accept any iterator - explained later in this article). It can appear multiple times (first iterator to finish ends the loop):
 ```
 func indexOf(list: int[], target: int): int
-	for let num in list, let i in 0..list.length-1
+	for let num in list, let i in 0..
 		case:
 			num == target: return i
 			otherwise:     continue
@@ -208,7 +209,7 @@ func indexOf(list: int[], target: int): int
 
 ## Functions and Procedures
 
-In Funca, a function is guaranteed to act like true mathematical function. A `func` cannot cause or observe any side effects and must return the exact same value given the same arguments. In a sense, a Funca function is even "purer" than a Haskell function, since calling a Haskell function might still technically induce a side effect, despite returning an opaque return type (e.g. `IO string` or `IO ()`).
+A function is guaranteed to act like true mathematical function. A `func` cannot cause or observe any side effects and must return the exact same value given the same arguments (referential transparency). In a sense, a Soil function is even "purer" than a Haskell function, since calling a Haskell function might still technically induce a side effect, despite returning an opaque return type (e.g. `IO string` or `IO ()`).
 
 To allow for side effects, `proc`s (procedures) are used instead:
 
@@ -224,9 +225,9 @@ proc main()
 	(let x, let y) = do getMousePosition()
 ```
 
-(_Note: unlike the concept of a 'procedure' in older languages like Ada and Pascal. A Funca procedure can have return values and thus effectively act like a normal function_)
+(_Note: unlike the concept of a 'procedure' in older languages like Ada and Pascal. A Soil procedure can have return values and thus effectively act like a normal function_)
 
-Despite procedures allowing for side effects outside of the program scope, they still strictly follow the immutability principle: variables defined in `proc` scope still cannot be reassigned in any case.
+Despite procedures allowing for side-effects outside the program scope, they still strictly follow the immutability principle: variables and objects defined in `proc` scopes still cannot be reassigned or mutated in any way.
 
 Similarly to functions, procedures can be defined in multiple ways:
 ```
@@ -244,27 +245,27 @@ let printName = (name: string) => do print(`Your name is $(name)`)
 
 Procedures are further subdivided into two categories:
 
-* `effector proc` is a procedure inducing an action, _causing_ a side effect. `effector proc`s can only be called from other `effector proc`s.
-* `spectator proc` is a procedure _observing_ a side effect. This is analogous to spectators in a sports event. They can watch the game but not influence it. However, their presence might still induce a limited form of a side-effect: too many spectators could congest the stadium or create conflicts, or noise, similarly to how having too many disk read operations could slow down or congest the storage medium or bus channel (but not actually write to the disk). `spectator proc`s cannot call `effector proc`s.
+* `effect proc` is a procedure inducing an action, _causing_ a side effect. `effect proc`s can only be called from other `effect proc`s.
+* `view proc` is a procedure _observing_ a side effect. This is analogous to spectators in a sports event. They can watch the game but not influence it. However, their presence might still induce a limited form of a side-effect: too many spectators could congest the stadium or create conflicts, or noise, similarly to how having too many disk read operations could slow down or congest the storage medium or bus channel (but not actually write to the disk). `view proc`s cannot call `effect proc`s.
 
 Example:
 
 ```
-effector proc setMousePosition(x: int, y: int)
+view proc getMousePosition(): (int, int)
 	...
 
-spectator proc getMousePosition(): (int, int)
+effect proc setMousePosition(x: int, y: int)
 	...
 ```
 
-(By default, the `effector`/`spectator` classification is detected automatically and doesn't need to be explicitly stated unless the procedure body either performs a an OS call, interops with a method imported from a different language, or is within an interface or base class declaration)
+(By default, the `view`/`effect` classification is detected automatically and doesn't need to be explicitly stated unless the procedure body either performs a an OS call, interops with a method imported from a different language, or is within an interface or base class declaration)
 
 
 ## Classes
 
 Like variables, all objects or structures are (deeply) immutable, this means that class members can only be assigned during construction.
 
-Like in OO languages, classes can have functions, procedures, parameterized constructors, fields, properties (getters only) and indexers (read-only). Constructors are always pure functions thus are not allowed invoke procedures (i.e. `do ...`)
+Like in OO languages, classes can have functions, procedures, parameterized constructors, fields, properties (getters only) and indexers (read-only). Constructors must be pure functions thus are not allowed invoke procedures (i.e. `do ...`)
 
 ```
 class Person
@@ -443,11 +444,11 @@ Iterators can support procedures as well:
 ```
 feature IterableSpectator<T>
 	value: T
-	spectator proc next(): IterableSpectator<T>?
+	view proc next(): IterableSpectator<T>?
 
 feature IterableEffector<T>
 	value: T
-	effector proc next(): IterableEffector<T>?
+	effect proc next(): IterableEffector<T>?
 ```
 
 ## Generators
@@ -474,6 +475,14 @@ class Generator_genFunc integrates Iterable<int>
 			otherwise:  return null
 ```
 
+Generators can `yield` within loops, including non-terminating ones:
+
+```
+func* genFunc()
+	for i in 1..
+		yield i * 100
+```
+
 ## Partial function application and closures
 
 The `partial` operator simply takes a function call expression (though doesn't actually call it) and creates a new function with the given argument(s) fixed to the corresponding parameters:
@@ -482,7 +491,7 @@ The `partial` operator simply takes a function call expression (though doesn't a
 func example(a: int, b: int, c: int): int
 	return a*100 + b*10 + c*1
 
-// Odered:
+// Ordered:
 let partialFunc1 = partial example(5)
 let result = partialFunc1(2, 3) // returns 523
 
@@ -492,7 +501,7 @@ let partialFunc2 = partial example(b = 7)
 let result = partialFunc2(a = 2, c = 3) // returns 273
 ```
 
-Closures can be seen as a form of partial application with the captured argument acting as a hidden argument to the function:
+Closures can be seen as a form of partial application with the captured argument acting as an implicit argument to the function:
 
 ```
 func closureExample(a: int): () => int
@@ -502,13 +511,13 @@ func closureExample(a: int): () => int
 	let capturingFunc = (c: int) => b + c
 
 	// Even though the function captures a local variable, it can still be returned as its captured value is
-	// considered constant.
+	// considered partially applied.
 	return capturingFunc
 ```
 
 ## Exception handling (try .. catch .. finally)
 
-Every procedure or function (still under consideration) can potentially throw an exception. The error is considered a phantom return value, thus function purity is not affected (given the same arguments a function would produce a predictable exception).
+Every procedure or function (still under consideration) can potentially throw an exception. The error is considered an implicit return value, thus function purity is not affected (given the same arguments a function would produce a predictable exception).
 
 ```
 proc mightThrowProc(filename: string) => do FileSystem.open(filename)
