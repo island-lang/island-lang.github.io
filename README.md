@@ -450,7 +450,7 @@ let step1 <- step0 // consume the 0th step to produce the first step
 do print(step1.value) // print the first value
 let step2 <- step1 // consume the 1st step to produce the second step
 do print(step2.value) // print the second value
-let step3 <- step2 // consume the 1st step to produce the second step
+let step3 <- step2 // consume the 2nd step to produce the third step
 do print(step3.value) // print the third value
 
 // etc..
