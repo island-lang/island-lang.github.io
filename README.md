@@ -445,6 +445,7 @@ In addition to using `for..in` statements, comprehensions and generators can be 
 
 ```
 let step0 = random(do getCurrentTime()) // Initialize the generator
+
 let step1 <- step0 // consume the 0th step to produce the first step
 do print(step1.value) // print the first value
 let step2 <- step1 // consume the 1st step to produce the second step
@@ -458,6 +459,7 @@ The 'consume' operator, represented by a leftward directed single arrow `<-` can
 
 ```
 let step0 = random(do getCurrentTime()) // Initialize the generator
+
 let step1_1 <- step0 // consume the 0th step to produce the first step
 let step1_2 <- step0 // error: the '<-' operator has already been applied to 'step0'
 ```
