@@ -12,11 +12,11 @@ All Island variables and objects are fully (and deeply) immutable. Once a variab
 
 * Statement blocks and conditional variable assignment
 * For loops: including a constrained form of iteration-scope variable reassignment, carefully designed to emulate purely functional recursion in a more convenient and flexible form.
-* Iterators and generators.
+* Generators and `for..in` loops.
 * Classes and features (also known as traits), with support for inheritance.
 * Closures
 * Exception handling (try-catch): Errors are treated as implicit return values and thus do not degrade function purity.
-* Co-routines and lightweight threads, including a constrained form of Go-like channels communication (note that Island is an intrinsically thread-safe language thus does not require many thread synchronization primitives).
+* Co-routines and lightweight threads, including a constrained form of Go-like channels communication through generators (note that Island is an intrinsically thread-safe language thus does not require many thread synchronization primitives).
 
 As well as:
 
@@ -397,55 +397,6 @@ class Example2 extends Base integrates Greeter
 	a = 15
 
 	greet(): string => "Hello from Example2!"
-```
-
-## Iterators
-
-Iterators allow iterating over a set of values through a `for.. in` loop. Since object mutation is not allowed, they are internally implemented as a chain of immutable objects, where a call to the method `next()` returns the next object in the sequence.
-
-```
-feature Iterable<T>
-	value: T
-	func next(): Iterable<T>?
-
-class Random integrates Iterable<int>
-	seed: int
-	value: int
-
-	new(seed: int)
-		.seed = seed
-		value = ....
-
-	func next() => new Random(value)
-
-// Usage example:
-
-proc main()
-	for rand in new Random(do getCurrentTime())
-		do print(rand)
-
-// Which is equivalent to
-
-proc main()
-	for randObject = (new Random(do getCurrentTime())).next()
-		match randObject:
-			null:
-				break
-			otherwise:
-				do print(randObject.value)
-				continue randObject = randObject.next()
-```
-
-Iterators can support procedures as well:
-
-```
-feature IterableSpectator<T>
-	value: T
-	view proc next(): IterableSpectator<T>?
-
-feature IterableEffector<T>
-	value: T
-	effect proc next(): IterableEffector<T>?
 ```
 
 ## Comprehensions
