@@ -439,6 +439,8 @@ for rand in random(do getCurrentTime())
 	do print(rand)
 ```
 
+_TODO: document `yield return`_
+
 ## Consuming comprehensions and generators through step objects
 
 In addition to using `for..in` statements, comprehensions and generators can be consumed through a lower-level sequence of 'step' objects. A 'step' object is a pseudo-object representing a single 'step' of the comprehension or generator. For example, consuming the random number generator above a few times through step objects would look like:
