@@ -468,7 +468,7 @@ let step1_2 <- step0 // error: the '<-' operator has already been applied to 'st
 
 Since Island is intrinsically a thread-safe language (no possibility of data races within the program scope) concurrency can be expressed safely without a need for lower-level synchronization constructs like mutexes, semaphores and monitors.
 
-Every function, procedure or generator can be launched for concurrent execution using the `spawn` keyword. The `spawn` keyword returns a new `step` object, which can consumed similarly to a generator (functions and procedures are treated as generators with a single `yield` statement before every return position).
+Every function, procedure or generator can be launched for concurrent execution using the `spawn` keyword. The `spawn` keyword returns a new `step` object, which can consumed similarly to a generator (functions and procedures are treated as generators with a single `yield return` statement in place of every `return` statement).
 ```
 func doSomeComplexMath(input: int)
 	....
