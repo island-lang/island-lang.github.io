@@ -1,12 +1,12 @@
 # Island programming language
 
-_Note this is a very early (and incomplete) design draft and is being continuously modified. It isn't certain at this time whether the language would be eventually implemented or only used as an experimentation platform for various ideas and concepts._
+_Note this is a very early (and incomplete) design sketch and is being continuously modified. It isn't certain at this time whether the language would be eventually implemented or only used as an experimentation platform for various ideas and concepts._
 
-**Island** (standing for **I**mmutable, **s**equential, **l**azy, **n**on-**d**estructive) is a statically typed programming language aiming towards simple, approachable, imperative-style syntax and familiar object-oriented concepts while uncompromisingly maintaining full immutability and a clear separation between computations (pure functions in the mathematical sense) and actions (procedures) without requiring the use and understanding of advanced mathematical abstractions (e.g. monads).
+**Island** (standing for **I**mmutable, **s**equentia**l**, **a**nd **n**on-**d**estructive) is a statically typed programming language aiming towards simple, approachable, imperative-style syntax and familiar object-oriented concepts while uncompromisingly maintaining full immutability and a clear separation between computations (pure functions in the mathematical sense) and actions (procedures) without requiring the use and understanding of advanced mathematical abstractions (e.g. monads).
 
 Island introduces a number of innovative features and constructs that try to synthesize and improve on ideas from a wide range of programming languages and paradigms, ranging from academic-style purely functional languages (Haskell, Pure, Clean), hybrid languages (Scala, F#), imperative languages (C#, Java, Go) and dynamic languages (Python, JavaScript/TypeScript).
 
-Island is not an imperative language, nor a traditional functional language. It may be seen to represent a cross of the two paradigms, where in its deeper core it can be decomposed to and evaluated as a reasonably idiomatic purely functional execution flow.
+Island is not an imperative language, nor a traditional functional language. It may be seen to represent a cross (but not a hybrid) of the two paradigms, where in its deeper core it can be decomposed to and evaluated as a reasonably idiomatic purely functional execution flow.
 
 All Island variables and objects are fully (and deeply) immutable. Once a variable or field has been initialized with a value, it cannot be changed, forever. Despite this apparent strict constraint it manages to provide the programmer with convenient syntax and abstractions, many of which were once associated exclusively with imperative programming. These include:
 
@@ -16,8 +16,7 @@ All Island variables and objects are fully (and deeply) immutable. Once a variab
 * Classes and features (also known as traits), with support for inheritance.
 * Closures
 * Exception handling (try-catch): Errors are treated as implicit return values and thus do not degrade function purity.
-* Async/await and async iterators/generators (for procedure contexts).
-* Channels (for procedure contexts)
+* Co-routines and lightweight threads, including a constrained form of Go-like channels communication (note that Island is an intrinsically thread-safe language thus does not require many thread synchronization primitives).
 
 As well as:
 
@@ -33,6 +32,7 @@ As well as:
 * Type aliases
 * Contracts, including a basic level of static verification built into the compiler
 * Flow analysis as a fundamental component of the compilation process
+* Automatic memoization based on static code analysis.
 
 ## Variables
 
@@ -102,7 +102,6 @@ let multiply2 = (a: int) => a * 2
 * `case` statements are similar to `if..else if..else` in other languages, but additionally support a form of pattern matching for lists, tuples and objects (e.g. `b ~= [_, _, let xs...]`).
 
 ```
-
 func example1_match(a: int, b: int[]): int
 	match a, b:
 		-1, [_]:             return b[0:1]
@@ -142,7 +141,7 @@ For loops appear somewhat similar but behave a bit differently from their counte
 
 The general header form is `for ...<loop and outer scope variable declarations>.. [while <condition>]`.
 
-Every possible execution branch in the loop body must end with either:
+Every possible execution branch within the loop body must end with either:
 * `continue <next variable values>`
 * `break <final out variable values>`
 * `return <returned value>`
@@ -196,8 +195,8 @@ func compareStrings(str1: string, str2: string): int
 
 The `for..in` (or `foreach` in some languages) functionality is supported as well (and will accept any iterator - explained later in this article). It can appear multiple times (first iterator to finish ends the loop):
 ```
-func indexOf(list: int[], target: int): int
-	for let num in list, let i in 0..
+func indexOf(values: int[], target: int): int
+	for let num in values, let i in 0..
 		case:
 			num == target: return i
 			otherwise:     continue
@@ -207,7 +206,7 @@ func indexOf(list: int[], target: int): int
 
 ## Functions and Procedures
 
-A function is guaranteed to act like true mathematical function. A `func` cannot cause or observe any side effects and must return the exact same value given the same arguments (referential transparency). In a sense, an Island function is even "purer" than a Haskell function, since calling a Haskell function might still technically induce a side effect, despite returning an opaque return type (e.g. `IO string` or `IO ()`).
+A function is guaranteed to act like true mathematical function. A `func` cannot cause or observe any side effects and must return the exact same value given the same arguments (referential transparency property). In a sense, an Island function is even "purer" than a Haskell function, since calling an arbitrary Haskell function might still potentially induce a side effect, despite returning an opaque return type (e.g. `IO string` or `IO ()`).
 
 To allow for side effects, `proc`s (procedures) are used instead:
 
@@ -223,7 +222,7 @@ proc main()
 	(let x, let y) = do getMousePosition()
 ```
 
-(_Note: unlike the concept of a 'procedure' in older languages like Ada and Pascal. A Island procedure can have return values and thus effectively act like a normal function_)
+(_Note: unlike the concept of a 'procedure' in older languages like Ada and Pascal. An Island procedure can have return values and thus effectively act like a normal function_)
 
 Despite procedures allowing for side-effects outside the program scope, they still strictly follow the immutability principle: variables and objects defined in `proc` scopes still cannot be reassigned or mutated in any way.
 
@@ -378,10 +377,10 @@ class Dog extends Animal
 
 ## Features (AKA traits, interfaces with default method implementations)
 
-A `feature` is similar to a `trait` in Scala or an `interface` with a default method implementations in Java 8. Features are structural, this means that a `class` does not have to explicitly state it implements one as long as it follows the structure. The `integrates` keywords is used to either:
+A `feature` is similar to a `trait` in Scala or an `interface` with a default method implementation in Java 8. Features are structural, this means that a `class` does not have to explicitly state it implements one as long as it follows the structure. The `integrates` keywords is used to either:
 
 * Ensure that a class correctly implements a feature.
-* Import the default method implementations from the feature's definition.
+* Import default method implementations from the feature's definition.
 
 ```
 feature Greeter
@@ -449,36 +448,101 @@ feature IterableEffector<T>
 	effect proc next(): IterableEffector<T>?
 ```
 
-## Generators
+## Comprehensions
 
-Generators have a syntax very similar to JavaScript (ES2016) generators, and are syntactic sugar to iterator classes:
+Comprehensions are high-level, declarative descriptions for the generation of a lazy sequence of values that can be consumed by `for..in` statements. They can be either finite or infinite. For example `0..100` describes the finite sequence of integers between `0` and `100`. `200..` describes an infinite sequence starting at `200`, and continuing indefinitely up to infinity.
 
-```
-func* genFunc()
-	yield 100
-	yield 200
-	yield 300
+_TODO: design and add extended comprehension forms_
 
-// Desugared to
+## Generators (step functions and procedures)
 
-class Generator_genFunc integrates Iterable<int>
-	let step: int = -1
-	let value: int? = null
+Generators (also called `step` functions and procedures) can be seen as more 'powerful' forms of comprehensions. They specify sequences in a more programmatically natural and comprehensive and way.
 
-	func next()
-		match step:
-			-1: return Generator_genFunc(step = step + 1, value = 100)
-			0:  return Generator_genFunc(step = step + 1, value = 200)
-			1:  return Generator_genFunc(step = step + 1, value = 300)
-			otherwise:  return null
-```
-
-Generators can `yield` within loops, including non-terminating ones:
+Generators are laid-out similarly to normal functions and procedures, but may include a `yield` statement at any point to denote a value that's being produced by the generator:
 
 ```
-func* genFunc()
-	for i in 1..
-		yield i * 100
+step func oneToThree()
+	yield 1
+	yield 2
+	yield 3
+```
+Which can be consumed in the following way:
+```
+for num in oneToThree()
+	do print(num)
+
+// Prints 1, 2, 3
+```
+
+The `yield` statement can also appear within a loop. For example, this generators produces a sequence of psuedo-random numbers defined by a seed.
+```
+step func random(seed: int)
+	for let currentRand = seed, _ in 0..
+		let nextRand = /*... transform current psuedorandom value to next one ...*/
+		yield nextRand
+		continue currentRand = nextRand
+```
+Which can be consumed by:
+```
+for rand in random(do getCurrentTime())
+	do print(rand)
+```
+
+## Consuming comprehensions and generators through step objects
+
+In addition to using `for..in` statements, comprehensions and generators can be consumed through a lower-level sequence of 'step' objects. A 'step' object is a pseudo-object representing a single 'step' of the comprehension or generator. For example, consuming the random number generator above a few times through step objects would look like:
+
+```
+let step0 = random(do getCurrentTime()) // Initialize the generator
+let step1 <- step0 // consume the 0th step to produce the first step
+do print(step1.value) // print the first value
+let step2 <- step1 // consume the 1st step to produce the second step
+do print(step2.value) // print the second value
+let step3 <- step2 // consume the 1st step to produce the second step
+do print(step3.value) // print the third value
+
+// etc..
+```
+The 'consume' operator, represented by a leftward directed single arrow `<-` can only be applied once. E.g. the following would cause a compilation error:
+
+```
+let step0 = random(do getCurrentTime()) // Initialize the generator
+let step1_1 <- step0 // consume the 0th step to produce the first step
+let step1_2 <- step0 // error: the '<-' operator has already been applied to 'step0'
+```
+
+## Coroutines and concurrent functions, procedures and generators
+
+Since Island is intrinsically a thread-safe language (no possibility of data races within the program scope) concurrency can be expressed safely without a need for lower-level synchronization constructs like mutexes, semaphores and monitors.
+
+Every function, procedure or generator can be launched for concurrent execution using the `spawn` keyword. The `spawn` keyword returns a new `step` object, which can consumed similarly to a generator (functions and procedures are treated as generators with a single `yield` statement before every return position).
+```
+func doSomeComplexMath(input: int)
+	....
+
+proc main()
+	let resultStep = spawn doSomeComplexMath(1234)
+	... // anything here would be computed concurrently to the 'doSomeComplexMath' function
+	let result <- resultStep // this would wait until the function's execution
+	                         // has finished before assigning to 'result'
+```
+
+Spawned generators can be executed concurrently within `for..in` statements. In each iteration of the loop, the next psuedo-random value is precomputed concurrently while the loop body is executing.
+
+```
+for rand in (spawn random(do getCurrentTime()))
+	// .. do something .. meanwhile, the next 'rand' is calculated in the background
+```
+
+`yield`ed values can optionally be set to be produced without waiting for the consumer to consume them. This can be specified individually for each produced value with the `yield buffer` statement:
+
+The following would unconditionally yield the first two values but wait for the consumer to 'synchronize' up to the third value before continuing:
+```
+step func oneToFourBuffered()
+	yield buffer 1
+	yield buffer 2
+	yield 3
+	yield buffer 4
 ```
 
 ## Partial function application and closures
