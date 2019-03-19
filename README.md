@@ -111,10 +111,10 @@ func example1_match(a: int, b: int[]): int
 
 func example1_case(a: int, b: int[]): int
 	case:
-		a == -1 && b ~= [_]:             return b[0:1]
-		a == 0 && b ~= [_, _]:           return b[1:]
-		a == 1 && b ~= [_, _, _, ...]:   return b[2:]
-		otherwise:                       return []
+		a == -1 and b ~= [_]:             return b[0:1]
+		a == 0  and b ~= [_, _]:          return b[1:]
+		a == 1  and b ~= [_, _, _, ...]:  return b[2:]
+		otherwise:                        return []
 
 func example2_match(a: int, b: int[]): int
 	match a, b:
@@ -127,12 +127,12 @@ func example2_match(a: int, b: int[]): int
 
 func example2_case(a: int, b: int[]): int
 	case:
-		a == 0 && b ~= [let x]:           return x
-		a == 1 && b ~= [let x, let y]:    return (x + y) / 2
-		a == 2 && b ~= [_, _, let xs...]: return listAverage(xs)
-		a == 3 && b == []:                return 100
-		a == 4 && b == []:                return 101
-		otherwise:                        return 0
+		a == 0 and b ~= [let x]:           return x
+		a == 1 and b ~= [let x, let y]:    return (x + y) / 2
+		a == 2 and b ~= [_, _, let xs...]: return listAverage(xs)
+		a == 3 and b == []:                return 100
+		a == 4 and b == []:                return 101
+		otherwise:                         return 0
 ```
 
 ## For loops
