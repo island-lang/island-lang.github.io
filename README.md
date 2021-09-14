@@ -8,7 +8,100 @@ However, the language cannot be formally classified as imperative (it has no mut
 
 The language also includes a statically-typed **logic programming subsystem**, that attempts to deviate from the Prolog tradition - which mostly concentrates on the centrality of relations, and instead encourage tight interconnections between relations, functions and objects as complementary entities.
 
-[TOC]
+# Table of contents
+
+- [Introduction](#introduction)
+  * [Design goals and constraints](#design-goals-and-constraints)
+- [Fundamentals](#fundamentals)
+  * [Variables and assignment](#variables-and-assignment)
+  * [Variable scoping](#variable-scoping)
+  * [Deferred initialization](#deferred-initialization)
+  * [Primitive data types](#primitive-data-types)
+  * [Collection types: lists, tuples, dictionaries and sets](#collection-types--lists--tuples--dictionaries-and-sets)
+  * [Unpacking](#unpacking)
+- [Subroutines](#subroutines)
+  * [Functions, actions and computed variables](#functions--actions-and-computed-variables)
+  * [Named and default arguments](#named-and-default-arguments)
+  * [First-class methods and lexical closures](#first-class-methods-and-lexical-closures)
+  * [Anonymous methods](#anonymous-methods)
+  * [Method overloading](#method-overloading)
+  * [Function and action types](#function-and-action-types)
+  * [Rest parameters](#rest-parameters)
+  * [Arguments collection](#arguments-collection)
+  * [Partial application](#partial-application)
+  * [Abstract method types](#abstract-method-types)
+  * [Strong and weak side-effect scopes](#strong-and-weak-side-effect-scopes)
+- [Control flow](#control-flow)
+  * [Conditionals](#conditionals)
+  * [Pattern matching](#pattern-matching)
+  * [Matched parameters](#matched-parameters)
+  * [Exhaustiveness checking](#exhaustiveness-checking)
+  * [Single pattern matching](#single-pattern-matching)
+  * [Loops](#loops)
+  * [Shorthand `with` expressions in `continue` and `break` statements](#shorthand--with--expressions-in--continue--and--break--statements)
+- [Data streams](#data-streams)
+  * [Stream methods](#stream-methods)
+  * [Accumulative streams and named return variables](#accumulative-streams-and-named-return-variables)
+  * [List and stream comprehensions](#list-and-stream-comprehensions)
+  * [For-loops as methods](#for-loops-as-methods)
+- [Compound and polymorphic data types](#compound-and-polymorphic-data-types)
+  * [Classes and objects](#classes-and-objects)
+  * [Extension](#extension)
+  * [Abstract classes](#abstract-classes)
+  * [Fixed fields and partially constructed objects](#fixed-fields-and-partially-constructed-objects)
+  * [Type objects](#type-objects)
+  * [Traits](#traits)
+  * [Expansion](#expansion)
+  * [Generics](#generics)
+  * [Type traits](#type-traits)
+  * [Polymorphic subtyping rules (covariance and contravariance)](#polymorphic-subtyping-rules--covariance-and-contravariance-)
+- [Concurrency, parallelism and lazy evaluation](#concurrency--parallelism-and-lazy-evaluation)
+  * [Computed variables and values](#computed-variables-and-values)
+  * [Concurrent and parallel execution with the `spawn` keyword](#concurrent-and-parallel-execution-with-the--spawn--keyword)
+- [Contracts](#contracts)
+  * [Contracts](#contracts-1)
+- [Type abstractions](#type-abstractions)
+  * [Refinement and assertion types](#refinement-and-assertion-types)
+  * [Type aliases](#type-aliases)
+  * [Choice types](#choice-types)
+  * [Variant types](#variant-types)
+  * [Enumerations](#enumerations)
+  * [The `nothing` type and the `?` operator](#the--nothing--type-and-the-----operator)
+  * [The `any` type](#the--any--type)
+  * [The `never` type](#the--never--type)
+  * [Join types](#join-types)
+  * [Member type references](#member-type-references)
+  * [Higher-kinded traits](#higher-kinded-traits)
+- [Reactive programming](#reactive-programming)
+  * [Reactive values](#reactive-values)
+- [Exception handling](#exception-handling)
+  * [Failure types](#failure-types)
+  * [Returning the failure type from a method](#returning-the-failure-type-from-a-method)
+  * [Using `check`..`detect` (action scopes only)](#using--check--detect---action-scopes-only-)
+- [Logic programming](#logic-programming)
+  * [Relations, facts and rules](#relations--facts-and-rules)
+  * [Relation predicates, functions and streams](#relation-predicates--functions-and-streams)
+  * [Higher-order relations](#higher-order-relations)
+  * [Immutability and determinism in the logic programming subsystem](#immutability-and-determinism-in-the-logic-programming-subsystem)
+- [Patterns and parsers](#patterns-and-parsers)
+  * [Pattern methods](#pattern-methods)
+- [Symbolic data structures](#symbolic-data-structures)
+  * [Symbolic structures](#symbolic-structures)
+- [Misc. topics](#misc-topics)
+  * [Recursion sugar and the `param` modifier](#recursion-sugar-and-the--param--modifier)
+  * [Deep comparison](#deep-comparison)
+- [TODO](#todo)
+  * [Namespaces](#namespaces)
+  * [Modules](#modules)
+  * [Attributes](#attributes)
+  * [Infix functions](#infix-functions)
+  * [Reflection](#reflection)
+  * [Memoization](#memoization)
+  * [Compile-time execution](#compile-time-execution)
+- [Closing chapter](#closing-chapter)
+  * [Influences](#influences)
+  * [Copyrights](#copyrights)
+
 # Introduction
 
 ## Design goals and constraints
@@ -890,7 +983,7 @@ function firstTwoElementsAreConsecutive(values: List<integer>): boolean
 
 **Loops** are control flow statements for specifying code to be executed repeatedly.
 
-In Island, **loops are based on functions** and describe iterative progression in a more declarative way than in conventional imperative languages.
+In Island, **loops are grounded in tail-recursive functions** and describe iterative progression in a more declarative way than in conventional imperative languages.
 
 Island's `for` loops maintain immutability for all variables within the scope of **each individual iteration** of the loop. This is achieved by:
 * Requiring all alterable variables to be declared at the head of the loop.
@@ -910,7 +1003,7 @@ function factorial(num: integer)
 
 It may seem, at first, like `i` and `result` are no different than mutable variables, since they can be repeatedly modified at every iteration, however, they are not actually mutable because they are not real variables!
 
-Since Island loops are basically functions, `i` and `result` are very similar to a function parameter and a return variable, respectively.
+Since Island loops act a lot like functions, `i` and `result` could be thought as being similar to a function parameter and a return variable, respectively. And since the `continue` statement is only run at the moment the loop is ready to proceed to its next iteration, it can be seen as "restarting" the loop with different initial state, rather than mutating it.
 
 For comparison, here is equivalent code, written using a tail-recursive function (reference code lines are in the comments):
 ```isl
