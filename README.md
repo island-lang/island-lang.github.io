@@ -2,11 +2,11 @@
 
 **Island** (**I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of imperative, functional, object-oriented, and logic programming.
 
-In its overall appearance and style, it aims to follow a pragmatic programming approach aimed at real-world applications, and generally inclined towards the imperative, sequential programming style.
+It primarily aims to serve as a pragmatic programming tool for real-world applications, and generally inclined towards the imperative, sequential programming style.
 
-However, the language cannot be formally classified as imperative (it has no mutable state), nor as truly functional (it does not promote an idiomatically functional style), nor as traditionally object-oriented language. It is not intended as a hybrid language, but represents a conceptually independent programming approach named **stateless-sequential programming**.
+However, the language cannot be formally classified as imperative (it has **no mutable state**), nor as truly functional (it does not promote an idiomatically functional style), nor as traditionally object-oriented language. It is not intended as a hybrid language, but represents a conceptually independent programming approach named **stateless-sequential programming**.
 
-The language also embeds an statically-typed **logic programming subsystem**, that significantly deviates from the Prolog tradition - which mostly concentrates on the centrality of relations, and instead encourages tight interconnections between relations, functions and objects as complementary entities.
+The language also embeds a statically-typed **logic programming subsystem**, that significantly deviates from the Prolog tradition - which mostly concentrates on the centrality of relations - and instead encourages tight interconnections between relations, functions and objects as complementary entities.
 
 [TOC]
 # Introduction
@@ -47,7 +47,7 @@ x = 25 // Error: invalid reassignment of 'x'
 
 ## Variable scoping
 
-Variables are accessible within both their declared scope and any of its nested scopes:
+Variables are accessible from within both their declared scope and any of its nested scopes:
 ```isl
 let x = 1
 let greeting = "Hello"
@@ -56,7 +56,7 @@ if x > 0
 	print(greeting)
 ```
 
-Variables redeclared using an existing name in a child scope will shadow the ones in the parent scope:
+Variables redeclared using an existing name in an inner scope will shadow the ones in the outer scope:
 ```isl
 let x = 1
 let greeting = "Hello"
@@ -68,7 +68,7 @@ if x > 0
 print(greeting) // Prints "Hello"
 ```
 
-Newly declared variables reusing an existing name will replace the previous one if redeclared in the same scope:
+Newly declared variable reusing an existing name will replace the previous one if redeclared in the same scope:
 ```isl
 let greeting = "Hello"
 let greeting = "Hi" // This is permitted since the previous binding of `greeting` is not reachable anymore
@@ -100,7 +100,7 @@ otherwise
 	greeting = "Hi"
 ```
 
-If a type is not specified, it would be inferred as long as the assigned values share the same underlying type:
+If a type is not specified, it would be automatically inferred as long as the assigned values share the same underlying type:
 ```isl
 let greeting
 
@@ -119,9 +119,7 @@ let greeting
 if x > 0
 	greeting = "Hello"
 else
-	greeting = 24
-
-// Compiler error
+	greeting = 24 // Error: incompatible types
 ```
 
 ## Primitive data types
@@ -195,7 +193,7 @@ let myTuple: (greeting: string, someNumber: integer) = ("Hi", 24)
 let alteredTuple = myTuple with someNumber = 42
 ```
 
-Island doesn't support 1 or 0 member tuples:
+Island doesn't support 1 or 0 arity tuples:
 ```isl
 let x = (5) // `x` gets the plain type `integer`, there's no single member tuple `(integer)` in Island
 let x = () // syntax error, `()` doesn't mean anything in Island
@@ -249,7 +247,7 @@ let (x, _, z) = getTuple() // x = 1, z = 3
 let (n, ...) = getTuple()  // n = 1
 ```
 
-Objects are unpacked based on the order of declared members:
+Objects (introduced in a future chapter) are unpacked based on the order of declared members:
 ```isl
 class Person
 	firstName: string
@@ -292,7 +290,7 @@ let result = sum3(2, 3, 4)
 print("Result: {result}")
 ```
 
-**Actions** extend functions and allow for side-effects. Like functions, actions can return values but can only be called from other actions (or the topmost scope):
+**Actions** extend functions and allow for external side-effects. Actions can return values but can only be called from other actions (or the topmost scope):
 ```isl
 action printNameAndAge(name: string, age: integer)
 	print("Name: {name}, Age: {age}")
@@ -301,7 +299,21 @@ action printNameAndAge(name: string, age: integer)
 let status = printNameAndAge("John Smith", 35) // Prints "Name: John Smith, Age: 35" and returns "OK"
 ```
 
-**Computed variables** are functions that are used as normal variables and that are only evaluated when first used:
+Despite allowing for "impure" operations like writing or reading from a file, actions do not allow for side-effects _internal_ to the program itself, since all variables and values are always guaranteed to be immutable. This doesn't prevent, however, mutable state to be weakly "emulated" through, say, reading and writing from a file:
+
+```isl
+action readMutableState() => readFile("myFile.state")
+action writeMutableState(data: string) => writeFile("myFile.state")
+
+let initialData = readMutableState()
+writeMutableState(initialState + " changed!")
+
+let modifiedData = readMutableState()
+```
+
+The program can read and write to external mutable state, however, the data must be read into a new variable (here `modifiedData`) so the _internal_ state of the program is never directly altered.
+
+**Computed variables** are functions that are referenced as plain variables. They are only evaluated when first used:
 
 Short form:
 ```isl
@@ -476,7 +488,7 @@ let print5And3AndNumber = printTwoNumbers(5, 3, ...)
 print5And3AndNumber(1) // prints "5 3 1"
 ```
 
-To partially apply with a value for a parameter that is not the first, the `with` operator can be used:
+The `with` operator can be used to partially apply any subset of parameters:
 ```isl
 let alteredAction = printThreeNumbers with b = 11
 // alteredAction has the signature alteredAction(a: integer, c: integer)
@@ -485,7 +497,7 @@ alteredAction(a: 4, c: 8) // Prints 4, 11, 8
 alteredAction(c: 6) // Error: an argument for `a` must be specified
 ```
 
-Methods may be altered any amount of times:
+Methods may be altered any number of times:
 ```isl
 let secondaryAlteredAction = alteredAction with a = 94
 // secondaryAlteredAction has the signature secondaryAlteredAction(c: integer)
@@ -894,7 +906,7 @@ function firstTwoElementsAreConsecutive(values: List<integer>): boolean
 
 ## Loops
 
-**Loops** are control flow statements for specifying code to be executed repeatedly.
+**Loops** are control flow mechanisms for specifying code to be executed repeatedly.
 
 In Island, **loops are grounded in functional iteration patterns** and describe iterative progression in a more declarative way than in conventional imperative languages.
 
@@ -918,7 +930,7 @@ It may seem, at first, like `i` and `result` are no different than mutable varia
 
 Since Island loops act a lot like functions, `i` and `result` could be thought as being analogous to a function parameter and a return variable. Since the `continue` statement is only executed at the moment the loop is ready to proceed to its next iteration, it can be seen as if the loop is "restarting" with a different initial state. This is analogous to a function being repeatedly tail-recursively invoked with a different set of arguments.
 
-For comparison, here is equivalent code, written using a tail-recursive function (reference code lines are in the comments):
+For comparison, here is equivalent code, translated to a tail-recursive function (reference code lines are in the comments):
 ```isl
 function factorial(num: integer)
 	// for i = 1, out result = 1
