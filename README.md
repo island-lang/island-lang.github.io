@@ -2,111 +2,18 @@
 
 **Island** (**I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of imperative, functional, object-oriented, and logic programming.
 
-In its overall appearance and style, it may be characterized as following the "straightforward" style of programming - i.e. a practical, non-academic programming approach aimed at real-world use-cases and mostly inclined towards the imperative, sequential programming style.
+In its overall appearance and style, it attempts to follow a practical, non-academic programming approach aimed at real-world applications and mostly inclined towards the imperative, sequential programming style.
 
-However, the language cannot be formally classified as imperative (it has no mutable state), nor as truly functional (it doesn't promote an idiomatically functional style), nor as traditionally object-oriented or logic programming language. It is not intended to be a hybrid language, but attempts to promote a novel programming approach named **stateless-sequential programming**.
+However, the language cannot be formally classified as imperative (it has no mutable state), nor as truly functional (it doesn't promote an idiomatically functional style), nor as a traditional object-oriented language. It is not intended as a hybrid language, but attempts to promote a conceptually independent programming approach named **stateless-sequential programming**.
 
-The language also includes a statically-typed **logic programming subsystem**, that attempts to deviate from the Prolog tradition - which mostly concentrates on the centrality of relations, and instead encourage tight interconnections between relations, functions and objects as complementary entities.
+The language also embeds an statically-typed **logic programming subsystem**, which significantly deviates from the Prolog tradition, that mostly concentrates on the centrality of relations, and instead encourages tight interconnections between relations, functions, generators and objects as complementary entities.
 
-# Table of contents
-
-- [Introduction](#introduction)
-  * [Design goals and constraints](#design-goals-and-constraints)
-- [Fundamentals](#fundamentals)
-  * [Variables and assignment](#variables-and-assignment)
-  * [Variable scoping](#variable-scoping)
-  * [Deferred initialization](#deferred-initialization)
-  * [Primitive data types](#primitive-data-types)
-  * [Collection types: lists, tuples, dictionaries and sets](#collection-types--lists--tuples--dictionaries-and-sets)
-  * [Unpacking](#unpacking)
-- [Subroutines](#subroutines)
-  * [Functions, actions and computed variables](#functions--actions-and-computed-variables)
-  * [Named and default arguments](#named-and-default-arguments)
-  * [First-class methods and lexical closures](#first-class-methods-and-lexical-closures)
-  * [Anonymous methods](#anonymous-methods)
-  * [Method overloading](#method-overloading)
-  * [Function and action types](#function-and-action-types)
-  * [Rest parameters](#rest-parameters)
-  * [Arguments collection](#arguments-collection)
-  * [Partial application](#partial-application)
-  * [Abstract method types](#abstract-method-types)
-  * [Strong and weak side-effect scopes](#strong-and-weak-side-effect-scopes)
-- [Control flow](#control-flow)
-  * [Conditionals](#conditionals)
-  * [Pattern matching](#pattern-matching)
-  * [Matched parameters](#matched-parameters)
-  * [Exhaustiveness checking](#exhaustiveness-checking)
-  * [Single pattern matching](#single-pattern-matching)
-  * [Loops](#loops)
-  * [Shorthand `with` expressions in `continue` and `break` statements](#shorthand--with--expressions-in--continue--and--break--statements)
-- [Data streams](#data-streams)
-  * [Stream methods](#stream-methods)
-  * [Accumulative streams and named return variables](#accumulative-streams-and-named-return-variables)
-  * [List and stream comprehensions](#list-and-stream-comprehensions)
-  * [For-loops as methods](#for-loops-as-methods)
-- [Compound and polymorphic data types](#compound-and-polymorphic-data-types)
-  * [Classes and objects](#classes-and-objects)
-  * [Extension](#extension)
-  * [Abstract classes](#abstract-classes)
-  * [Fixed fields and partially constructed objects](#fixed-fields-and-partially-constructed-objects)
-  * [Type objects](#type-objects)
-  * [Traits](#traits)
-  * [Expansion](#expansion)
-  * [Generics](#generics)
-  * [Type traits](#type-traits)
-  * [Polymorphic subtyping rules (covariance and contravariance)](#polymorphic-subtyping-rules--covariance-and-contravariance-)
-- [Concurrency, parallelism and lazy evaluation](#concurrency--parallelism-and-lazy-evaluation)
-  * [Computed variables and values](#computed-variables-and-values)
-  * [Concurrent and parallel execution with the `spawn` keyword](#concurrent-and-parallel-execution-with-the--spawn--keyword)
-- [Contracts](#contracts)
-  * [Contracts](#contracts-1)
-- [Type abstractions](#type-abstractions)
-  * [Refinement and assertion types](#refinement-and-assertion-types)
-  * [Type aliases](#type-aliases)
-  * [Choice types](#choice-types)
-  * [Variant types](#variant-types)
-  * [Enumerations](#enumerations)
-  * [The `nothing` type and the `?` operator](#the--nothing--type-and-the-----operator)
-  * [The `any` type](#the--any--type)
-  * [The `never` type](#the--never--type)
-  * [Join types](#join-types)
-  * [Member type references](#member-type-references)
-  * [Higher-kinded traits](#higher-kinded-traits)
-- [Reactive programming](#reactive-programming)
-  * [Reactive values](#reactive-values)
-- [Exception handling](#exception-handling)
-  * [Failure types](#failure-types)
-  * [Returning the failure type from a method](#returning-the-failure-type-from-a-method)
-  * [Using `check`..`detect` (action scopes only)](#using--check--detect---action-scopes-only-)
-- [Logic programming](#logic-programming)
-  * [Relations, facts and rules](#relations--facts-and-rules)
-  * [Relation predicates, functions and streams](#relation-predicates--functions-and-streams)
-  * [Higher-order relations](#higher-order-relations)
-  * [Immutability and determinism in the logic programming subsystem](#immutability-and-determinism-in-the-logic-programming-subsystem)
-- [Patterns and parsers](#patterns-and-parsers)
-  * [Pattern methods](#pattern-methods)
-- [Symbolic data structures](#symbolic-data-structures)
-  * [Symbolic structures](#symbolic-structures)
-- [Misc. topics](#misc-topics)
-  * [Recursion sugar and the `param` modifier](#recursion-sugar-and-the--param--modifier)
-  * [Deep comparison](#deep-comparison)
-- [TODO](#todo)
-  * [Namespaces](#namespaces)
-  * [Modules](#modules)
-  * [Attributes](#attributes)
-  * [Infix functions](#infix-functions)
-  * [Reflection](#reflection)
-  * [Memoization](#memoization)
-  * [Compile-time execution](#compile-time-execution)
-- [Closing chapter](#closing-chapter)
-  * [Influences](#influences)
-  * [Copyrights](#copyrights)
-
+[TOC]
 # Introduction
 
 ## Design goals and constraints
 
-* Constrain all variables and values to be strictly immutable. I.e. both variables (locally and globally scoped) and values (primitive and compound objects) must maintain their initial value, forever.
+* **Require all variables and values to be strictly immutable**. I.e. both variables (locally and globally scoped, including object fields) and values (primitive and compound objects) must maintain their initial value, forever.
 * Adapt common imperative constructs like loops, objects and generators, while maintaining strict adherence to full immutability.
 * Maintain a strict separation between pure and side-effect scopes (e.g. `function` vs `action`).
 * Maintain a look-and-feel roughly resembling popular imperative languages (e.g Python, Swift, C#, TypeScript).
@@ -120,21 +27,27 @@ The language also includes a statically-typed **logic programming subsystem**, t
 
 ## Variables and assignment
 
-Variables are defined using the `let` keyword, and can only be assigned once:
+Variables are defined using the `let` keyword:
 ```isl
 let x = 24
 let greeting = "Hello"
 ```
 
-Types will be inferred using the values provided, but can also be declared explicitly:
+Types will be inferred using the values provided, but can also be annotated explicitly:
 ```isl
 let x: integer = 24
 let greeting: string = "Hello"
 ```
 
+**Variables can only be assigned once**:
+```isl
+let x = 24
+x = 25 // Error: invalid reassignment of 'x'
+```
+
 ## Variable scoping
 
-Variables are accessible both in their declared and nested scopes:
+Variables are accessible within both their declared scope and any of its nested scopes:
 ```isl
 let x = 1
 let greeting = "Hello"
@@ -629,7 +542,7 @@ _Note that due to contravariance of function parameters (described in a future c
 
 ## Strong and weak side-effect scopes
 
-Up until now, we've made a clear distinction between "pure" and "side-effect" scopes. Functions encompass purely deterministic computations. Procedures, on the other hand, allow for external interaction (I/O, file reads and writes) as well as unpredictable operations (e.g. random number generators, timers etc.).
+Up until now, we've made a clear distinction between "pure" and "side-effect" scopes. Functions encompass purely deterministic computations. Actions, on the other hand, allow for external interaction (I/O, file reads and writes) as well as unpredictable operations (e.g. random number generators, timers etc.).
 
 We can refine the distinction further to distinguish between two main classes of side-effects:
 1. Operations inducing clear impact on the external environment. e.g. writing to a file, moving a robot arm, displaying information on the monitor etc.
@@ -983,7 +896,7 @@ function firstTwoElementsAreConsecutive(values: List<integer>): boolean
 
 **Loops** are control flow statements for specifying code to be executed repeatedly.
 
-In Island, **loops are grounded in tail-recursive functions** and describe iterative progression in a more declarative way than in conventional imperative languages.
+In Island, **loops are grounded in functional iteration patterns** and describe iterative progression in a more declarative way than in conventional imperative languages.
 
 Island's `for` loops maintain immutability for all variables within the scope of **each individual iteration** of the loop. This is achieved by:
 * Requiring all alterable variables to be declared at the head of the loop.
@@ -1003,7 +916,7 @@ function factorial(num: integer)
 
 It may seem, at first, like `i` and `result` are no different than mutable variables, since they can be repeatedly modified at every iteration, however, they are not actually mutable because they are not real variables!
 
-Since Island loops act a lot like functions, `i` and `result` could be thought as being similar to a function parameter and a return variable, respectively. And since the `continue` statement is only run at the moment the loop is ready to proceed to its next iteration, it can be seen as "restarting" the loop with different initial state, rather than mutating it.
+Since Island loops act a lot like functions, `i` and `result` could be thought as being similar to a function parameter and a return variable, respectively. Since the `continue` statement is only executed at the moment the loop is ready to proceed to its next iteration, it can be seen as if the loop is "restarting" with a different initial state. This is analogous to a function being tail-recursively invoked with a different set of arguments.
 
 For comparison, here is equivalent code, written using a tail-recursive function (reference code lines are in the comments):
 ```isl
@@ -1836,14 +1749,14 @@ Say we wanted to derive a class for a person who must be male and whose last nam
 ```isl
 class MrSmith extends Person
 	final lastName = "Smith"
-	final gender = Male
+	final gender = Gender.Male
 ```
 
 A major limitation of this approach is that it can only work with values that are known at compile-time. What if we wanted to "partially apply" the `Person` class with some arbitrary values for `lastName` and `gender` that are only known at run-time?
 
 This can be done using the `with` operator:
 ```isl
-let mrSmith = Person with lastName = "Smith", gender = Male
+let mrSmith = Person with lastName = "Smith", gender = Gender.Male
 ```
 
 Because some of `mrSmith`'s fields (namely `firstName` and `age`) are missing (and do not have default values), a full instance of `Person` could not be constructed. Instead, the resulting value - `mrSmith` is not an object of type `Person`, but of the type `partial Person with lastName, gender`.
@@ -1856,7 +1769,7 @@ class Person
 
 	[uses gender, lastName]
 	computed titleAndLastName() =>
-		"{when gender == Male: "Mr.", otherwise: "Ms."} {lastName}"
+		"{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
 
 	[uses firstName, lastName]
 	computed fullName() => "{firstName} {lastName}"
@@ -3670,13 +3583,13 @@ relation Abs
 			Negation(number, let negation)
 			Equals(abs, negation)
 
-MathRelations.Abs(-65, 100).exists // returns false
-MathRelations.Abs(-65, 65).exists // returns true
-MathRelations.Abs(-65, _).first?.abs // returns 65
-MathRelations.Abs(_, 65).first?.number // returns -65
+Abs(-65, 100).exists // returns false
+Abs(-65, 65).exists // returns true
+Abs(-65, _).first?.abs // returns 65
+Abs(_, 65).first?.number // returns -65
 
 // This will query for any two numbers where the second is the absolute value of the first:
-for (number, abs) in MathRelations.Abs(_, _)
+for (number, abs) in Abs(_, _)
 	print("({number}, {abs})")
 
 	// prints "(0, 0)", "(-1, 1)", "(1, -1)", "(-2, 2)", ...
@@ -3808,7 +3721,7 @@ relation AllMembersGreaterThan
 The logic programming subsystem is fully compliant with the immutability constraint. A rule's arguments can be either assigned (meaning they are bound to a concrete value) or unassigned. If they are assigned they cannot accept a new value (there's simply no mechanism to do that) and if they are unassigned they can only be assigned once by a subgoal.
 
 Determinism (which is related to the property of referential transparency), means that an invocation of a relation with the same arguments would always yield the same results, and in the same order. Determinism is preserved since:
-* There is no `relation procedure`. Relations do not have any side-effects.
+* There is no `action relation`. Relations do not have any side-effects.
 * Objects containing relations cannot be modified in-place. Facts cannot be added or removed from a relation unless the object is copied first (as is done with the `with` operator).
 * The inference engine is designed to always perform the search in the same order (even if the search is parallelized), so given the same clauses and fact database, it would always produce identical results (note it is meant that it would produce the same results **for a given runtime session**, changes in the ordering of declarations or files, or different versions of the compiler, might cause variations in the ordering).
 

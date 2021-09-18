@@ -1,0 +1,10 @@
+archived
+fonts
+styles
+
+.vscode
+watch.js
+node_modules
+*.json
+*.html
+
