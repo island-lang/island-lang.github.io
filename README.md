@@ -306,7 +306,7 @@ action readMutableState() => readFile("myFile.state")
 action writeMutableState(data: string) => writeFile("myFile.state")
 
 let initialData = readMutableState()
-writeMutableState(initialState + " changed!")
+writeMutableState(initialData + " changed!")
 
 let modifiedData = readMutableState()
 ```
@@ -490,19 +490,19 @@ print5And3AndNumber(1) // prints "5 3 1"
 
 The `with` operator can be used to partially apply any subset of parameters:
 ```isl
-let alteredAction = printThreeNumbers with b = 11
-// alteredAction has the signature alteredAction(a: integer, c: integer)
+let partiallyAppliedAction = printThreeNumbers with b = 11
+// partiallyAppliedAction has the signature partiallyAppliedAction(a: integer, c: integer)
 
-alteredAction(a: 4, c: 8) // Prints 4, 11, 8
-alteredAction(c: 6) // Error: an argument for `a` must be specified
+partiallyAppliedAction(a: 4, c: 8) // Prints 4, 11, 8
+partiallyAppliedAction(c: 6) // Error: an argument for `a` must be specified
 ```
 
-Methods may be altered any number of times:
+Methods may be partially applied any number of times:
 ```isl
-let secondaryAlteredAction = alteredAction with a = 94
-// secondaryAlteredAction has the signature secondaryAlteredAction(c: integer)
+let partiallyAppliedAction2 = partiallyAppliedAction with a = 94
+// partiallyAppliedAction2 has the signature partiallyAppliedAction2(c: integer)
 
-secondaryAlteredAction(c = -4) // Prints 94, 11, -4
+partiallyAppliedAction2(c = -4) // Prints 94, 11, -4
 ```
 
 If the target method has multiple overloads, the overload can be disambiguated by including a tuple containing the selected types for the unspecified members:
@@ -515,10 +515,10 @@ action printThreeNumbers(a: integer, b: integer, c: integer)
 
 action printThreeNumbers(a: integer, b: decimal, c: decimal)
 	print(a)
-	print(b)
-	print(c)
+	print("{b}")
+	print("{c}")
 
-let print5AndTwoNumbers = printThreeNumbers(5, ...) // Error! there are two matching overloads!
+let print5AndTwoNumbers = printThreeNumbers(5, ...) // Error! Ambiguous call. There are two matching overloads!
 
 let print5AndTwoNumbers = printThreeNumbers(5, ...(decimal, decimal)) // OK
 ```
@@ -3069,7 +3069,7 @@ action printHelloWorld(): nothing // `nothing` here acts like `void` in the C fa
 	print("Hello World!")
 ```
 
-Trying the read the result of a function returning only `nothing` (either annotated as such or not) will fail. Since the `nothing` type doesn't contain any useful information by itself:
+Trying the read the result of a method returning only `nothing` (either annotated as such or not) will fail, since the `nothing` type doesn't contain any useful information by itself:
 ```isl
 let x = printHelloWorld() // Error: printHelloWorld() returns only `nothing`
 ```
@@ -3392,7 +3392,7 @@ Island provides a statically typed logic programming system integrating closely 
 
 The `relation` declaration defines a relation, which, in a sense, expands over the concept of a function and provides a way to express and query multi-directional dependencies between its parameters (also referred to as _terms_).
 
-In terms of its output, a relation is, in practice, a lot like a stream method yielding a sequence of tuples where each tuple in the sequence represent a satisfying assignment for its terms.
+With respect to its output, a relation is, in practice, a lot like a stream method yielding a sequence of tuples where each tuple in the sequence represent a satisfying assignment for its terms.
 
 A `relation fact` statement defines a fact, which is like an axiom containing a combination of term values that is always true.
 
