@@ -20,7 +20,7 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 * Aim for maximum simplicity and readability (good syntax does make a difference!). Aim for low-ambiguity syntax that reads like plain English (but don't overdo it for its own sake).
 * Clean syntax: avoid unnecessary punctuation like `;`, `:`, `{`, `}`, `(`, `)` and cryptic-looking symbols like `$`, `*`, `#`, `^` etc..
 * Types should be inferred whenever possible.
-* Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and predicated types, compile-time contracts).
+* Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and assertion types, compile-time contracts).
 * Allow for easy concurrency (lightweight threads, deterministic dataflows, asynchronous generators).
 
 # Fundamentals
@@ -405,7 +405,7 @@ function f
 	(a: integer, b: string) => "{a}: {b}"
 	(a: boolean) => not a
 ```
-_(The usefulness of this syntax will become more apparent when refinement and predicated types are introduced in a later chapter, stay tuned!)_
+_(The usefulness of this syntax will become more apparent when refinement and assertion types are introduced in a later chapter, stay tuned!)_
 
 ## Function and action types
 
@@ -560,7 +560,7 @@ We can refine the distinction further to distinguish between two main classes of
 1. Operations inducing clear impact on the external environment. e.g. writing to a file, moving a robot arm, displaying information on the monitor etc.
 2. Operations that only observe or query information from the larger computing environment (e.g. reading an open file or screen pixel data) as well as operations that are unpredictable by nature (measuring time, reading data from a hardware random number generator etc).
 
-We can roughly classify the first class as "strong", since they clearly impact the system and the user at large. The second class could be described as "weak" in the sense that it doesn't actually "do" anything - they pose no reasonable risk aside from requiring a minor amount of computing resources.
+We can roughly classify the first class as "strong", since they clearly impact the system and the user at large. The second class could be described as "weak" in the sense that it doesn't actually "do" anything - they pose no "risk" aside from requiring a minor amount of computing resources.
 
 The Island language provides an optional way to explicitly mark those weaker scopes, albeit these are open to the developers' own judgment to be marked as such:
 
@@ -853,14 +853,14 @@ function matchAnimalAndPerson(match animal, match person)
 	// could possibly accept any type for 'animal' and 'person' and still succeed!
 ```
 
-The `matchAnimalAndPerson` function type is inferred to include several overloads, corresponding to each valid type combination case. Variants with and without predicated types (introduced in a later chapter) are shown:
+The `matchAnimalAndPerson` function type is inferred to include several overloads, corresponding to each valid type combination case. Variants with and without assertion types (introduced in a later chapter) are shown:
 ```isl
-// Without predicated types, the compiler infers:
+// Without assertion types, the compiler infers:
 function matchAnimalAndPerson(animal: Dog, person: Man)
 function matchAnimalAndPerson(animal: Cat, person: Woman)
 function matchAnimalAndPerson(animal: Horse, person: Person)
 
-// With predicated types, the compiler infers:
+// With assertion types, the compiler infers:
 function matchAnimalAndPerson(animal: Dog where name == "Lucky", person: Man where age < 18)
 function matchAnimalAndPerson(animal: Cat where age > 10, person: Woman where happinessLevel > 0.8)
 function matchAnimalAndPerson(animal: Horse where height > 1.7, person: Person where hobby == "Horseriding")
@@ -2179,7 +2179,7 @@ which would be roughly equivalent to:
 function firstsOfPairs(p1: Pair<*>, p2: Pair<*>) => (p1.a, p2.a)
 ```
 
-`p1` and `p2` can can accept any instances of `Pair`, including ones with incompatible types:
+`p1` and `p2` can accept any instances of `Pair`, including ones with incompatible types:
 ```isl
 let r = firstsOfPairs(Pair(1, 2), Pair('a', 'b')) // r = (1, 'a')
 ```
@@ -2602,7 +2602,7 @@ function something(x: ShortList<(integer, string)>)
 	..
 ```
 
-A less powerful, but more concise way to define predicated types employs the `where` clause, used similarly to the `match` predicate syntax:
+A less powerful, but more concise way to define assertion types employs the `where` clause, used similarly to the `match` predicate syntax:
 
 ```isl
 function something(x: integer where x mod 10 == 0): (result: integer where result mod 2 == 0)
