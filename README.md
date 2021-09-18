@@ -6,7 +6,7 @@ In its overall appearance and style, it attempts to follow a practical, non-acad
 
 However, the language cannot be formally classified as imperative (it has no mutable state), nor as truly functional (it doesn't promote an idiomatically functional style), nor as a traditional object-oriented language. It is not intended as a hybrid language, but attempts to promote a conceptually independent programming approach named **stateless-sequential programming**.
 
-The language also embeds an statically-typed **logic programming subsystem**, which significantly deviates from the Prolog tradition, that mostly concentrates on the centrality of relations, and instead encourages tight interconnections between relations, functions, generators and objects as complementary entities.
+The language also embeds an statically-typed **logic programming subsystem**, which significantly deviates from the Prolog tradition - that mostly concentrates on the centrality of relations, and instead encourages tight interconnections between relations, functions, generators and objects as complementary entities.
 
 [TOC]
 # Introduction
