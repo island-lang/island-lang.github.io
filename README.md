@@ -2,18 +2,18 @@
 
 **Island** (**I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of imperative, functional, object-oriented, and logic programming.
 
-In its overall appearance and style, it attempts to follow a practical, non-academic programming approach aimed at real-world applications and mostly inclined towards the imperative, sequential programming style.
+In its overall appearance and style, it aims to follow a pragmatic programming approach aimed at real-world applications, and generally inclined towards the imperative, sequential programming style.
 
-However, the language cannot be formally classified as imperative (it has no mutable state), nor as truly functional (it doesn't promote an idiomatically functional style), nor as a traditional object-oriented language. It is not intended as a hybrid language, but attempts to promote a conceptually independent programming approach named **stateless-sequential programming**.
+However, the language cannot be formally classified as imperative (it has no mutable state), nor as truly functional (it does not promote an idiomatically functional style), nor as traditionally object-oriented language. It is not intended as a hybrid language, but represents a conceptually independent programming approach named **stateless-sequential programming**.
 
-The language also embeds an statically-typed **logic programming subsystem**, which significantly deviates from the Prolog tradition - that mostly concentrates on the centrality of relations, and instead encourages tight interconnections between relations, functions, generators and objects as complementary entities.
+The language also embeds an statically-typed **logic programming subsystem**, that significantly deviates from the Prolog tradition - which mostly concentrates on the centrality of relations, and instead encourages tight interconnections between relations, functions and objects as complementary entities.
 
 [TOC]
 # Introduction
 
 ## Design goals and constraints
 
-* **Require all variables and values to be strictly immutable**. I.e. both variables (locally and globally scoped, including object fields) and values (primitive and compound objects) must maintain their initial value, forever.
+* **Constrain all variables and values to be strictly immutable**. I.e. both variables (locally and globally scoped) and values (primitive and compound objects, including any of their fields) must maintain their initial value, forever.
 * Adapt common imperative constructs like loops, objects and generators, while maintaining strict adherence to full immutability.
 * Maintain a strict separation between pure and side-effect scopes (e.g. `function` vs `action`).
 * Maintain a look-and-feel roughly resembling popular imperative languages (e.g Python, Swift, C#, TypeScript).
@@ -89,7 +89,7 @@ let greeting = 25 // Error: redeclared variable must be of same type as its prev
 ```
 
 ## Deferred initialization
-Initialization can be deferred to a later position, as long as all execution branches assign a value:
+Initialization can be deferred to a later code position, as long as all branches assign a value:
 
 ```isl
 let greeting: string
@@ -126,9 +126,9 @@ else
 
 ## Primitive data types
 
-Island is a **statically typed** language, meaning that every one of its values must be associated with a type known before the program is executed.
+Island is a **statically typed** language, meaning that every one of its values must be associated with a type that can be determined at compile-time.
 
-Island has several primitive data types:
+Island has four primitive data types:
 
 * `integer`: arbitrary precision integer number.
 * `decimal`: 64-bit floating-point number (IEEE 754).
@@ -403,12 +403,12 @@ Function and action types can be written in several ways:
 // Short form (unnamed parameters):
 let f: (integer) => string
 let f: (integer, boolean) => string
-let p: action (string) => (integer, integer)
+let a: action (string) => (integer, integer)
 
 // Long form (named parameters):
 let f: (index: integer) => string
 let f: (index: integer, unique: boolean) => string
-let p: action (message: string) => (integer, integer)
+let a: action (message: string) => (integer, integer)
 ```
 
 ## Rest parameters
@@ -564,7 +564,7 @@ The Island language provides an optional way to explicitly mark those weaker sco
 
 ## Conditionals
 
-The traditional `if`-`else if`-`else`:
+The traditional **`if` - `else if` - `else`**:
 ```isl
 function abs(num: integer)
 	if num == 0
@@ -575,7 +575,7 @@ function abs(num: integer)
 		return num
 ```
 
-The conceptually similar, but more constrained `when`-`otherwise` syntax, which also allows for using `=>` to directly return a value from the enclosing method:
+The conceptually similar, but more constrained **`when `-` otherwise`** syntax, which also allows for using `=>` to directly return a value from the enclosing method:
 ```isl
 function abs(num: integer)
 	when num == 0 => 0   // Equivalent to 'if num == 0 ..'
@@ -916,7 +916,7 @@ function factorial(num: integer)
 
 It may seem, at first, like `i` and `result` are no different than mutable variables, since they can be repeatedly modified at every iteration, however, they are not actually mutable because they are not real variables!
 
-Since Island loops act a lot like functions, `i` and `result` could be thought as being similar to a function parameter and a return variable, respectively. Since the `continue` statement is only executed at the moment the loop is ready to proceed to its next iteration, it can be seen as if the loop is "restarting" with a different initial state. This is analogous to a function being tail-recursively invoked with a different set of arguments.
+Since Island loops act a lot like functions, `i` and `result` could be thought as being analogous to a function parameter and a return variable. Since the `continue` statement is only executed at the moment the loop is ready to proceed to its next iteration, it can be seen as if the loop is "restarting" with a different initial state. This is analogous to a function being repeatedly tail-recursively invoked with a different set of arguments.
 
 For comparison, here is equivalent code, written using a tail-recursive function (reference code lines are in the comments):
 ```isl
@@ -950,7 +950,7 @@ function factorial(num: integer)
 
 Loops can be aborted with the `break` keyword, which also allows for alterations of `out` variables:
 ```isl
-function factorial(num: integer)
+function boundedFactorial(num: integer)
 	for i = 1, out result = 1 while i <= num advance i += 1
 		when i < 100
 			continue result *= i
@@ -1079,7 +1079,7 @@ for someTuple = (a: 1, b: 2)
 
 ## Stream methods
 
-A **stream method** (also called a **generator**) is a form of subroutine enabling the incremental production of a sequence of values. Calling a stream method returns a **stream object** (also called an **iterator**), which is an object allowing step-wise consumption of the values produced by the stream method.
+A **stream method** (also called a **generator**) is a form of a subroutine enabling the incremental production of a sequence of values. Calling a stream method returns a **stream object** (also called an **iterator**), which is an object allowing step-wise consumption of the values produced by the stream method.
 
 Stream methods produce values using the `yield` statement. Streams can be consumed within `for` loops using the `x in stream` clause:
 
@@ -1279,7 +1279,7 @@ function urlTostring(url: Url): (urlstring: string = "")
 
 	// ...
 
-	// No need to return anything, urlstring is returned by default
+	// No need to return anything, since the return variable(s) have been explicitly declared
 ```
 
 But wait a minute! you said Island didn't have `var`, and here you're using `urlstring` like it was mutable? what's going on?
@@ -1328,7 +1328,7 @@ A **named return variable** is a special variable that:
 
 * **Can** be reassigned multiple times, including from conditionals and loop bodies.
 * **Can** be passed to any method (including to an action or an object initializer).
-* **Can only** be read from within an expression that is assigned back to itself.
+* **Can only** be read from within an expression that is **assigned back to itself**.
 * **Cannot** be accessed from within a nested function or action.
 
 Accumulative patterns also allow for several **optimizations** to take place, for example when shuffling a list:
@@ -3987,9 +3987,9 @@ print(t2 == t3) // prints false
 
 ## Influences
 
-This work would not have been possible without ideas adapted from other languages, especially C#, F#, Haskell, Prolog, Python, JavaScript, TypeScript, Quorum, Swift, Scala, Java, Oz and Pascal.
+This work would not have been possible without ideas adapted from other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, F#, Quorum, Swift, Scala, Prolog, Java, Oz and Pascal.
 
 ## Copyrights
 
 Copyright © Rotem Dan<br />
-2017 - 2020
+2017 - 2021
