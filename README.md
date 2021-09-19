@@ -822,14 +822,14 @@ function minimumValue
 
 Many examples in the previous section had the form:
 ```isl
-function funcName(param1: .., param2: ..)
-	match paramX, ..
-		case ..
-		case ..
-		otherwise ..
+function funcName(param1: ...., param2: ....)
+	match paramX, ....
+		case ....
+		case ....
+		otherwise ....
 ```
 
-If the outermost scope of a method consists only of a `match` statement (excluding any `let`s, nested method or type declarations), the `match paramX, ..` statement can be omitted and instead integrate directly into the function declaration, by modifying the matched parameters with the `match` keyword:
+If the outermost scope of a method consists only of a `match` statement (excluding any `let`s, nested method or type declarations), the `match paramX, ....` statement can be omitted and instead integrate directly into the function declaration, by modifying the matched parameters with the `match` keyword:
 
 ```isl
 function matchAnimalAndPerson(match animal: Animal, match person: Person)
@@ -1461,7 +1461,7 @@ stream primesTo(max: integer)
 			continue nonprimes = nonprimes.union(multiplesOfN)
 ```
 
-Wouldn't it be nice to make an infinite-length (unbounded) stream which enumerate all prime numbers? This can be achieved by, for each prime encountered, storing a stream enumerating its multiples, and at each step incrementally advancing the collected streams as needed:
+Wouldn't it be nice to make an infinite-length (unbounded) stream which enumerates all prime numbers? This can be achieved by, for each prime encountered, storing a stream enumerating its multiples, and at each step incrementally advancing the collected streams as needed:
 ```isl
 stream primes()
 	// Generates the integer sequence n^2, n^2 + n, n^2 + n + n, n^2 + n + n + n, ...
@@ -1503,7 +1503,7 @@ stream reduce<E, R>(valueStream: Stream<E>, accumulator: (R, E) => R, initialRes
 	accumulate(valueStream, accumulator, initialResult).last
 ```
 
-_Note the use of `=` and not `=>` when defining a method using a stream comprehension. Stream comprehensions are expressions that evaluate to stream methods, not values. We don't want `stream map()` to return a method, but an stream object. Using the equals operation binds the parameters of the declared function into the comprehension, composing a new function, which returns a stream object when called._
+_Note the use of `=` and not `=>` when defining a method using a stream comprehension. Stream comprehensions are expressions that evaluate to stream methods, not values. We don't want a call to `map()` to return a method, but a stream object. Using the equals operation binds the parameters of the declared function into the comprehension, composing a new function, which returns a stream object when called._
 
 
 ## For-loops as methods
@@ -1634,7 +1634,7 @@ for m in p.stream
 	print(m) // prints "Catherine" "Jones"
 ```
 
-A class method can use the `this` object and the `with` operator to create a modified copy of its containing object:
+A class method can use the `this` object and the `with` operator to create a altered copy of its containing object:
 ```isl
 class Person
 	firstName: string
@@ -1644,7 +1644,7 @@ class Person
 	function getOlderPerson() => this with age += 1
 ```
 
-Modifications can be applied deeper into the object hierarchy:
+Alterations can be applied deeper into the object hierarchy:
 ```isl
 class Group
 	members: List<Person>
@@ -1771,7 +1771,7 @@ This can be done using the `with` operator:
 let mrSmith = Person with lastName = "Smith", gender = Gender.Male
 ```
 
-Because some of `mrSmith`'s fields (namely `firstName` and `age`) are missing (and do not have default values), a full instance of `Person` could not be constructed. Instead, the resulting value - `mrSmith` is not an object of type `Person`, but of the type `partial Person with lastName, gender`.
+Because some of `mrSmith`'s fields (namely `firstName` and `age`) are missing (and don't have default values), a full instance of `Person` could not be constructed. Instead, the resulting value - `mrSmith` is not an object of type `Person`, but of the type `partial Person with lastName, gender`.
 
 Wouldn't it be nice if we could call some of the partially constructed object's methods? Unfortunately since these methods access the `this` object, they don't provide any formal guarantee they wouldn't attempt to access uninitialized fields. However, we could limit their behavior by adding `uses` attributes specifying exactly which members they can reference:
 
