@@ -2266,8 +2266,9 @@ It may seem, at first, like this is the only manner in which types can relate to
 
 Here are two function types, one accepting an `Animal` parameter type, the other a `Cat` parameter type:
 ```isl
-type GiveMeCat = (Cat) => string
 type GiveMeAnimal = (Animal) => string
+type GiveMeCat = (Cat) => string
+
 ```
 
 Now ponder this carefully: do you think that `GiveMeCat` should assign to `GiveMeAnimal`? `GiveMeAnimal` should assign to `GiveMeCat`? or maybe both should assign to each other? or neither one to any?
@@ -2554,12 +2555,12 @@ The following are two function declarations are practically equivalent:
 function someMath1(x: decimal): (result: decimal)
 	assert x >= -4.0 and x <= 4.0
 	assert result >= 16.0
-	..
+	....
 ```
 
 ```isl
 function someMath1(x: -4.0..4.0): 16.0..infinity
-	..
+	....
 ```
 
 Since Island values and variables are strictly read-only, only one assertion check is needed to ensure the validity of a contract throughout the lifetime of the object and its binding variable. Types of operations between refined types can be inferred during compile-time (if feasible):
@@ -2574,13 +2575,13 @@ Refinement types can include more complex Boolean expressions:
 
 ```isl
 function someMath2(x: -4..4 or 10..20): -16..16 and not 0
-	..
+	....
 ```
 
 Refinement types can apply to strings, using regular expressions:
 ```isl
 function properIdentifiersOnly(id: /[a..zA..Z]+/)
-	..
+	....
 ```
 
 More complex assertions can be included in a type by referencing a **predicate function**, which must accept a single argument and a return type of `boolean`. These kinds of types are called **assertion types**.
@@ -2589,26 +2590,26 @@ Assertion types, for the most part, cannot be checked during compile-time and wo
 
 ```isl
 predicate MultipleOf10(x: integer) => x mod 10 == 0
-	..
+	....
 
 function something(x: MultipleOf10)
-	..
+	....
 ```
 
 Like any other method, assertion types can accept type arguments:
 ```isl
 predicate ShortList<T>(list: List<T>) => list.Length < 100
-	..
+	....
 
 function something(x: ShortList<(integer, string)>)
-	..
+	....
 ```
 
 A less powerful, but more concise way to define assertion types employs the `where` clause, used similarly to the `match` predicate syntax:
 
 ```isl
 function something(x: integer where x mod 10 == 0): (result: integer where result mod 2 == 0)
-	..
+	....
 ```
 
 These capabilities enable overload resolution to include rudimentary `match`-like predicates:
@@ -2966,7 +2967,7 @@ variant BinaryTree<V>
 Like classes, variants may have **companion type objects**, which also enable them to support type traits:
 ```isl
 variant BinaryTree<V>
-	.....
+	....
 
 object BinaryTree<V> extends Comparable<BinaryTree<V>>, Equatable<BinaryTree<V>>
 	stream traverse(match tree: BinaryTree<V>)
@@ -2977,22 +2978,22 @@ object BinaryTree<V> extends Comparable<BinaryTree<V>>, Equatable<BinaryTree<V>>
 			yield stream tree.iterate()
 
 	function compare(t1: BinaryTree<V>, t2 BinaryTree<V>): integer
-		.....
+		....
 
 	operator ==(t1: BinaryTree<V>, t2 BinaryTree<V>): boolean
-		.....
+		....
 ```
 
 Individual members of the variant may also receive their own **dedicated type objects**:
 ```isl
 object BinaryTree<V> extends Comparable<BinaryTree<V>>, Equatable<BinaryTree<V>>
-	.....
+	....
 
 	object Leaf extends Comparable<BinaryTree<V>.Leaf>, Equatable<BinaryTree<V>.Leaf>
-		.....
+		....
 
 	object Internal extends Comparable<BinaryTree<V>.Internal>, Equatable<BinaryTree<V>.Internal>
-		.....
+		....
 ```
 
 ## Enumerations
