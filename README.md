@@ -311,7 +311,7 @@ writeMutableState(initialData + " changed!")
 let modifiedData = readMutableState()
 ```
 
-The program can read and write to external mutable state, however, the data must be read into a new variable (here `modifiedData`) so the _internal_ state of the program is never directly altered.
+The program can read and write to external mutable state. However, the data must be read into a new variable (here `modifiedData`) so the _internal_ state of the program (its variables and values) is never altered.
 
 **Computed variables** are functions that are referenced as plain variables. They are only evaluated when first used:
 
@@ -419,7 +419,7 @@ let a: action (string) => (integer, integer)
 
 // Long form (named parameters):
 let f: (index: integer) => string
-let f: (index: integer, unique: boolean) => string
+let f: (index: integer, isUnique: boolean) => string
 let a: action (message: string) => (integer, integer)
 ```
 
@@ -1797,7 +1797,7 @@ print(mrSmith.titleAndLastName) // prints "Mr. Smith"
 
 However trying to reference `fullName` would result in a compilation error, since it requires `firstName` to be initialized:
 ```isl
-print(mrSmith.fullName) // Error: `fullName` uses member `firstName`, which is not defined for `partial Person with lastName, gender`
+print(mrSmith.fullName) // Error: `fullName` uses member `firstName`, which is not defined for type `partial Person with lastName, gender`
 ```
 
 We could continue adding more information to the object:
@@ -1805,7 +1805,7 @@ We could continue adding more information to the object:
 let mrJohnSmith = mrSmith with firstName = "John"
 
 print(mrJohnSmith.fullName) // prints "John Smith"
-print(mrJohnSmith.fullNameAndAge) // Error! fullNameAndAge uses member `age`, which is not defined for `partial Person with firstName, lastName, gender`
+print(mrJohnSmith.fullNameAndAge) // Error! fullNameAndAge uses member `age`, which is not defined for type `partial Person with firstName, lastName, gender`
 ```
 
 Finally, when we add a value for `age`, the object becomes fully constructed:
@@ -2266,8 +2266,8 @@ It may seem, at first, like this is the only manner in which types can relate to
 
 Here are two function types, one accepting an `Animal` parameter type, the other a `Cat` parameter type:
 ```isl
-type GiveMeCat = (cat: Cat) => string
-type GiveMeAnimal = (animal: Animal) => string
+type GiveMeCat = (Cat) => string
+type GiveMeAnimal = (Animal) => string
 ```
 
 Now ponder this carefully: do you think that `GiveMeCat` should assign to `GiveMeAnimal`? `GiveMeAnimal` should assign to `GiveMeCat`? or maybe both should assign to each other? or neither one to any?
@@ -2281,23 +2281,25 @@ Let's go through it again:
 
 If you attempted to assign a function of type `GiveMeCat` to a variable of type `GiveMeAnimal` you'd take a strict function and put in a placeholder designated for a more permissive function:
 ```isl
-let giveMeAnimal: (animal: Animal) => string =
-	(cat: Cat) => "Hello cat!"
+let giveMeAnimal: (Animal) => string
+
+giveMeAnimal = (Cat) => "Hello cat!"
 
 // Because 'giveMeAnimal' accepts any animal, passing a dog as argument should work,
-// but does it make any sense?
+// but would it make any sense?
 let str = giveMeAnimal(Dog()) // Would return "Hello cat!" ??!!
 ```
 
 However, if you assigned `GiveMeAnimal` to `GiveMeCat`, it would, surprisingly, make more sense:
 ```isl
-let giveMeCat: (Cat) => string =
-	(animal: Animal) => "Hello animal!" // Seems to work, but why?
+let giveMeCat: (Cat) => string
+
+giveMeCat = (Animal) => "Hello animal!" // Seems to work, but why?
 ```
 
 This phenomenon is called **contravariance** (substitution of general with specific) and the more "intuitive" substitution rule, mentioned in the context of plain variables, is called **covariance** (substitution of specific with general).
 
-It turns out that when thinking about functions: returns types ("out" positions) are covariant, however, parameter types ("in" positions) are contravariant.
+It turns out that when thinking about functions: return types ("out" positions) are covariant, however, parameter types ("in" positions) are contravariant.
 
 Sometimes we may wish to constrain type parameters so that they can only be used in one of these positions. This is possible with the `in` and `out` modifiers:
 
@@ -2809,7 +2811,7 @@ stream traverseBinaryTree<T>(match tree: BinaryTree<T>)
 	case Leaf(let value)
 		yield value
 
-	// Tuple typed variant members don't require the extra paranthesis
+	// Tuple typed variant members don't require the extra parentheses
 	// e.g. instead of Internal((left: ..., right: ...))
 	//    we can write Internal(left: ..., right: ...)
 	case Internal(let left: BinaryTree<T>?, let right: BinaryTree<T>?)
@@ -2837,7 +2839,7 @@ variant PersonOrCar
 	Person: (name: string, height: decimal)
 	Car: (brand: string, maxSpeed: decimal)
 
-function getResponsestring(match personOrCar: PersonOrCar)
+function getResponseString(match personOrCar: PersonOrCar)
 	case Person where name == "James" => "Hi James"
 	case Person where height >= 2.0 => "Tall person"
 	case Car where maxSpeed >= 200.0 => "Fast car"
@@ -2846,7 +2848,7 @@ function getResponsestring(match personOrCar: PersonOrCar)
 
 Same as above using the constructor-style syntax:
 ```isl
-function getResponsestring(match personOrCar: PersonOrCar)
+function getResponseString(match personOrCar: PersonOrCar)
 	case Person("James", ...) => "Hi James"
 	case Person(_, _ >= 2.0, ...) => "Tall person"
 	case Car(_, _ >= 200, ...) => "Fast car"
