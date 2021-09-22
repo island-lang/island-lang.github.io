@@ -126,7 +126,7 @@ else
 
 Island is a **statically typed** language, meaning that every one of its values must be associated with a type that can be determined at compile-time.
 
-Island has four primitive data types:
+Island has a few primitive data types:
 
 * `integer`: arbitrary precision integer number.
 * `decimal`: 64-bit floating-point number (IEEE 754).
@@ -290,7 +290,7 @@ let result = sum3(2, 3, 4)
 print("Result: {result}")
 ```
 
-**Actions** extend functions and allow for external side-effects. Actions can return values but can only be called from other actions (or the topmost scope):
+**Actions** extend functions and allow for _external_ side-effects. Actions can return values but can only be called from other actions (or the topmost scope):
 ```isl
 action printNameAndAge(name: string, age: integer)
 	print("Name: {name}, Age: {age}")
@@ -299,11 +299,11 @@ action printNameAndAge(name: string, age: integer)
 let status = printNameAndAge("John Smith", 35) // Prints "Name: John Smith, Age: 35" and returns "OK"
 ```
 
-Despite allowing for "impure" operations like writing or reading from a file, actions do not allow for side-effects _internal_ to the program itself, since all variables and values are always guaranteed to be immutable. This doesn't prevent, however, mutable state to be weakly "emulated" through, say, reading and writing from a file:
+Despite allowing for "impure" operations like writing or reading from a file, actions do not allow for side-effects _internal_ to the program itself, since all variables and values are always guaranteed to be immutable. This doesn't prevent, however, mutable state to be weakly "emulated" through, say, reading and writing to external memory:
 
 ```isl
 action readMutableState() => readFile("myFile.state")
-action writeMutableState(data: string) => writeFile("myFile.state")
+action writeMutableState(data: string) => writeFile("myFile.state", data)
 
 let initialData = readMutableState()
 writeMutableState(initialData + " changed!")
@@ -566,7 +566,7 @@ The Island language provides an optional way to explicitly mark those weaker sco
 
 ```isl
 	view action getCurrentTime()
-		...
+		....
 ```
 
 `view` actions can only call other view actions, as well as functions. They cannot call regular (strong) actions.
@@ -642,7 +642,7 @@ function numToWords(num: 1..999): string
 
 ## Pattern matching
 
-**Pattern matching** is a form of a conditional which inspects one or more target values. The `match`-`case` syntax enables comprehensive functionality expanding over the traditional `switch`-`case` syntax:
+**Pattern matching** is a form of a conditional which inspects one or more target values. The `match`-`case` syntax expands over the traditional `switch`-`case` with more expressive control:
 
 _(`_` matches the target value, which is `num` in this example)_
 
@@ -672,7 +672,7 @@ let absOfVal = match num
 ```
 
 Match a tuple:
-_(`_` contextually matches the corresponding element of the target tuple `someTuple`)_
+_(here `_` contextually matches the corresponding element of the target tuple `someTuple`)_
 ```isl
 function tupleMatch(someTuple: (integer, string, boolean))
 	match someTuple
@@ -720,7 +720,7 @@ function matchAnimal(animal: Animal)
 	match animal
 		case Dog where name == "Lucky" and owner.firstName == "Andy" => "Good dog, Andy!"
 		case Cat where age > 10 => "Old cat!"
-		case Horse where height > 1.7 => "Tall horse!"
+		case Horse where height > 180 => "Tall horse!"
 		otherwise => "Nothing interesting here"
 ```
 
@@ -730,17 +730,17 @@ function matchAnimal(animal: Animal)
 	match animal
 		case Dog { name == "Lucky", owner: { firstName == "Andy" } } => "Good dog, Andy!"
 		case Cat { age > 10 } => "Old cat!"
-		case Horse { height > 1.7 } => "Tall horse!"
+		case Horse { height > 180 } => "Tall horse!"
 		otherwise => "Nothing interesting here"
 ```
 
-A third, terser matching syntax uses constructor-like notation, based on the order of declared fields (note the varying count of elements in parentheses and the `...` element signifying the rest of the elements are ignored):
+A third, terser matching syntax uses constructor-like notation, based on the order of declared members (note the varying count of elements in parentheses and the `...` element signifying the rest of the elements are ignored):
 ```isl
 function matchAnimal(animal: Animal)
 	match animal
 		case Dog("Lucky", Person("Andy",...), ...) => "Good dog, Andy!"
 		case Cat(_, _ > 10, ...) => "Old cat!"
-		case Horse(_, _, _ > 1.7) => "Tall horse!"
+		case Horse(_, _, _ > 180) => "Tall horse!"
 		otherwise => "Nothing interesting here"
 ```
 
@@ -750,7 +750,7 @@ function matchAnimalAndPerson(animal: Animal, person: Person)
 	match animal, person
 		case Dog where name == "Lucky", Man where age < 18 => "Good dog and young man!"
 		case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
-		case Horse where height > 1.7, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
+		case Horse where height > 180, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
 		otherwise => "Nothing interesting here"
 ```
 
@@ -780,7 +780,7 @@ function matchAnimal(animal: Animal)
 			case likesMilk => "Nice cat!"
 			otherwise => "A cat who doesn't like milk! Who knew?"
 
-		case Horse where height > 1.7 => "Tall horse!"
+		case Horse where height > 180 => "Tall horse!"
 		otherwise => "Nothing interesting here"
 ```
 
@@ -835,16 +835,16 @@ If the outermost scope of a method consists only of a `match` statement (excludi
 function matchAnimalAndPerson(match animal: Animal, match person: Person)
 	case Dog where name == "Lucky", Man where age < 18 => "Good dog and young man!"
 	case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
-	case Horse where height > 1.7, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
+	case Horse where height > 180, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
 	otherwise => "Nothing interesting here"
 ```
 
-Observing the above carefully, one may notice the type annotations `: Animal` and `: Person` are not strictly necessary since the parameter types are being explicitly asserted at every case clause. When this is the case, the type annotations can be omitted and will be inferred by the compiler:
+Observing the above carefully, it may be noticed the `: Animal` and `: Person` annotations are not strictly necessary, since the parameter types are being explicitly asserted at every case clause. When this is the case, the type annotations can be omitted and would be inferred by the compiler:
 ```isl
 function matchAnimalAndPerson(match animal, match person)
 	case Dog where name == "Lucky", Man where age < 18 => "Good dog and young man!"
 	case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
-	case Horse where height > 1.7, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
+	case Horse where height > 1807, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
 	otherwise => fail "Nothing interesting here"
 
 	// Note the 'otherwise' clause must fail for the parameter types to be properly inferred!
@@ -863,7 +863,7 @@ function matchAnimalAndPerson(animal: Horse, person: Person)
 // With assertion types, the compiler infers:
 function matchAnimalAndPerson(animal: Dog where name == "Lucky", person: Man where age < 18)
 function matchAnimalAndPerson(animal: Cat where age > 10, person: Woman where happinessLevel > 0.8)
-function matchAnimalAndPerson(animal: Horse where height > 1.7, person: Person where hobby == "Horseriding")
+function matchAnimalAndPerson(animal: Horse where height > 180, person: Person where hobby == "Horseriding")
 ```
 
 Even without the `match` modifier, parameter types can still be omitted and asserted in the method body using the `is` operator:
@@ -908,7 +908,7 @@ function firstTwoElementsAreConsecutive(values: List<integer>): boolean
 
 **Loops** are control flow mechanisms for specifying code to be executed repeatedly.
 
-In Island, **loops are grounded in functional iteration patterns** and describe iterative progression in a more declarative way than in conventional imperative languages.
+In Island, **loops are founded in functional iteration patterns** and describe iterative progression in a more declarative way than in conventional imperative languages.
 
 Island's `for` loops maintain immutability for all variables within the scope of **each individual iteration** of the loop. This is achieved by:
 * Requiring all alterable variables to be declared at the head of the loop.
@@ -1043,7 +1043,7 @@ function combinationsOf2(min: integer, max: integer): List<(integer, integer)>
 	return iterate()
 ```
 
-However, directly returning from an inner loop would be more tricky to express in recursive form, for example the following function, which iterates to find a value in a square matrix:
+However, directly returning from an inner loop would be more tricky to express in recursive form. For example, the following function, which iterates to find a value in a square matrix:
 ```isl
 function findFirstInSquareMatrix(matrix: List<List<integer>>, value: integer): (integer, integer)?
 	for x = 1 while x <= matrix.length advance x += 1
@@ -1103,7 +1103,7 @@ stream naturalNumbers()
 for i in naturalNumbers() // Loops forever
 	print(i)
 
-// Prints 1, 2, 3, 4, 5, ...
+// Prints 1, 2, 3, 4, 5, ....
 ```
 
 **Multiple streams** may be consumed within a single `for` loop. At every iteration, each stream is evaluated once by its order of declaration. The loop will terminate whenever any one of the streams end:
@@ -1117,7 +1117,7 @@ for i in 1..100, key in keypresses() // This will repeat 100 times
 	print("Keypress {i} was '{key}'")
 ```
 
-An stream object is a stateless object, of the form:
+A **stream object** is a stateless object, of the form:
 ```isl
 class Stream<T>
 	value: T? // The '?' means `value` may be of type `nothing`
@@ -1197,7 +1197,7 @@ function urlTostring(url: Url): string
 	if url.port is not nothing
 		urlstring += ":{url.port}"
 
-	// ...
+	// ....
 
 	return urlstring
 ```
@@ -1221,7 +1221,7 @@ function urlTostring(url: Url): string
 	if url.port is not nothing
 		urlstring3 = urlstring2 + ":{url.port}"
 
-	// ...
+	// ....
 
 	return urlstringX
 ```
@@ -1242,7 +1242,7 @@ function urlTostring(url: Url): string
 		if url.port is not nothing
 			yield ":{url.port}"
 
-		// ...
+		// ....
 
 	return buildstring().JoinStrings("")
 ```
@@ -1266,7 +1266,7 @@ function urlTostring(url: Url): string
 		if url.port is not nothing
 			yield prior + ":{url.port}"
 
-		// ...
+		// ....
 
 	return buildstring().last()
 ```
@@ -1289,7 +1289,7 @@ function urlTostring(url: Url): (urlstring: string = "")
 	if url.port is not nothing
 		urlstring = urlstring + ":{url.port}"
 
-	// ...
+	// ....
 
 	// No need to return anything, since the return variable(s) have been explicitly declared
 ```
@@ -1328,7 +1328,7 @@ function urlTostring(url: Url): (urlstring: string = "")
 	if url.port is not nothing
 		urlstring += ":{url.port}"
 
-	// ...
+	// ....
 
 	// No need to return anything, urlstring is returned by default
 ```
@@ -1387,7 +1387,7 @@ let l = [(for i in 1..6 where i mod 2 == 0, j in 1..9 where j mod 3 == 0) => i +
 
 Like in `for` loops, consuming streams of **different lengths** would end whenever the shorter of them ends:
 ```isl
-let l = [(for i in "a"..."c", j in 1...6) => (i, j)]
+let l = [(for i in "a".."c", j in 1..6) => (i, j)]
 // l = [("a", 1), ("b", 2), ("c", 3)]
 ```
 
@@ -1401,7 +1401,7 @@ print(combinationsOf2(0, 1)) // prints [(0, 0), (0, 1), (1, 0), (1, 1)]
 
 Similarly to `for` loops, comprehensions may introduce variables and include `while` and `advance` clauses:
 ```isl
-let sumsOfNaturalsUpTo5 = [(for i in 1...5, sum = 1 advance sum += i) => sum] // [1, 3, 6, 10, 15]
+let sumsOfNaturalsUpTo5 = [(for i in 1..5, sum = 1 advance sum += i) => sum] // [1, 3, 6, 10, 15]
 ```
 
 Comprehensions may be **accumulative**, and make use of the `initial` and `prior` keywords:
@@ -1419,7 +1419,7 @@ let squaresOfEvenNumbers = (for i in 1..infinity where i mod 2 == 0) => i**2
 // (Note: since squaresOfEvenNumbers is a stream method with no parameters,
 //  the for..in syntax allows it to be optionally invoked without the parentheses '()')
 for n in squaresOfEvenNumbers
-	print(n) // prints 4, 16, 36, 64, ...
+	print(n) // prints 4, 16, 36, 64, ....
 ```
 
 Now the factorial example can be simplified to a single line:
@@ -1654,14 +1654,14 @@ let golfers = Group with
 	members = [Person("John", "Smith", 24), Person("Jane", "Doe", 42)]
 	sharedInterest = "Golf"
 
-let deeplyModifiedGroup = golfers with
+let deeplyAlteredGroup = golfers with
 	members[0].firstName = "Michael"
 	members[1].age = 45
 ```
 
 The `with` operator also allows for merging syntax on objects, the following is equivalent:
 ```isl
-let deeplyModifiedGroup = golfers with { members: [{ firstName: "Michael" }, { age: 45 }] }
+let deeplyAlteredGroup = golfers with { members: [{ firstName: "Michael" }, { age: 45 }] }
 ```
 
 ## Extension
@@ -1730,11 +1730,11 @@ let v = Vehicle() // This will not work
 
 class Car extends Vehicle // This is possible
 	action startEngine()
-		...
+		....
 	action turnLeft()
-		...
+		....
 	action turnRight()
-		...
+		....
 ```
 
 ## Fixed fields and partially constructed objects
@@ -1777,7 +1777,7 @@ Wouldn't it be nice if we could call some of the partially constructed object's 
 
 ```isl
 class Person
-	.....
+	....
 
 	[uses gender, lastName]
 	computed titleAndLastName() =>
@@ -1836,10 +1836,10 @@ class Database
 	name: string
 
 	action query(this, sql: string)
-		.....
+		....
 
 	action verifyConnection({ connection }: this)
-		connection.verify(.....)
+		connection.verify(....)
 ```
 
 For every new database object we wanted to create, we'd have to re-specify which server connection it uses:
@@ -2323,7 +2323,7 @@ class Person
 
 `fullName` is only evaluated when it is called (and possibly the result is then stored for subsequent calls).
 
-Now what if we could make a local variable that behaves in a similar way?
+Using a computed variable, we could make a local variable that behaves in a similar way:
 ```isl
 let x = 1
 let y = 2
@@ -2348,7 +2348,7 @@ let w = makePair(z, 5) // z will be evaluated before makePair is called
 
 A second approach would be define the value itself (not the variable) as computed:
 ```isl
-function makePair(value1: integer, value2: integer) => (val1: value1, val2: value2)
+function makePair(value1: integer, value2: integer) => (integer, integer)
 
 let x = 1
 let y = 2
@@ -2359,7 +2359,7 @@ let z: integer = compute x + y
 let w = makePair(z, 5) // z will not be evaluated here
 // w has the value (compute 1 + 2, 5)
 
-let v = w.val1 + 1 // `compute 1 + 2` is finally evaluated to 3 and v gets the value 4
+let v = w[1] + 1 // `compute 1 + 2` is finally evaluated to 3 and v gets the value 4
 ```
 
 This behavior is called **lazy evaluation**. We can postpone the evaluation of `compute 1 + 2` only to the point where it is actually needed. It can be passed to methods or stored in variables and objects, but will only be evaluated when it is a part of a complex expression that is immediately (eagerly) evaluated.
@@ -2369,7 +2369,7 @@ Computed values can be **composed** together:
 let x = 1
 let y = 2
 let z = compute x + y
-let s = compute sqrt(z) // z is not evaluated but composed with the computation `sqrt(...)`
+let s = compute sqrt(z) // z is not evaluated but composed with the computation `sqrt(....)`
 // s now equals `compute sqrt(1 + 2)`
 ```
 
@@ -2381,7 +2381,7 @@ When then `spawn` keyword is added to a method call, the method is immediately e
 
 ```isl
 function heavyCalculation()
-	// ...
+	// ....
 
 	return result
 
@@ -2414,12 +2414,12 @@ As demonstrated, applying `spawn` to a simple function call, it is possible to c
 This will evaluate a stream method in a background thread and save the yielded values to disk as soon as they arrive:
 ```isl
 stream heavyCalculations()
-	for ..
-		...
+	for ....
+		....
 		yield result
 
 for result in spawn heavyCalculations()
-	somethingUnrelated(...) // This will execute even if 'result' has not yet received a value
+	somethingUnrelated(....) // This will execute even if 'result' has not yet received a value
 	writeToDisk(result) // This will block until 'result' receives a value
 ```
 
@@ -2720,7 +2720,7 @@ new type Dollars = decimal
 new type Euros = decimal
 
 function iWantDollars(money: Dollars)
-	...
+	....
 
 let euros: Euros = 45.0 as Euros // Explicit cast needed here
 iWantDollars(euros) // Error! incompatible types
@@ -2813,8 +2813,8 @@ stream traverseBinaryTree<T>(match tree: BinaryTree<T>)
 		yield value
 
 	// Tuple typed variant members don't require the extra parentheses
-	// e.g. instead of Internal((left: ..., right: ...))
-	//    we can write Internal(left: ..., right: ...)
+	// e.g. instead of Internal((left: ...., right: ....))
+	//    we can write Internal(left: ...., right: ....)
 	case Internal(let left: BinaryTree<T>?, let right: BinaryTree<T>?)
 		if left is not nothing
 			yield stream traverseBinaryTree(left)
@@ -2892,7 +2892,7 @@ An extended variant type is a **super-type** of the variant it inherits from. Th
 For example:
 ```isl
 function giveMeMoney(money: Currency)
-	.....
+	....
 
 giveMeMoney(Currency.Euro(10.0)) // works
 giveMeMoney(ExtendedCurrency.CanadianDollar(10.0)) // doesn't work
@@ -2901,7 +2901,7 @@ giveMeMoney(ExtendedCurrency.CanadianDollar(10.0)) // doesn't work
 However:
 ```isl
 function giveMeMoney(money: ExtendedCurrency)
-	.....
+	....
 
 giveMeMoney(Currency.Euro(10.0)) // works
 giveMeMoney(ExtendedCurrency.CanadianDollar(10.0)) // works
@@ -3165,7 +3165,7 @@ function maybeNeverEndingFunction(num: integer)
 
 	return result
 
-let mysteryValue: integer = mysteryFunction(...)
+let mysteryValue: integer = mysteryFunction(....)
 let x = maybeNeverEndingFunction(mysteryValue) // what type is x?
 ```
 
@@ -3190,7 +3190,7 @@ trait Numbered
 trait NamedAndNumbered extends Named, Numbered
 
 function giveMeNamedAndNumbered(value: NamedAndNumbered)
-	...
+	....
 ```
 Using a join type, this can be shortened to:
 ```isl
@@ -3201,7 +3201,7 @@ trait Numbered
 	id: integer
 
 function giveMeNamedAndNumbered(value: Named and Numbered)
-	...
+	....
 ```
 
 ## Member type references
@@ -3213,7 +3213,7 @@ class Person
 	name: string
 	data: (integer, boolean, id: string)
 	action processMe(someData: integer, moreData: string): Set<string>
-		.....
+		....
 
 let n: Person.name // n receives the type string
 let d: Person.data[2] // d receives the type boolean
@@ -3543,7 +3543,7 @@ relation Subtraction
 			yield num1 = -i, num2 = -i - difference
 
 		// For the case where difference = 2 this would yield:
-		// (0, -2, 2), (1, -1, 2), (-1, -3, 2), (2, 0, 2), (-2, -4, 2), ...
+		// (0, -2, 2), (1, -1, 2), (-1, -3, 2), (2, 0, 2), (-2, -4, 2), ....
 ```
 
 The `when` keyword allows branch-like functionality for relation blocks:
@@ -3574,7 +3574,7 @@ FizzBuzz(30, "FizzBuzz").exists // returns true
 for (_, str) in FizzBuzz(_, _)
 	print(str)
 
-	// prints "1", "2", "Fizz", "4", "Buzz", "Fizz" ...
+	// prints "1", "2", "Fizz", "4", "Buzz", "Fizz" ....
 ```
 
 `when` blocks also handle cases where the conditional cannot be resolved:
@@ -3585,7 +3585,7 @@ For example, in the case where `FizzBuzz(_, "Fizz")` is queried, since `index` i
 for (index, _) in FizzBuzzer.FizzBuzz(_, "Fizz")
 	print(index)
 
-	// prints 3, 6, 9, 12, 18, 21, ...
+	// prints 3, 6, 9, 12, 18, 21, ....
 ```
 
 Here's the absolute value implemented as a relation using a `when` conditional:
@@ -3607,7 +3607,7 @@ Abs(_, 65).first?.number // returns -65
 for (number, abs) in Abs(_, _)
 	print("({number}, {abs})")
 
-	// prints "(0, 0)", "(-1, 1)", "(1, -1)", "(-2, 2)", ...
+	// prints "(0, 0)", "(-1, 1)", "(1, -1)", "(-2, 2)", ....
 
 	// (As a heuristic, the inference engine alternates between the unresolvable conditional branches to
 	//  avoid getting "trapped" in case one of them produces an infinite amount of results)
@@ -3658,7 +3658,7 @@ Note that to ensure that the `(in, out)` case is never processed by the slower, 
 ```isl
 relation AllMembersGreaterThan
 	rule (in list: List<integer>, in smallerValue: integer)
-	...
+	....
 ```
 
 In the next section we'll show a purely rule-based way to efficiently implement the `AllMembersGreaterThan` relation, which makes use of the `reduce` higher-order relation.
@@ -3823,19 +3823,19 @@ pattern Date() of (day, month, year) in string
 
 match str
 	case PhoneNumber of ("1", "800", _, let lineNumber)
-		.....
+		....
 	case Date of (1, 12, let year >= 2005)
-		.....
+		....
 ```
 
 ```isl
 // Recognizes three primes p1, p2, p3
 pattern ThreePrimes() in Stream<integer>
-	predicate isPrime(num) => ...
+	predicate isPrime(num) => ....
 
 	accept Repeated(any, 3, value => isPrime(value))
 
-// Recognizes 1, 2, 3, 4, 5, ...
+// Recognizes 1, 2, 3, 4, 5, ....
 pattern NaturalNumberSeries() in Stream<integer>
 	for i in 1..infinity
 		accept end or any of (let value == i)
