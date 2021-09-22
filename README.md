@@ -1750,7 +1750,7 @@ class Person
 	age: integer
 
 	computed titleAndLastName() =>
-		"{when gender == Male: "Mr.", otherwise: "Ms."} {lastName}"
+		"{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
 
 	computed fullName() => "{firstName} {lastName}"
 
@@ -1844,7 +1844,7 @@ class Database
 
 For every new database object we wanted to create, we'd have to re-specify which server connection it uses:
 ```isl
-let myConnection = connectServer("localhost:5555", "admin" "1234")
+let myConnection = connectServer("localhost:5555", "admin", "1234")
 
 let db1 = Database with connection = myConnection, name = "DB1"
 let db2 = Database with connection = myConnection, name = "DB2"
@@ -1853,7 +1853,7 @@ let db3 = Database with connection = myConnection, name = "DB3"
 
 With a partially constructed object, the `connection` field can be fixed once and then the resulting object reused:
 ```isl
-let myConnection = connectServer("localhost:5555", "admin" "1234")
+let myConnection = connectServer("localhost:5555", "admin", "1234")
 
 let databaseWithMyConnection = Database with connection = myConnection
 // The type of `databaseWithMyConnection` is `partial Database with connection`
@@ -1915,7 +1915,7 @@ let differenceOfPoints = Point(7, 4) - Point(2, 3)
 
 ## Traits
 
-A **trait** is an class-like type specifying a set of required members. Classes may implement any number of traits. A trait may optionally provide **default implementations** or values for its members:
+A **trait** is an abstract class-like type specifying a set of required members. Classes may implement any number of traits. A trait may optionally provide **default implementations** or values for its members:
 
 ```isl
 trait Labeled
@@ -2005,13 +2005,13 @@ class expansion Person
 	favoriteNumber: integer // ERROR: This will not work
 
 object Person
-	andy = Person("Andy", "Jones" ,22)
+	andy = Person("Andy", "Jones", 22)
 
 object expansion Person
-	angela = Person("Anegla", "Jones" ,25) // But this will work
+	angela = Person("Anegla", "Jones", 25) // But this will work
 
 object expansion Person
-	ben = Person("Ben", "Smith" ,23) // And so will this
+	ben = Person("Ben", "Smith", 23) // And so will this
 ```
 
 Expansions can implement traits, as well as override their default implementations:
