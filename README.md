@@ -432,8 +432,10 @@ function sum(...numbers: List<integer>) =>
 	numbers.reduce((sum, number) => sum + number)
 
 let r1 = sum(1, 6, 3, 7) // r1 = 17
+```
 
-function multiplyByAll(multiplier, ...numbers: List<integer>) =>
+```isl
+function multiplyByAll(multiplier: integer, ...numbers: List<integer>) =>
 	numbers.map(number => number * multiplier)
 
 let r2 = multiplyByAll(10, 1, 2, 3, 4, 5) // r2 = [10, 20, 30, 40, 50]
@@ -529,7 +531,9 @@ The `(param1: ParamType, param2: ParamType, ...) => ReturnType` syntax defines a
 ```isl
 function sum(a: integer, b: integer) => a + b
 
-function applyFirstArgument<F extends (integer, ...) => integer>(f: F, value: integer): partial(F)
+type PartialIntFunc = (integer, ...) => integer
+
+function applyFirstArgument<F extends PartialIntFunc>(f: F, value: integer): PartialIntFunc
 	return f(value, ...)
 
 let partiallyAppliedSum = applyFirstArgument(sum, 11)
@@ -538,11 +542,7 @@ let partiallyAppliedSum = applyFirstArgument(sum, 11)
 partiallyAppliedSum(2) // returns 13
 ```
 
-We'll go through the two abstract function types mentioned in the example:
-
-* `(integer, ...) => integer` represents a function having any number of parameters where the first parameter must be compatible with `integer` and the return type must be compatible with `integer`.
-
-* `partial(F)` applies a type function transforming the type F to remove its first parameter.
+In the above example `(integer, ...) => integer` represents a function having any number of parameters where the first parameter must be compatible with `integer` and the return type must be compatible with `integer`.
 
 Other abstract function type examples:
 
@@ -605,7 +605,7 @@ function abs(num: integer)
 
 	let x = num
 
-	when x < 0 // OK since when .. otherwise sequence is not followed by anything
+	when x < 0 // OK since when - otherwise sequence is not followed by anything
 		return -x
 	otherwise
 		return x
@@ -622,9 +622,11 @@ function abs(num: integer)
 
 `when` can also be written as an expression:
 ```isl
-let abs = (num: integer) => when num > 0: num, when num < 0: -num, otherwise: 0
+let abs = (num: integer) =>
+	when num > 0: num, when num < 0: -num, otherwise: 0
 
-function gcd(a: integer, b: integer) => when b == 0: abs(a), otherwise: gcd(b, a mod b)
+function gcd(a: integer, b: integer) =>
+	when b == 0: abs(a), otherwise: gcd(b, a mod b)
 ```
 
 This function uses a dictionary and a `when` statement to convert an integer number on the range 1..999 to words:
