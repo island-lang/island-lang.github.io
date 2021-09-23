@@ -313,7 +313,7 @@ let modifiedData = readMutableState()
 
 The program can read and write to external mutable state. However, the data must be read into a new variable (here `modifiedData`) so the _internal_ state of the program (its variables and values) is never altered.
 
-**Computed variables** are functions that are referenced as plain variables. They are only evaluated when first used:
+**Computed variables** are functions that are referenced as if they were plain variables. They are only evaluated when first used:
 
 Short form:
 ```isl
@@ -812,7 +812,7 @@ Using similar syntax, list-typed method parameters can be pattern-matched as wel
 
 ```isl
 function minimumValue
-	([]: List<integer>, currentMinimum) => currentMinimum
+	([]: List<integer>, currentMinimum: integer) => currentMinimum
 
 	([head, ...tail]: List<integer>, currentMinimum = infinity) =>
 		minimumValue(tail, minimum(head, currentMinimum))
@@ -1547,7 +1547,7 @@ The `with` operator can be used to create a new object using the `Person` class 
 ```isl
 let andy = Person with firstName = "Andy", lastName = "Williams", Age = 19
 ```
-A class may also be called, like a function, and would return a new object, whose fields receive the arguments passed to it, by their order of declaration:
+A class may also be invoked like a constructor method, and would return a new object, whose fields receive the arguments passed to it, by their order of declaration:
 ```isl
 let andy = Person("Andy", "Williams", 19)
 ```
@@ -1630,7 +1630,7 @@ p.printDescription() // prints "Catherine Jones, of 41 years of age"
 p.description // returns "Catherine Jones, of 41 years of age"
 p[1] // returns "Jones"
 
-for m in p.stream
+for m in p
 	print(m) // prints "Catherine" "Jones"
 ```
 
@@ -1773,24 +1773,21 @@ let mrSmith = Person with lastName = "Smith", gender = Gender.Male
 
 Because some of `mrSmith`'s fields (namely `firstName` and `age`) are missing (and don't have default values), a full instance of `Person` could not be constructed. Instead, the resulting value - `mrSmith` is not an object of type `Person`, but of the type `partial Person with lastName, gender`.
 
-Wouldn't it be nice if we could call some of the partially constructed object's methods? Unfortunately since these methods access the `this` object, they don't provide any formal guarantee they wouldn't attempt to access uninitialized fields. However, we could limit their behavior by adding `uses` attributes specifying exactly which members they can reference:
+Wouldn't it be nice if we could call some of the partially constructed object's methods? Unfortunately since these methods access the `this` object (either implicitly or explicitly), they don't provide any formal guarantees they wouldn't attempt to access uninitialized fields. In the special case the methods never pass the `this` object to an external method, the requirements of each method can be determined automatically:
 
 ```isl
 class Person
 	....
 
-	[uses gender, lastName]
 	computed titleAndLastName() =>
 		"{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
 
-	[uses firstName, lastName]
 	computed fullName() => "{firstName} {lastName}"
 
-	[uses fullName, age]
 	computed fullNameAndAge() => "{fullName}, of {age} years of age"
 ```
 
-Now the computed field `titleAndLastName` can be called for `mrSmith`:
+The computed field `titleAndLastName` can be called for `mrSmith`:
 ```isl
 print(mrSmith.titleAndLastName) // prints "Mr. Smith"
 ```
@@ -1798,6 +1795,18 @@ print(mrSmith.titleAndLastName) // prints "Mr. Smith"
 However trying to reference `fullName` would result in a compilation error, since it requires `firstName` to be initialized:
 ```isl
 print(mrSmith.fullName) // Error: `fullName` uses member `firstName`, which is not defined for type `partial Person with lastName, gender`
+```
+
+In case a member passes the `this` object explicitly, the receiving function must annotate its parameter with a compatible `partial` type:
+```isl
+function giveMePartialPerson(p: partial Person with gender, lastName)
+	....
+
+class Person
+	....
+
+	computed somethingElse()
+		giveMePartialPerson(this)
 ```
 
 We could continue adding more information to the object:
@@ -1827,7 +1836,7 @@ let pointWhereXEquals1 = Point(1, ...)
 // The type of pointWhereXEquals1 is `partial Point with x`
 ```
 
-Here's a more realistic use case:
+Here's a more realistic use case.
 
 Say we had an object representing a database, and that has the fields `connection` and `name`:
 ```isl
@@ -1878,7 +1887,7 @@ let angelaFromUnknownPlanet = Person with firstName = "Angela", no planetResiden
 
 ## Type objects
 
-**Type objects** are special objects that may share the same name as a class (or act as singleton objects). They are commonly used to provide data and functionality that are not associated with a particular instance of the class:
+**Type objects** (which may also be described as dedicated **static member structures**) are special objects that may share the same name as a class (or act as singleton objects). They are commonly used to provide data and functionality that are not associated with a particular instance of the class:
 
 ```isl
 class Vector2
@@ -1994,7 +2003,7 @@ object expansion Person
 		(a.firstName, a.lastName, a.age) == (b.firstName, b.lastName, b.age)
 ```
 
-Expansion can add any member kind aside from instance fields (though it can add object fields):
+Expansion can add any member kind apart from instance fields (though it can add type object fields):
 ```isl
 class Person
 	firstName: string
@@ -2038,7 +2047,7 @@ trait expansion Labeled
 	computed reversedLabel => label.reversed
 ```
 
-Expansions are designed such that they never change the behavior of code outside of their scope. This is preserved by several **precedence rules**.
+Expansions are designed such that they never change the behavior of code outside of their scope. This is ensured by several **precedence rules**.
 
 For class or type object members added through an expansion:
 ```text
@@ -2386,7 +2395,7 @@ function heavyCalculation()
 	return result
 
 let x = spawn heavyCalculation() // The function heavyCalculations() starts on a seperate thread
-let y = somethingUnrelated(..) // This will execute even if heavyCalculations() has not completed
+let y = somethingUnrelated(....) // This will execute even if heavyCalculations() has not completed
 let z = x + y; // This may block until heavyCalculations() returns and x receives a value
 ```
 
@@ -2563,7 +2572,7 @@ function someMath1(x: -4.0..4.0): 16.0..infinity
 	....
 ```
 
-Since Island values and variables are strictly read-only, only one assertion check is needed to ensure the validity of a contract throughout the lifetime of the object and its binding variable. Types of operations between refined types can be inferred during compile-time (if feasible):
+Since Island values and variables are strictly read-only after initialization, only one assertion check is needed to ensure the validity of a contract throughout the lifetime of the object and its binding variable. Types of operations between refined types can be inferred during compile-time (if feasible):
 
 ```isl
 let x: 0..10
