@@ -2935,27 +2935,6 @@ variant Currency
 	Euro: decimal
 	Unknown
 ```
-<!--
-Like classes, variants may include members functions, actions, computed fields streams. Here is the previous traversal function example relocated into the body of the variant declaration:
-
-```isl
-variant BinaryTree<V>
-	Leaf: V
-	Internal: (leftNode: this?, rightNode: this?)
-
-	stream traverse(): V
-		match this
-			case Leaf(let value)
-				yield value
-
-			case Internal(let left: this?, let right: this?)
-				if left is not nothing
-					yield stream traverseBinaryTree(left)
-
-				if right is not nothing
-					yield stream traverseBinaryTree(right)
-```
--->
 
 Variant types may **embed class declarations** for one or more of their members. Declaring `Internal` as an embedded class now allows to implement a specialized `traverse` method for the `Internal` member:
 ```isl
