@@ -2647,7 +2647,7 @@ function fibonacci
 	(num: 3..infinity) => fibonacci(num - 1) + fibonacci(num - 2)
 ```
 
-Passing a number smaller than 1, e.g. `fibonacci(0)` would cause a runtime error (alternatively an overload like `(num: integer where num < 1) => throw ..` could be added to provide a more specialized error handling).
+Passing a number smaller than 1, e.g. `fibonacci(0)` would cause a runtime error (alternatively an overload like `(num: integer where num < 1) => throw ..` could be added to provide more specialized error handling).
 
 Compare with a single function matching over `num` as a parameter:
 ```isl
@@ -2716,8 +2716,8 @@ iWantDollars(euros) // No error!
 
 To ensure `Dollars` and `Euros` would not be interchangeable with each other one can add the `new` modifier. This would define the aliases as **nominal** (unique) types:
 ```isl
-new type Dollars = decimal
-new type Euros = decimal
+unique type Dollars = decimal
+unique type Euros = decimal
 
 function iWantDollars(money: Dollars)
 	....
@@ -2767,7 +2767,7 @@ type AnyCollection<T> = List<T> or Dictionary<string, T> or Set<T>
 
 Choice types may be **self-referencing**, which allows modeling complex recursive structures like a binary tree:
 ```isl
-new type BinaryTree<V> = V or (leftNode: BinaryTree<V>?, rightNode: BinaryTree<V>?)
+unique type BinaryTree<V> = V or (leftNode: BinaryTree<V>?, rightNode: BinaryTree<V>?)
 ```
 
 ## Variant types
@@ -2775,7 +2775,7 @@ new type BinaryTree<V> = V or (leftNode: BinaryTree<V>?, rightNode: BinaryTree<V
 In the final example of the previous section we've used a choice type to define a binary tree type:
 
 ```isl
-new type BinaryTree<V> = V or (leftNode: BinaryTree<V>?, rightNode: BinaryTree<V>?)
+unique type BinaryTree<V> = V or (leftNode: BinaryTree<V>?, rightNode: BinaryTree<V>?)
 ```
 
 One issue with this approach is that pattern matching to discriminate between a leaf and internal node is rather involved and error prone:
@@ -3921,7 +3921,7 @@ symbolic function Sqrt(a: Term): Term
 
 let x = Sqrt(Minus(Plus(Term(5), Term(10)), Term(4)))
 
-new type Expression = Plus: (a: Expression, b: Expression) or
+unique type Expression = Plus: (a: Expression, b: Expression) or
 					  Minus: (a: Expression, b: Expression) or
 					  Literal: integer
 ```
