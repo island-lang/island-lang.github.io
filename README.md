@@ -96,7 +96,7 @@ let greeting: string
 
 if x > 0
 	greeting = "Hello"
-otherwise
+else
 	greeting = "Hi"
 ```
 
