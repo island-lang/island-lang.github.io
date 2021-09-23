@@ -2175,7 +2175,7 @@ printNamedThing(Fruit("Banana", 0.5)) // prints "A Banana weighing 0.5kg"
 
 Type parameters can have **default values**:
 ```isl
-function MakePair<T = integer>
+function MakePair<T = integer>()
 ```
 
 Island supports **implicit type parameters**, meaning that generic types referenced without the introduction of type parameters will accept any type argument, given it satisfies their constraint set:
@@ -2186,6 +2186,7 @@ function firstsOfPairs(p1: Pair, p2: Pair) => (p1.a, p2.a)
 which would be roughly equivalent to:
 ```isl
 function firstsOfPairs(p1: Pair<*>, p2: Pair<*>) => (p1.a, p2.a)
+// ('<*>' is pseudo-syntax, it has no real meaning)
 ```
 
 `p1` and `p2` can accept any instances of `Pair`, including ones with incompatible types:
@@ -2531,23 +2532,23 @@ function divide(a: decimal, b: decimal)
 	return a / b
 ```
 
-It can reference the returned value as well (these assertions would always be evaluated after the function has returned):
+It can reference the returned value as well (these types of assertions would always be evaluated after the function has returned):
 ```isl
 function doSomeMath(x: decimal): (result: decimal)
 	assert result > x
-	..
+	....
 ```
 
 The immutability property could potentially ease the analysis of more complex scenarios at compile-time, using a more advanced theorem prover:
 ```isl
 function someMath1(x: decimal): (result: decimal)
 	assert result > 5
-	..
+	....
 
 function someMath2(a: decimal, b: decimal)
 	assert b >= 0
 	assert a + b < 5
-	..
+	....
 
 let r1 = someMath1(..) // r1 is always greater than 5
 let r2 = someMath2(r1, ..) // Compiler error regardless of the value of r1 and the second argument passed
