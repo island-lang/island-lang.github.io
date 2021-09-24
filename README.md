@@ -1807,8 +1807,7 @@ function giveMePartialPerson(p: partial Person with gender, lastName)
 class Person
 	....
 
-	computed somethingElse()
-		giveMePartialPerson(this)
+	computed somethingElse() => giveMePartialPerson(this)
 ```
 
 We could continue adding more information to the object:
