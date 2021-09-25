@@ -2719,7 +2719,7 @@ type Dollars = decimal
 type Euros = decimal
 
 function iWantDollars(money: Dollars)
-	...
+	....
 
 let euros: Euros = 45.0
 iWantDollars(euros) // No error!
@@ -2967,10 +2967,10 @@ object BinaryTree<V> extends Comparable<BinaryTree<V>>, Equatable<BinaryTree<V>>
 		case Internal
 			yield stream tree.iterate()
 
-	function compare(t1: BinaryTree<V>, t2 BinaryTree<V>): integer
+	function compare(t1: BinaryTree<V>, t2: BinaryTree<V>): integer
 		....
 
-	operator ==(t1: BinaryTree<V>, t2 BinaryTree<V>): boolean
+	operator ==(t1: BinaryTree<V>, t2: BinaryTree<V>): boolean
 		....
 ```
 
