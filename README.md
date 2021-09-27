@@ -349,21 +349,21 @@ printNameAndAge(_, 12) // prints Name: Anonymous, Age: 12
 
 ## First-class methods and lexical closures
 
-**First-class methods** is a language feature allowing functions (and actions) to be used similarly to values. They can be assigned to variables, returned from a secondary method, or passed as an argument.
-
-A **lexical closure** allows a method to capture data from its environment.
-
-```isl
-function outerFunction(x: integer): () => integer // This function returns a value of type function
-	function innerFunction()
-		return x + 1 // x is captured from the outer scope
-
-	return innerFunction
-```
+**First-class methods** is a language feature allowing functions (and actions) to be used similarly to values. They can be assigned to variables, returned from a secondary method, or passed as an argument:
 
 ```isl
 function giveMeFunction(f: () => integer)  // This function accepts an argument of type function
 	return f() + 1
+```
+
+A **lexical closure** allows a method to capture data from its environment:
+
+```isl
+function outerFunction(x: integer): () => integer // This function returns a value of type 'function'
+	function innerFunction()
+		return x + 1 // x is captured from the outer scope
+
+	return innerFunction
 ```
 
 ## Anonymous methods
@@ -435,19 +435,19 @@ let r1 = sum(1, 6, 3, 7) // r1 = 17
 ```
 
 ```isl
-function multiplyByAll(multiplier: integer, ...numbers: List<integer>) =>
+function multiplyAllBy(multiplier: integer, ...numbers: List<integer>) =>
 	numbers.map(number => number * multiplier)
 
-let r2 = multiplyByAll(10, 1, 2, 3, 4, 5) // r2 = [10, 20, 30, 40, 50]
+let r2 = multiplyAllBy(10, 1, 2, 3, 4, 5) // r2 = [10, 20, 30, 40, 50]
 ```
 
 It is also possible to explicitly pass a list to a rest parameter, using `...` as a suffix instead of a prefix:
 ```isl
-function multiplyByAll(multiplier, ...numbers: List<integer>) =>
+function multiplyAllBy(multiplier, ...numbers: List<integer>) =>
 	numbers.map(number => number * multiplier)
 
 let nums = [1, 2, 3, 4, 5]
-let r2 = multiplyByAll(10, nums...) // r2 = [10, 20, 30, 40, 50]
+let r2 = multiplyAllBy(10, nums...) // r2 = [10, 20, 30, 40, 50]
 ```
 
 Sometimes it is more convenient to pass arguments bundled together as a tuple. This is possible by applying the `...` prefix on the tuple passed, and would work even for methods that don't include a rest parameter:
@@ -472,7 +472,7 @@ printArguments(1, 4, 5) // Prints "(1, 4, 5)"
 
 ## Partial application
 
-Partial application allows to use an existing method to define a new method with a partial set of arguments:
+Partial application allows to transform a given method to a new method with one or more of its arguments bound to fixed values:
 ```isl
 action printThreeNumbers(a: integer, b: integer, c: integer)
 	print(a)
@@ -490,7 +490,7 @@ let print5And3AndNumber = printTwoNumbers(5, 3, ...)
 print5And3AndNumber(1) // prints "5 3 1"
 ```
 
-The `with` operator can be used to partially apply any subset of parameters:
+The `with` operator can be used to partially apply any subset of parameters, regardless of their declared order:
 ```isl
 let partiallyAppliedAction = printThreeNumbers with b = 11
 // partiallyAppliedAction has the signature partiallyAppliedAction(a: integer, c: integer)
@@ -1601,20 +1601,23 @@ class Person
 	lastName: string
 	age: integer
 
-	// Function
-	function agePlusSomething(something: integer) =>
-		age + something
+	// Function (long syntax)
+	function agePlusSomething(something: integer)
+		return age + something
+
+	// Function (short syntax)
+	agePlusSomething(something: integer) => age + something
 
 	// Action
 	action printDescription()
 		print(description)
 
-	// Computed field (short syntax)
-	description => "{firstName} {lastName}, of {age} years of age"
-
 	// Computed field (long syntax)
 	computed description()
 		return "{firstName} {lastName}, of {age} years of age"
+
+	// Computed field (short syntax)
+	description => "{firstName} {lastName}, of {age} years of age"
 
 	// Indexer
 	this[match index]
@@ -1725,7 +1728,7 @@ james.printDescription() // Prints "James Taylor, of 19 years of age and 1.8 met
 
 ## Abstract classes
 
-An **abstract class** is a class lacking a body for at least one of each methods. An abstract class cannot be used to create objects, but only to serve as a basis for another class:
+An **abstract class** is a class lacking a body for at least one of its methods. An abstract class cannot be used to create objects, but only to serve as a basis for another class:
 
 ```isl
 abstract class Vehicle
@@ -1756,8 +1759,7 @@ class Person
 	gender: Gender
 	age: integer
 
-	titleAndLastName =>
-		"{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
+	titleAndLastName => "{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
 
 	fullName => "{firstName} {lastName}"
 
@@ -1786,8 +1788,7 @@ Wouldn't it be nice if we could call some of the partially constructed object's 
 class Person
 	....
 
-	titleAndLastName =>
-		"{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
+	titleAndLastName => "{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
 
 	fullName => "{firstName} {lastName}"
 
@@ -1893,7 +1894,7 @@ let angelaFromUnknownPlanet = Person with firstName = "Angela", no planetResiden
 
 ## Type objects
 
-**Type objects** (which may also be described as dedicated **static member structures**) are special objects that may share the same name as a class (or act as singleton objects). They are commonly used to provide data and functionality that are not associated with a particular instance of the class:
+**Type objects** (which may also be described as dedicated **static member structures**) are special objects that may share the same name as a class (or act as singleton objects). They are used to provide data and functionality that are not associated with a particular instance of the class:
 
 ```isl
 class Vector2
@@ -1971,10 +1972,10 @@ class Employee extends Runner, Processor
 	fullName: string
 
 	action Runner.start(speed: decimal)
-		..
+		....
 
 	action Processor.start(speed: decimal)
-		..
+		....
 ```
 
 Traits can extend any number of other traits:
@@ -2002,7 +2003,7 @@ class expansion Person
 
 object Person
 	anonymous = Person("Anonymous", "", 0)
-	function haveSameFirstName(p1: Person, p2: Person) => p1.firstName == p2.firstName
+	haveSameFirstName(p1: Person, p2: Person) => p1.firstName == p2.firstName
 
 object expansion Person
 	operator ==(a: Person, b: Person) =>
@@ -2029,7 +2030,7 @@ object expansion Person
 	ben = Person("Ben", "Smith", 23) // And so will this
 ```
 
-Expansions can implement traits, as well as override their default implementations:
+Expansions can **implement traits**, as well as override their default implementations:
 ```isl
 class Employee
 	fullName: string
@@ -2366,7 +2367,7 @@ let w = makePair(z, 5) // z will be evaluated before makePair is called
 
 A second approach would be define the value itself (not the variable) as computed:
 ```isl
-function makePair(value1: integer, value2: integer) => (integer, integer)
+function makePair(value1: integer, value2: integer) => (value1, value2)
 
 let x = 1
 let y = 2
@@ -2454,14 +2455,14 @@ Sometimes the lazy behavior isn't desirable, and it is preferred to wait until o
 for (result1, result2) in spawn (heavyCalculations1(), heavyCalculations2())
 	wait result1, result2
 	print("Congratulations, we have new results!") // This will only execute when both result1 and result receive a value
-	..
+	....
 ```
 
 For convenience, the `wait` keyword can also be integrated as a modifier to the loop variable:
 ```isl
 for (wait result1, wait result2) in spawn (heavyCalculations1(), heavyCalculations2())
 	print("Congratulations, we have new results!") // This will only execute when both result1 and result receive a value
-	..
+	....
 ```
 
 Sometimes we want to allow for results to evaluate as soon as any one of several computations yields a value. By adding the `any` modifier to the variable, a single result is received whenever any one of the streams yields a value.
@@ -3634,7 +3635,7 @@ AllMembersGreaterThan([3, 2, 4, 5], _)
 
 If we were to unroll the `foreach` loop to multiple steps it would look somewhat like:
 ```isl
-GreaterThan(3, smallerValue) // Produces 2, 1, 0, -1, -2, -3, .. for smallerValue
+GreaterThan(3, smallerValue) // Produces 2, 1, 0, -1, -2, -3, .... for smallerValue
 GreaterThan(2, smallerValue)
 GreaterThan(4, smallerValue)
 GreaterThan(5, smallerValue)
