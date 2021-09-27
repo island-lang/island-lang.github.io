@@ -161,24 +161,24 @@ let l6 = l5 + [100] // l6 is [10, 11, 1, 2, 100]
 
 List members can be non-destructively altered using the `with` operator:
 ```isl
-let l1 = [1, 2, 3, 4]
-let l2 = l1 with [1] = -1 // l2 is [-1, 2, 3, 4]
-let l3 = l2 with [2] =+ 1, [3] -= 1, no [4]  // l3 is [-1, 3, 2]
+let l1 = [100, 200, 300, 400]
+let l2 = l1 with [1] = -1 // l2 is [99, 200, 300, 400]
+let l3 = l2 with [2] =+ 1, [3] -= 1, no [4]  // l3 is [99, 201, 299]
 ```
 
 The spread syntax can naturally embed `with` expressions:
 ```isl
-let l1 = [1, 2]
-let l2 = [3, 4, 5]
-let l3 = [...(l1 with [1] -= 10), ...(l2 with [1] *= 3), 6] // l3 is [-9, 2, 9, 4, 5, 6]
-let l4 = [...(l3 with no [1], [2] *= 4), 13, 3] // l4 is [8, 9, 4, 5, 6, 13, 3]
+let l1 = [100, 200]
+let l2 = [300, 400, 500]
+let l3 = [...(l1 with [1] -= 10), ...(l2 with [1] *= 3), 6] // l3 is [90, 200, 900, 400, 500, 600]
+let l4 = [...(l3 with no [1], [2] *= 4), -200, 300] // l4 is [800, 900, 400, 500, 600, -200, 300]
 ```
 
 Lists can be sliced:
 ```isl
-let l1 = [1, 2, 3, 4]
-let l2 = l1[2..4] // l2 is [2, 3, 4]
-let l3 = l1[3..] // l3 is [3, 4]
+let l1 = [100, 200, 300, 400]
+let l2 = l1[2..4] // l2 is [200, 300, 400]
+let l3 = l1[3..] // l3 is [300, 400]
 ```
 
 **Tuples** are ordered collections of fixed length in which each member may have a different type:
@@ -846,7 +846,7 @@ Observing the above carefully, it may be noticed the `: Animal` and `: Person` a
 function matchAnimalAndPerson(match animal, match person)
 	case Dog where name == "Lucky", Man where age < 18 => "Good dog and young man!"
 	case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
-	case Horse where height > 1807, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
+	case Horse where height > 180, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
 	otherwise => fail "Nothing interesting here"
 
 	// Note the 'otherwise' clause must fail for the parameter types to be properly inferred!
@@ -902,8 +902,8 @@ function notExhaustive(someBoolean: boolean)
 Sometimes it may be useful to match a value only against a single pattern. The `matches` operator allows that:
 
 ```isl
-function firstTwoElementsAreConsecutive(values: List<integer>): boolean
-	return values matches [let first, let second == first + 1, ...]
+function firstTwoElementsAreConsecutive(values: List<integer>): boolean =>
+	values matches [let first, let second == first + 1, ...]
 ```
 
 ## Loops
@@ -1467,7 +1467,8 @@ Wouldn't it be nice to make an infinite-length (unbounded) stream which enumerat
 ```isl
 stream primes()
 	// Generates the integer sequence n^2, n^2 + n, n^2 + n + n, n^2 + n + n + n, ...
-	stream multiplesOfN(n: integer) = (for initial = n**2) => prior + n
+	stream multiplesOfN(n: integer) =
+		(for initial = n**2) => prior + n
 
 	// For n in 2..infinity
 	// At each step, advance each stream until a value greater than or equal to n is reached
@@ -1608,7 +1609,10 @@ class Person
 	action printDescription()
 		print(description)
 
-	// Computed field
+	// Computed field (short syntax)
+	description => "{firstName} {lastName}, of {age} years of age"
+
+	// Computed field (long syntax)
 	computed description()
 		return "{firstName} {lastName}, of {age} years of age"
 
@@ -1643,7 +1647,8 @@ class Person
 	lastName: string
 	age: integer
 
-	function getOlderPerson() => this with age += 1
+	function getOlderPerson(yearsToAdd: integer) =>
+		this with age += yearsToAdd
 ```
 
 Alterations can be applied deeper into the object hierarchy:
@@ -1704,13 +1709,13 @@ class Person
 	lastName: string
 	age: integer
 
-	computed description() => "{firstName} {lastName}, of {age} years of age"
+	description => "{firstName} {lastName}, of {age} years of age"
 	action printDescription() => print(description)
 
 class PersonWithHeight extends Person
 	height: decimal
 
-	computed description() => "{base.description} and {height} meters tall"
+	description => "{base.description} and {height} meters tall"
 
 let james = PersonWithHeight("James", "Taylor", 19, 1.8)
 
@@ -1751,12 +1756,12 @@ class Person
 	gender: Gender
 	age: integer
 
-	computed titleAndLastName() =>
+	titleAndLastName =>
 		"{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
 
-	computed fullName() => "{firstName} {lastName}"
+	fullName => "{firstName} {lastName}"
 
-	computed fullNameAndAge() => "{fullName}, of {age} years of age"
+	fullNameAndAge => "{fullName}, of {age} years of age"
 ```
 
 Say we wanted to derive a class for a person who must be male and whose last name must be "Smith". In the traditional object-oriented style this can be done by extending `Person` and fixing the `lastName` and `gender` fields to the constant values `"Smith"` and `Male`:
@@ -1781,12 +1786,12 @@ Wouldn't it be nice if we could call some of the partially constructed object's 
 class Person
 	....
 
-	computed titleAndLastName() =>
+	titleAndLastName =>
 		"{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
 
-	computed fullName() => "{firstName} {lastName}"
+	fullName => "{firstName} {lastName}"
 
-	computed fullNameAndAge() => "{fullName}, of {age} years of age"
+	fullNameAndAge => "{fullName}, of {age} years of age"
 ```
 
 The computed field `titleAndLastName` can be called for `mrSmith`:
@@ -1807,7 +1812,7 @@ function giveMePartialPerson(p: partial Person with gender, lastName)
 class Person
 	....
 
-	computed somethingElse() => giveMePartialPerson(this)
+	somethingElse => giveMePartialPerson(this)
 ```
 
 We could continue adding more information to the object:
@@ -1993,7 +1998,7 @@ class Person
 	age: integer
 
 class expansion Person
-	fullname() => "{firstName} {lastName}"
+	fullname => "{firstName} {lastName}"
 
 object Person
 	anonymous = Person("Anonymous", "", 0)
@@ -2038,17 +2043,17 @@ class expansion Employee extends Labeled
 	action printLabel() => print("Great Employee: {label}")
 ```
 
-Expansions can add members to traits, as long as they provide default implementations:
+Expansions can **add members to traits**, as long as they provide default values or implementations:
 ```isl
 trait Labeled
 	label: string
 	action printLabel() => print(label)
 
 trait expansion Labeled
-	computed reversedLabel => label.reversed
+	reversedLabel => label.reversed
 ```
 
-Expansions are designed such that they never change the behavior of code outside of their scope. This is ensured by several **precedence rules**.
+Expansions are designed such that they never change the behavior of code outside of their own scope. This is ensured by several **precedence rules**.
 
 For class or type object members added through an expansion:
 ```text
@@ -2176,7 +2181,8 @@ printNamedThing(Fruit("Banana", 0.5)) // prints "A Banana weighing 0.5kg"
 
 Type parameters can have **default values**:
 ```isl
-function MakePair<T = integer>()
+function MakePair<T = integer>(v1: T, v2: T): (T, T)
+	....
 ```
 
 Island supports **implicit type parameters**, meaning that generic types referenced without the introduction of type parameters will accept any type argument, given it satisfies their constraint set:
@@ -2199,6 +2205,7 @@ This is not always desirable. In case `p1` and `p2` are expected to have compati
 
 ```isl
 function firstsOfPairs<T>(p1: Pair<T>, p2: Pair<T>) => (p1.a, p2.a)
+
 let r = firstsOfPairs(Pair(1, 2), Pair('a', 'b')) // Error: p1 and p2 must have compatible types!
 ```
 
@@ -2249,7 +2256,7 @@ function propertyOf3Sums<T extends Monoid and Equatable>(a: T, b: T, c: T): bool
 	((a + b) == T.identity) and ((b + c) != T.identity)
 ```
 
-Using a type alias and a join type we can define a trait that combines both instance and type members:
+Using a type alias and a join type we can define a trait that **combines both instance and type members**:
 
 ```isl
 trait Person
@@ -2329,7 +2336,7 @@ Remember computed fields in a class?
 class Person
 	firstName: string
 	lastName: string
-	computed fullName() => "{firstName} {lastName}"
+	fullName => "{firstName} {lastName}"
 ```
 
 `fullName` is only evaluated when it is called (and possibly the result is then stored for subsequent calls).
@@ -2338,7 +2345,7 @@ Using a computed variable, we could make a local variable that behaves in a simi
 ```isl
 let x = 1
 let y = 2
-computed z() => x + y // The type of z is a plain integer
+let z => x + y // The type of z is a plain integer
 
 print(z) // prints 3
 ```
@@ -2351,7 +2358,7 @@ function makePair(value1, value2) => (value1, value2)
 
 let x = 1
 let y = 2
-computed z() => x + y
+let z => x + y
 
 let w = makePair(z, 5) // z will be evaluated before makePair is called
 // w is equal to (3, 5)
@@ -2363,7 +2370,7 @@ function makePair(value1: integer, value2: integer) => (integer, integer)
 
 let x = 1
 let y = 2
-let z: integer = compute x + y
+let z = compute x + y
 // `z` still has the plain type `integer`
 // The 'computed' characteristic is only tracked internally, in the runtime
 
@@ -2612,7 +2619,7 @@ Like any other method, assertion types can accept type arguments:
 predicate ShortList<T>(list: List<T>) => list.Length < 100
 	....
 
-function something(x: ShortList<(integer, string)>)
+function something(x: ShortList<string>)
 	....
 ```
 
@@ -2658,7 +2665,7 @@ function fibonacci
 	(num: 3..infinity) => fibonacci(num - 1) + fibonacci(num - 2)
 ```
 
-Passing a number smaller than 1, e.g. `fibonacci(0)` would cause a runtime error (alternatively an overload like `(num: integer where num < 1) => throw ..` could be added to provide more specialized error handling).
+Passing a number smaller than 1, e.g. `fibonacci(0)` would cause a runtime error (alternatively an overload like `(num: integer where num < 1) => throw ....` could be added to provide more specialized error handling).
 
 Compare with a single function matching over `num` as a parameter:
 ```isl
@@ -2947,7 +2954,7 @@ variant BinaryTree<V>
 		leftNode: BinaryTree<V>?
 		rightNode: BinaryTree<V>?
 
-		computed hasChildren() => (leftNode, rightNode) is not (nothing, nothing)
+		hasChildren => (leftNode, rightNode) is not (nothing, nothing)
 
 		stream traverse()
 			yield stream leftNode?.traverse()
