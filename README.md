@@ -1340,7 +1340,7 @@ Now let's try to define more precisely what exactly are the constraints on a nam
 
 A **named return variable** is a special variable that:
 
-* **Can** be reassigned multiple times, including from conditionals and loop bodies.
+* **Can** be reassigned multiple times, including from within conditionals and loop bodies.
 * **Can** be passed to any method (including to an action or an object initializer).
 * **Can only** be read from within an expression that is **assigned back to itself**.
 * **Cannot** be accessed from within a nested function or action.
@@ -1455,7 +1455,7 @@ function quicksort(match items: List<integer>)
 Here's a simple bounded sieve of Eratosthenes using a `for` loop and a list comprehension:
 ```isl
 stream primesTo(max: integer)
-	for n in 2..max, nonprimes: List<integer> = []
+	for n in 2..max, nonprimes: Set<integer> = {}
 		if not nonprimes.includes(n)
 			yield n
 
@@ -2609,7 +2609,6 @@ Assertion types, for the most part, cannot be checked during compile-time and wo
 
 ```isl
 predicate MultipleOf10(x: integer) => x mod 10 == 0
-	....
 
 function something(x: MultipleOf10)
 	....
@@ -2618,7 +2617,6 @@ function something(x: MultipleOf10)
 Like any other method, assertion types can accept type arguments:
 ```isl
 predicate ShortList<T>(list: List<T>) => list.Length < 100
-	....
 
 function something(x: ShortList<string>)
 	....
@@ -3210,6 +3208,7 @@ Object or tuple type references may include references to members, method parame
 class Person
 	name: string
 	data: (integer, boolean, id: string)
+
 	action processMe(someData: integer, moreData: string): Set<string>
 		....
 
@@ -3740,6 +3739,8 @@ Determinism (which is related to the property of referential transparency), mean
 
 # Patterns and parsers
 ## Pattern methods
+
+Pattern methods are methods that enable the description of patterns,
 
 ```isl
 pattern Repeated<T, R>
