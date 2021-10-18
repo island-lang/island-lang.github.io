@@ -1650,7 +1650,7 @@ class Person
 	lastName: string
 	age: integer
 
-	function getOlderPerson(yearsToAdd: integer) =>
+	getOlderPerson(yearsToAdd: integer) =>
 		this with age += yearsToAdd
 ```
 
