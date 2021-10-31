@@ -1,0 +1,135 @@
+body {
+	font-size: 16px;
+	/*font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;*/
+	font-family: Selawik, sans-serif;
+	max-width: 60em;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 2em;
+	line-height: 1.55em;
+}
+
+h1.main-header {
+	margin-top: 0em;
+	text-align: center;
+	line-height: 1.4em;
+}
+
+h1, h2 {
+	margin-top: 1em;
+	padding-bottom: 0.2em;
+	border-bottom: 1px solid rgb(236, 236, 236);
+}
+
+h1, h2, h3, h4, h5, h6 {
+	position: relative;
+}
+
+h1:hover .header-anchor, h2:hover .header-anchor, h3:hover .header-anchor, h4:hover .header-anchor, h5:hover .header-anchor, h6:hover .header-anchor {
+	opacity: 1;
+}
+
+.header-anchor {
+	text-decoration: none;
+	/*color: #666;*/
+	opacity: 0;
+	position: absolute;
+	left: -1.5ch;
+	margin-right: 1em;
+}
+
+li { margin-bottom: 0.1em; }
+
+nav.table-of-contents {
+	font-size: 1.0em;
+	background-color: rgb(248, 248, 248);
+	padding: 0.5em;
+	border-radius: 0.5em;
+	line-height: 1.6em;
+}
+
+a {
+	color: rgb(44, 107, 255);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+pre, code {
+	font-size: 0.9em;
+	font-family: 'Fira Code', monospace;
+	font-variant-ligatures: none;
+	line-height: 1.3em;
+	tab-size: 4;
+	-moz-tab-size: 4;
+	background-color: rgb(248, 248, 248) !important;
+}
+
+pre.shiki, nav.table-of-contents {
+	font-size: 1.0em;
+	white-space: pre-wrap;
+	padding: 1em;
+	border-radius: 0.5em;
+	border-color: rgb(226, 226, 226);
+	border-style: solid;
+	border-width: 1px;
+}
+
+@font-face {
+	font-family: 'Fira Code';
+	src: url('../fonts/FiraCode/FiraCode-Light.woff2') format('woff2');
+	font-weight: 300;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Fira Code';
+	src: url('../fonts/FiraCode/FiraCode-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Fira Code';
+	src: url('../fonts/FiraCode/FiraCode-Medium.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Fira Code';
+	src: url('../fonts/FiraCode/FiraCode-SemiBold.woff2') format('woff2');
+	font-weight: 600;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Fira Code';
+	src: url('../fonts/FiraCode/FiraCode-Bold.woff2') format('woff2');
+	font-weight: 700;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Fira Code VF';
+	src: url('../fonts/FiraCode/FiraCode-VF.woff2') format('woff2-variations');
+	/* font-weight requires a range: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts/Variable_Fonts_Guide#Using_a_variable_font_font-face_changes */
+	font-weight: 300 700;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Selawik';
+	src: url('../fonts/Selawik/selawk.ttf');
+	font-weight: 400;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Selawik';
+	src: url('../fonts/Selawik/selawkb.ttf');
+	font-weight: 700;
+	font-style: normal;
+}
