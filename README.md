@@ -800,11 +800,11 @@ function matchList(myList: List<integer>)
 		case [25, ..., let last]
 
 		// Match if first element is greater or equal to 10. Capture the tail of the list with the identifier 'tail':
-		case [_ >= 10, ...let tail]
+		case [_ >= 10, let ...tail]
 
 		// Match if first element smaller than 0, second not equals to first,
 		// capture them and the rest with the identifers 'first', 'second', 'rest':
-		case [let first < 0, let second != first, ...let rest]
+		case [let first < 0, let second != first, let ...rest]
 
 		// Find the first member of the list that's greater than 5:
 		case [..., let v > 5, ...]
