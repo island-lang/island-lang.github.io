@@ -644,7 +644,7 @@ function numToWords(num: 1..999): string
 
 ## Pattern matching
 
-**Pattern matching** is a form of a conditional which inspects one or more target values. The `match`-`case` syntax expands over the traditional `switch`-`case` with more expressive control:
+**Pattern matching** is a form of a conditional which inspects one or more target values and their internal component parts. The `match`-`case` syntax expands over the traditional `switch`-`case` with more expressive control:
 
 _(`_` matches the target value, which is `num` in this example)_
 
@@ -3740,7 +3740,16 @@ Determinism (which is related to the property of referential transparency), mean
 # Patterns and parsers
 ## Pattern methods
 
-Pattern methods are methods that enable the description of patterns,
+We've previously introduced a syntax for list, tuple and object patterns, which can be used for pattern matching in conditional statements and expressions:
+
+```isl
+
+
+```
+
+**Pattern methods** generalize over this feature, and allow to define arbitrary pattern recognizers via independent subroutines.
+
+
 
 ```isl
 pattern Repeated<T, R>
@@ -3979,9 +3988,9 @@ function binarySearch(values: List<integer>, target: integer)
 Comparisons are always done by value and traverse deep structural hierarchies:
 
 ```isl
-let t1 = (1, "Hi", true, [5,4,3,2])
-let t2 = (1, "Hi", true, [5,4,3,2])
-let t3 = (1, "Hi", true, [5,4,3,1])
+let t1 = (1, "Hi", true, [5, 4, 3, 2])
+let t2 = (1, "Hi", true, [5, 4, 3, 2])
+let t3 = (1, "Hi", true, [5, 4, 3, 1])
 
 print(t1 == t2) // prints true
 print(t2 == t3) // prints false
