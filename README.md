@@ -2,7 +2,7 @@
 
 **Island** (**I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of imperative, functional, object-oriented, and logic programming.
 
-It primarily aims to serve as a pragmatic programming tool for real-world applications, and generally inclined towards the imperative, sequential programming style.
+It primarily aims to serve as a pragmatic programming tool for real-world applications, and generally inclined towards the mainstream, sequential programming style.
 
 However, the language cannot be formally classified as imperative (it has **no mutable state**), nor as truly functional (it does not promote an idiomatically functional style), nor as traditionally object-oriented language. It is not intended as a hybrid language, but represents a conceptually independent programming approach named **stateless-sequential programming**.
 
@@ -13,12 +13,13 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 
 ## Design goals and constraints
 
-* **Constrain all variables and values to be strictly immutable**. I.e. both variables (locally and globally scoped) and values (primitive and compound objects, including any of their fields) must maintain their initial value, forever.
+* **All variables and values are strictly immutable**. I.e. both variables (locally and globally scoped) and values (primitive and compound objects, including any of their fields) must maintain their initial value, forever.
 * Adapt common imperative constructs like loops, objects and generators, while maintaining strict adherence to full immutability.
 * Maintain a strict separation between pure and side-effect scopes (e.g. `function` vs `action`).
 * Maintain a look-and-feel roughly resembling popular imperative languages (e.g Python, Swift, C#, TypeScript).
 * Aim for maximum simplicity and readability (good syntax does make a difference!). Aim for low-ambiguity syntax that reads like plain English (but don't overdo it for its own sake).
 * Clean syntax: avoid unnecessary punctuation like `;`, `:`, `{`, `}`, `(`, `)` and cryptic-looking symbols like `$`, `*`, `#`, `^` etc..
+* Expressive, rather than minimalist, syntax. No special attempt on cutting down on special keywords (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
 * Types should be inferred whenever possible.
 * Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and assertion types, compile-time contracts).
 * Allow for easy concurrency (lightweight threads, deterministic dataflows, asynchronous generators).
@@ -29,7 +30,11 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 * **[Stateless loops](#loops)** (or alternatively **structured loops**) represent a novel approach to control flow that attempts to synthesize "the best" of both the imperative and functional idioms.
 * **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness the language by abstracting over the concept of the "prior" output of a generator.
 * **[Relation classes](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, functions as well as generators.
-* **[Abstract pattern recognizers](#patterns-and-parsers)** are subroutine-like methods that generalize over pattern matching syntax, as well as regular expressions and allow recognizing and capturing arbitrary patterns within any type of input stream.
+* **[Abstract pattern recognizers](#patterns-and-parsers)** are function-like methods that generalize over the basic pattern matching syntax, as well as traditional regular expressions, by allowing to recognize and capture arbitrary patterns within any type of input stream.
+
+## Implementation state
+
+The language is currently at an early, design-only stage. A basic parser and compiler have been developed, mostly for the purpose of validating a limited subset of its features (in particular its parsing complexity and the practical efficiency of its looping constructs).
 
 # Fundamentals
 
@@ -4070,7 +4075,7 @@ This work would not have been possible without ideas adapted from other language
 
 I'm a self-taught software developer who loves designing programming languages.
 
-## Feedback for this site
+## Feedback for this document
 
 The repository is located at [github.com/island-lang/island-lang.github.io](https://github.com/island-lang/island-lang.github.io)
 
