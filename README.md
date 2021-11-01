@@ -3740,82 +3740,106 @@ Determinism (which is related to the property of referential transparency), mean
 # Patterns and parsers
 ## Pattern methods
 
-We've previously introduced a syntax for list, tuple and object patterns, which can be used for pattern matching in conditional statements and expressions:
+We've previously introduced a syntax for list, tuple and object patterns, which can be used for pattern matching in conditional statements and expressions, such as:
 
 ```isl
-
-
+match myList
+	case []
+		....
+	case [let head < 10, ...]
+		....
+	case [25, ..., let last]
+		....
+	case [_ >= 10, let ...tail]
+		....
+	case [let first < 0, let second != first, let ...rest]
+		....
+	case [..., let v > 5, ...]
+		....
 ```
 
-**Pattern methods** generalize over this feature, and allow to define arbitrary pattern recognizers via independent subroutines.
+**Pattern methods** generalize over this feature, and allow to define arbitrary pattern recognizers via special-purpose subroutine-like helpers.
 
+Pattern methods can also be used as a full replacement for string regular expressions.
 
-
+For instance, we'll look at a regular expression that captures a phone number pattern. Conventionally we'll define something like:
 ```isl
-pattern Repeated<T, R>
-	(P: Pattern<T, R>, minTimes: integer, maxTimes: integer, condition: R => boolean = _ => true) of (results: List<R> = []) in Stream<T>
+let PhoneNumberRegExp = /^[\+]?[ ]?([0-9][0-9]?[0-9]?)[ ]?\(([0-9][0-9][0-9])\)[ ]?([0-9][0-9][0-9])\-([0-9][0-9][0-9][0-9])$/
 
-		pattern ConditionedPattern() of (result) in Stream<T>
-			result = accept P of (r) if condition(r)
+// Example matching string: "+1 (534) 953-6345"
 
-		if minTimes >= 1
-			for _ in 1..minTimes
-				results += accept ConditionedPattern
+match str
+	case PhoneNumberRegExp of ("1", "800", _, let lineNumber)
+		....
+```
 
-		for _ in minTimes..maxTimes
-			try
-				results += accept ConditionedPattern
-			else
-				break
+With a pattern method, we could instead write:
+```isl
+match str
+	case PhoneNumberPattern of ("1", "800", _, let lineNumber)
+		....
+```
 
-	(p: Pattern<T, R>, times: integer, condition: R => boolean = _ => true) of (results: List<R>) in Stream<T>
-		results = accept Repeated(p, times, times)
-
-	(p: Pattern<T, R>, condition: R => boolean = _ => true) of (results: List<R>) in Stream<T>
-		results = accept Repeated(p, 1, infinity)
-
-pattern AnyOf(acceptedStrings: Set<string>) in string
-	accept string of (s) if acceptedStrings.includes(s)
-
-pattern DigitExcludingZero() in string
-	accept AnyOf({ '1', '2', '3', '4', '5', '6', '7', '8', '9' })
-
-pattern Digit() in string
-	accept '0' or DigitExcludingZero
-
-pattern PhoneNumber() of (countryCode, areaCode, areaCode, prefix, lineNumber) in string
+Where `PhoneNumberPattern` would be a pattern method defined as:
+```isl
+pattern PhoneNumberPattern() of (countryCode, areaCode, areaCode, prefix, lineNumber) in string
 	accept optional '+'
-	countryCode = accept Repeated(digit, 3)
+	countryCode = accept Repeated(Digit, 1, 3)
 	accept optional ' '
 	accept '('
-	areaCode = accept Repeated(digit, 3)
+	areaCode = accept Repeated(Digit, 3)
 	accept ')'
 	accept optional ' '
-	prefix = accept Repeated(digit, 3)
+	prefix = accept Repeated(Digit, 3)
 	accept '-'
-	lineNumber = accept Repeated(digit, 4)
+	lineNumber = accept Repeated(Digit, 4)
+```
 
-pattern EmailAddress() of (localPart, domainName) in string
-	localPart = accept Identifier or '.'
-	accept '@'
-	domainName = accept Identifier or '.'
+A pattern method is written similarly to a standard method only it employs the `accept` keyword which implicitly "advances" the recognizer whenever a pattern is matched:
 
-pattern IntegerNumber(min: integer, max: integer) of (parsedInteger) in string
-	pattern IntegerDigits() in string
-		accept optional '-'
-		accept DigitExcludingZero
-		accept optional Repeated(digit)
+```isl
+.... = accept .... // Require the next member of the stream to match the given pattern and return it
+.... = accept optional ....  // Try to match the given pattern and return it, or skip if failed
+```
 
-	let digits = accept IntegerDigits
-	parsedInteger = parseInteger(digits)
+In the above example, `Repeated` and `Digit` are references to secondary pattern methods.
 
-	if not (parsedInteger in min..max)
-		reject Failure("The number {parsedInteger} is not in the expected range of {min}..{max}")
+`Digit` can be defined as:
+```isl
+pattern Digit() of (value) in string
+	value = accept if _ in { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }
+```
 
-pattern IntegerNumber() of (parsedInteger) in string
-	parsedInteger = accept IntegerNumber(-infinity, infinity)
+`accept if ....` will accept only if the given condition is satisfied. The `_` has semantics similar to how its used in pattern matching, i.e. analogous to what it would mean in a pattern like `[_ >= 10, ...]` where it contextually matches the corresponding element of a list.
 
+`Repeated` is a more complex, higher-order pattern method parameterized over any underlying pattern, as well as for any stream type (which includes strings):
+```isl
+pattern Repeated<T, R> (p: Pattern<T, R>, minTimes: integer, maxTimes: integer) of (results: List<R> = []) in Stream<T>
+
+	if minTimes >= 1
+		for _ in 1..minTimes
+			results += accept p
+			// `results` acts similarly to a named return variable
+			// It can be incrementally updated,
+			// However, it can only be read when assigned back to itself
+
+	for _ in minTimes..maxTimes
+		try
+			results += accept p
+		else
+			break
+
+pattern Repeated<T, R> (p: Pattern<T, R>, times: integer) of (results: List<R> = [])
+	results = accept Repeated<T, R>(p, times, times)
+```
+
+`try`... `otherwise` enables a limited form of **transactional execution** where multiple branches are attempted in turn until one of them succeeds (or otherwise the pattern is entirely rejected). Whenever a failure occurs within a branch, its assignments are rolled back.
+
+
+Here's an second illustrative example which will recognize and parse a date with any one of `/`, `-` or `.` as separator characters:
+```isl
 pattern Date() of (day, month, year) in string
+	// Will recognize a date like "21/5/1999" or "13-7-2020"
 	day = accept IntegerNumber(1, 31)
 
 	try
@@ -3826,44 +3850,58 @@ pattern Date() of (day, month, year) in string
 		accept '-'
 		month = accept IntegerNumber(1, 12)
 		accept '-'
+	else try
+		accept '.'
+		month = accept IntegerNumber(1, 12)
+		accept '.'
 
 	year = accept IntegerNumber
 
 match str
-	case PhoneNumber of ("1", "800", _, let lineNumber)
-		....
 	case Date of (1, 12, let year >= 2005)
 		....
 ```
+
+Pattern methods can recognize and parse patterns that go well beyond the constraints of regular languages.
+
+We could rewrite the previous example such that the pattern method would be parameterized by an arbitrary set of separator characters:
+
+```isl
+pattern Date(seperatorCharacterSet: Set<string>) of (day, month, year) in string
+	day = accept IntegerNumber(1, 31)
+
+	let seperator = accept if _ in seperatorCharacterSet
+	month = accept IntegerNumber(1, 12)
+	accept separator // The accepted character must be the same as the one previously captured
+
+	year = accept IntegerNumber
+
+match str
+	case Date({'/', '-', '.'}) of (1, 12, let year >= 2005)
+		....
+```
+
+Pattern methods can be used for arbitrary streams. Here it is used to recognize patterns in sequences of integers.
 
 ```isl
 // Recognizes three primes p1, p2, p3
 pattern ThreePrimes() in Stream<integer>
 	predicate isPrime(num) => ....
 
-	accept Repeated(any, 3, value => isPrime(value))
+	for _ in 1..3
+		accept if isPrime(_)
 
 // Recognizes 1, 2, 3, 4, 5, ....
 pattern NaturalNumberSeries() in Stream<integer>
-	for i in 1..infinity
-		accept end or any of (let value == i)
+	for i in 1..
+		accept if _ == i
 ```
 
-XML Recognizer:
+XML Recognizer and parser:
 ```isl
-pattern RepeatedUntil<T, R1, R2>(TargetPattern: Pattern<T, R1>, StopPattern: Pattern<T, R2>) of (results: List<R1>) in Stream<T>
-	forever
-		try
-			accept StopPattern
-			reject and break
-		else try
-			results += accept TargetPattern
-		else
-			break
-
 pattern XMLAttributeStringLiteral of (content) in string
 	accept '"'
-	content = accept RepeatedUntil(any, '"')
+	content = accept AnythingUntil('"')
 	accept '"'
 
 pattern XMLAttribute() of (identifier, value) in string
@@ -3897,14 +3935,14 @@ pattern XMLEmptyTag() of (tagName) in string
 
 pattern XMLComment() of (commentBody) in string
 	accept '<!--'
-	commentBody = accept RepeatedUntil(any, '-->')
+	commentBody = accept AnythingUntil('-->')
 	accept '-->'
 
 pattern XMLElement() in string
 	accept XMLOpeningTag or XMLClosingTag or XMLEmptyTag or XMLComment
 
 pattern XMLText() in string
-	accept RepeatedUntil(any, '<')
+	accept AnythingUntil('<')
 
 pattern XMLDocument() in string
 	forever
@@ -3914,6 +3952,14 @@ pattern XMLDocument() in string
 			accept XMLText
 		else
 			break
+
+pattern AnythingUntil<T>(StopPattern: Pattern<T>) of (results: List<T>) in Stream<T>
+	forever
+		try
+			accept StopPattern
+			reject and break // Roll back if stop pattern encountered and break out of the loop
+		else
+			results += accept
 ```
 
 # Symbolic data structures
