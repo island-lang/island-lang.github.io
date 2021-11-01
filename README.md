@@ -23,6 +23,14 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 * Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and assertion types, compile-time contracts).
 * Allow for easy concurrency (lightweight threads, deterministic dataflows, asynchronous generators).
 
+
+## Prominent innovations
+
+* **[Stateless loops](#loops)** (or alternatively **structured loops**) represent a novel approach to control flow that attempts to synthesize "the best" of both the imperative and functional idioms.
+* **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness the language by abstracting over the concept of the "prior" output of a generator.
+* **[Relation classes](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, functions as well as generators.
+* **[Abstract pattern recognizers](#patterns-and-parsers)** are subroutine-like methods that generalize over pattern matching syntax, as well as regular expressions and allow recognizing and capturing arbitrary patterns within any type of input stream.
+
 # Fundamentals
 
 ## Variables and assignment
@@ -4057,6 +4065,14 @@ print(t2 == t3) // prints false
 ## Influences
 
 This work would not have been possible without ideas adapted from other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, F#, Quorum, Swift, Scala, Prolog, Java, Oz and Pascal.
+
+## Who wrote this?
+
+I'm a self-taught software developer who loves designing programming languages.
+
+## Feedback for this site
+
+The repository is located at [github.com/island-lang/island-lang.github.io](https://github.com/island-lang/island-lang.github.io)
 
 ## Copyrights
 
