@@ -13,22 +13,22 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 
 ## Design goals and constraints
 
-* **All variables and values are strictly immutable**. I.e. both variables (locally and globally scoped) and values (primitive and compound objects, including any of their fields) must maintain their initial value, forever.
+* **All variables and values should be strictly immutable**. I.e. both variables (locally and globally scoped) and values (primitive and compound objects, including any of their fields) must maintain their initial value, forever.
 * Adapt common imperative constructs like loops, objects and generators, while maintaining strict adherence to full immutability.
 * Maintain a strict separation between pure and side-effect scopes (e.g. `function` vs `action`).
 * Maintain a look-and-feel roughly resembling popular imperative languages (e.g Python, Swift, C#, TypeScript).
 * Aim for maximum simplicity and readability (good syntax does make a difference!). Aim for low-ambiguity syntax that reads like plain English (but don't overdo it for its own sake).
 * Clean syntax: avoid unnecessary punctuation like `;`, `:`, `{`, `}`, `(`, `)` and cryptic-looking symbols like `$`, `*`, `#`, `^` etc..
-* Expressive, rather than minimalist, syntax. No special attempt on cutting down on special keywords (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
+* Expressive, rather than minimalist, syntax. No special emphasis on cutting down on special keywords (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
 * Types should be inferred whenever possible.
 * Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and assertion types, compile-time contracts).
 * Allow for easy concurrency (lightweight threads, deterministic dataflows, asynchronous generators).
 
 
-## Prominent innovations
+## Main innovations
 
-* **[Stateless loops](#loops)** (or alternatively **structured loops**) represent a novel approach to control flow that attempts to synthesize "the best" of both the imperative and functional idioms.
-* **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness the language by abstracting over the concept of the "prior" output of a generator.
+* **[Stateless loops](#loops)** (or alternatively **structured loops**) represent a novel approach to iterative flow that attempts to synthesize "the best" of both the imperative and functional idioms.
+* **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness the language by abstracting over the notion of the "prior" output of a generator.
 * **[Relation classes](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, functions as well as generators.
 * **[Abstract pattern recognizers](#patterns-and-parsers)** are function-like methods that generalize over the basic pattern matching syntax, as well as traditional regular expressions, by allowing to recognize and capture arbitrary patterns within any type of input stream.
 
