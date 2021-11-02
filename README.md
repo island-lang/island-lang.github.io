@@ -648,7 +648,7 @@ function numToWords(num: 1..999): string
 	let numberNames = { 0: "", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "thirteen", 13: "thirteen", 14: "fourteen", 15: "fifteen", 16: "sixteen", 17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty", 30: "thirty", 40: "fourty", 50: "fifty", 60: "sixty", 70: "seventy", 80: "eighty", 90: "ninety" }
 
 	when num <= 20 or (num < 100 and num mod 10 == 0) =>
-		"{numberNames[num]}"
+		numberNames[num]
 	when num < 100 =>
 		"{numToWords(n / 10)} {numToWords(num mod 10)} ".trimWhitespace()
 	otherwise =>
@@ -1908,9 +1908,9 @@ class Person
 let angelaFromUnknownPlanet = Person with firstName = "Angela", no planetResidence
 ```
 
-## Type objects
+## Type companion objects
 
-**Type objects** (which may also be described as dedicated **static member structures**) are special objects that may share the same name as a class (or act as singleton objects). They are used to provide data and functionality that are not associated with a particular instance of the class:
+**Type companion objects** (which may also be described as dedicated **static member structures**) are special objects that may share the same name as a class (or act as **singleton objects**). They are used to provide data and functionality that are not associated with a particular instance of the class:
 
 ```isl
 class Vector2
@@ -1927,7 +1927,7 @@ let z = Vector2.zero // z = (0, 0)
 let d = Vector2.distance(Vector2(1, 3), Vector2(-5, 9)) // d = 8.485
 ```
 
-**Operators** are functions using symbols as a calling mechanism. Operators can only defined on type objects:
+**Operators** are functions using symbols as a calling mechanism. Operators can only defined on type companions:
 ```isl
 class Point
 	x: decimal
@@ -3800,7 +3800,7 @@ match str
 
 Where `PhoneNumberPattern` would be a pattern method defined as:
 ```isl
-pattern PhoneNumberPattern() of (countryCode, areaCode, areaCode, prefix, lineNumber) in string
+pattern PhoneNumberPattern() of (countryCode, areaCode, prefix, lineNumber) in string
 	accept optional '+'
 	countryCode = accept Repeated(Digit, 1, 3)
 	accept optional ' '
@@ -3832,7 +3832,7 @@ pattern Digit() of (value) in string
 
 `Repeated` is a more complex, higher-order pattern method parameterized over any underlying pattern, as well as for any stream type (which includes strings):
 ```isl
-pattern Repeated<T, R> (p: Pattern<T, R>, minTimes: integer, maxTimes: integer) of (results: List<R> = []) in Stream<T>
+pattern Repeated<T, R> (p: Pattern<T, List<R>>, minTimes: integer, maxTimes: integer) of (results: List<R> = []) in Stream<T>
 
 	if minTimes >= 1
 		for _ in 1..minTimes
@@ -4029,16 +4029,16 @@ let x = Sqrt((Term(5) + Term(10)) - Term(4))
 
 # Misc. topics
 
-## Lists and streams as indices for array slicing
+## Lists and streams as array indices
 
-A list can be sliced using secondary list to specify the indices to copy:
+A list can be sliced using secondary list to specify an ordered subset of indices to be read from a list:
 ```isl
 let nums = [10, 20, 30, 40, 50, 60, 70, 80, 90]
 let indexes = [5, 3, 7]
 let result = nums[indexes] // result = [50, 30, 70]
 ```
 
-In general, the same effect can be achieved using any stream of integers:
+More generally, the same effect can be achieved using any stream of integers:
 ```isl
 let nums = [10, 20, 30, 40, 50, 60, 70, 80, 90]
 let indexStream = (for i in 9..1 where i % 3 == 0) => i
