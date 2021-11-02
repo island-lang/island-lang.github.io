@@ -27,9 +27,9 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 
 ## Main innovations
 
-* **[Stateless loops](#loops)** (or alternatively **structured loops**) represent a novel approach to iterative flow that attempts to synthesize "the best" of both the imperative and functional idioms.
+* **[Stateless loops](#loops)** (or alternatively **structured loops**) represent a novel approach to iterative control flow that attempts to synthesize the best of both the imperative and functional idioms.
 * **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness the language by abstracting over the notion of the "prior" output of a generator.
-* **[Relation classes](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, functions as well as generators.
+* **[Relation classes](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
 * **[Abstract pattern recognizers](#patterns-and-parsers)** are function-like methods that generalize over the basic pattern matching syntax, as well as traditional regular expressions, by allowing to recognize and capture arbitrary patterns within any type of input stream.
 
 ## Implementation state
@@ -3849,7 +3849,7 @@ pattern Repeated<T, R> (p: Pattern<T, R>, times: integer) of (results: List<R> =
 `try`... `otherwise` enables a limited form of **transactional execution** where multiple branches are attempted in turn until one of them succeeds (or otherwise the pattern is entirely rejected). Whenever a failure occurs within a branch, its assignments are rolled back.
 
 
-Here's an second illustrative example which will recognize and parse a date with any one of `/`, `-` or `.` as separator characters:
+Here's an second illustrative example which will recognize and parse a date with any one of `'/'`, `'-'` or `'.'` as separator characters:
 ```isl
 pattern Date() of (day, month, year) in string
 	// Will recognize a date like "21/5/1999" or "13-7-2020"
@@ -3973,6 +3973,25 @@ pattern AnythingUntil<T>(StopPattern: Pattern<T>) of (results: List<T>) in Strea
 			reject and break // Roll back if stop pattern encountered and break out of the loop
 		else
 			results += accept
+```
+
+## Unpacking through a pattern method
+
+Since pattern methods may reject some inputs, it is not possible to directly unpack via a pattern, say, with this kind of hypothetical syntax:
+```isl
+let str = "5/11/1972"
+
+Date of let (day, month, year) = str // What would be assigned if the string is rejected?
+```
+
+Instead, the `matches` operator, introduced in a previous chapter, allows to conditionally "unpack" through the pattern, as well as safely handle the case where the input is rejected:
+```isl
+let str = "5/11/1972"
+
+if str matches Date of let (day, month, year)
+	....
+else
+	....
 ```
 
 # Symbolic data structures
