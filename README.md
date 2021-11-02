@@ -356,7 +356,7 @@ We will often collectively refer to functions, actions, and computed variables (
 action printNameAndAge(name = "Anonymous", age = 0)
 	print("Name: {name}, Age: {age}")
 
-printNameAndAge(age: 12) // prints Name: Anonymous, Age: 12
+printNameAndAge(age = 12) // prints Name: Anonymous, Age: 12
 printNameAndAge(_, 12) // prints Name: Anonymous, Age: 12
 ```
 
@@ -680,9 +680,9 @@ function abs2(num: integer)
 		otherwise => num
 
 // (expression form)
-let absOfVal = match num
-	case 0 => 0
-	case _ < 0 => -num
+let absOfVal = match num:
+	case 0 => 0,
+	case _ < 0 => -num,
 	otherwise => num
 ```
 
@@ -1092,14 +1092,14 @@ It is common in `continue` and `break` statements to use `with` to alter one or 
 
 ```isl
 for someTuple = (a: 1, b: 2)
-	continue someTuple = someTuple with a += 2, b -= 5
+	continue someTuple = someTuple with (a += 2, b -= 5)
 ```
 
 Instead of writing `someTuple = someTuple with ...`, the `with` operator can be shortened to:
 
 ```isl
 for someTuple = (a: 1, b: 2)
-	continue someTuple with a += 2, b -= 5
+	continue someTuple with (a += 2, b -= 5)
 ```
 
 # Data streams
@@ -1621,9 +1621,12 @@ class Person
 	// Function (short syntax)
 	agePlusSomething(something: integer) => age + something
 
-	// Action
+	// Action (long syntax)
 	action printDescription()
 		print(description)
+
+	// Action (short syntax)
+	action printDescription() => print(description)
 
 	// Computed field (long syntax)
 	computed description()
@@ -2240,14 +2243,16 @@ class Point
 	y: decimal
 
 object Point extends Equatable<Point>
-	operator ==(a: Point, b: Point) => (a.x, a.y) == (b.x, b.y)
+	operator ==(a: Point, b: Point) =>
+		(a.x, a.y) == (b.x, b.y)
 
 class Person
 	fullName: string
 	age: integer
 
 object Person extends Equatable<Person>
-	operator ==(a: Person, b: Person) => (a.fullName, a.age) == (b.fullName, b.age)
+	operator ==(a: Person, b: Person) =>
+		(a.fullName, a.age) == (b.fullName, b.age)
 
 function areEqual<T extends Equatable<T>>(a: T, b: T) => a == b
 
@@ -3371,7 +3376,7 @@ Note that if the result of the operation is immediately unpacked, the failure ca
 
 ```isl
 function getKeyOrFail(key: integer, match dict: { string: (age: integer, bestFriend: string) })
-	when { ..., key, ... } => dict[key]
+	case { ..., key, ... } => dict[key]
 	otherwise => Failure("Key '{key}' not found!")
 
 let someDictionary = { "Linda": (25, "Mary"),  "Alan": (34, "Anton") }
@@ -4024,6 +4029,35 @@ let x = Sqrt((Term(5) + Term(10)) - Term(4))
 
 # Misc. topics
 
+## Lists and streams as indices for array slicing
+
+A list can be sliced using secondary list to specify the indices to copy:
+```isl
+let nums = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+let indexes = [5, 3, 7]
+let result = nums[indexes] // result = [50, 30, 70]
+```
+
+In general, the same effect can be achieved using any stream of integers:
+```isl
+let nums = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+let indexStream = (for i in 9..1 where i % 3 == 0) => i
+
+let result = nums[indexStream] // result = [90, 60, 30]
+```
+
+And for modifying an existing list:
+```isl
+let nums = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+let indexStream = (for i in 9..1 where i % 3 == 0) => i
+
+let modifiedNums = nums with [indexStream] = [900, 600, 300]
+// modifiedNums = [10, 20, 300, 40, 50, 600, 70, 80, 900]
+
+let indicesToRemove = [4, 5, 7]
+let modifiedNums2 = modifiedNums with no [indicesToRemove]
+// modifiedNums2 = [10, 20, 300, 600, 80, 900]
+```
 
 ## Recursion sugar and the `param` modifier
 
@@ -4092,7 +4126,7 @@ This work would not have been possible without ideas adapted from other language
 
 ## Who wrote this?
 
-I'm a self-taught software developer who loves designing programming languages.
+Hi, I'm a self-taught software developer who loves designing programming languages.
 
 ## Feedback for this document
 
