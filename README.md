@@ -3919,7 +3919,7 @@ An abstract pattern may be expressed using a polymorphic type signature like:
 type MyAbstractPattern = pattern() of (integer, boolean) in string
 ```
 
-And then can be used to parameterize a function over any pattern that matches a given type signuature. For example:
+And then can be used to parameterize a function over any pattern that matches a given type signature. For example:
 ```isl
 function recognizeThis(str: string, p: MyAbstractPattern, expectedValues: (integer, boolean))
 	match str
@@ -3945,9 +3945,9 @@ recognizeThis("10 No", MyPattern (20, false)) // returns false
 
 Here's an implementation of the `Repeated` pattern mentioned in a previous section. It defines a higher-order pattern accepting an abstract pattern of polymorphic type.
 ```isl
-type PatternOfList<T, R> = pattern() of (List<R>) in Stream<T>
+type AnyPattern<T, R> = pattern() of (R) in T
 
-pattern Repeated<T, R> (p: PatternOfList<T, R>, minTimes: integer, maxTimes: integer) of (results: List<R> = []) in Stream<T>
+pattern Repeated<T, R> (p: AnyPattern<T, R>, minTimes: integer, maxTimes: integer) of (results: List<R> = []) in T
 
 	if minTimes >= 1
 		for _ in 1..minTimes
@@ -3962,7 +3962,7 @@ pattern Repeated<T, R> (p: PatternOfList<T, R>, minTimes: integer, maxTimes: int
 		else
 			break
 
-pattern Repeated<T, R> (p: PatternOfList<T, R>, times: integer) of (results: List<R> = [])
+pattern Repeated<T, R> (p: AnyPattern<T, R>, times: integer) of (results: List<R> = [])
 	results = accept Repeated<T, R>(p, times, times)
 ```
 
