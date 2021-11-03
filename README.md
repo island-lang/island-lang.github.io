@@ -30,7 +30,7 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 * **[Stateless loops](#loops)** (or alternatively **structured loops**) represent a novel approach to iterative control flow that attempts to synthesize the best of both the imperative and functional idioms.
 * **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness the language by abstracting over the notion of the "prior" output of a generator.
 * **[Relation classes](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
-* **[Abstract pattern recognizers](#patterns-and-parsers)** are function-like methods that generalize over the basic pattern matching syntax, as well as traditional regular expressions, by allowing to recognize and capture arbitrary patterns within any type of input stream.
+* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that generalize over the basic pattern matching expression syntax, as well as traditional regular expressions, by enabling the recognition and capture of arbitrary patterns within any type of input stream.
 
 ## Implementation state
 
@@ -3728,11 +3728,12 @@ relation Reduced<E, R>
 
 Using the `reduced` relation we now can provide a more efficient rule-based implementation for `AllMembersGreaterThan`:
 ```isl
-relation MinimumOf2(val1: integer, val2: integer, minimum: integer)
-	when SmallerOrEqual(val1, val2)
-		Equals(minimum, val1)
-	otherwise
-		Equals(minimum, val2)
+relation MinimumOf2
+	rule (val1: integer, val2: integer, minimum: integer)
+		when SmallerOrEqual(val1, val2)
+			Equals(minimum, val1)
+		otherwise
+			Equals(minimum, val2)
 
 relation SmallestValue
 	fact ([], nothing)
@@ -3830,31 +3831,11 @@ pattern Digit() of (value) in string
 
 `accept if ....` will accept only if the given condition is satisfied. The `_` has semantics similar to how its used in pattern matching, i.e. analogous to what it would mean in a pattern like `[_ >= 10, ...]` where it contextually matches the corresponding element of a list.
 
-`Repeated` is a more complex, higher-order pattern method parameterized over any underlying pattern, as well as for any stream type (which includes strings):
-```isl
-pattern Repeated<T, R> (p: Pattern<T, List<R>>, minTimes: integer, maxTimes: integer) of (results: List<R> = []) in Stream<T>
+`Repeated` is a more complex, higher-order pattern method parameterized over any underlying pattern, as well as for any stream type (which includes strings). Its implementation is included in a future section about abstract patterns.
 
-	if minTimes >= 1
-		for _ in 1..minTimes
-			results += accept p
-			// `results` acts similarly to a named return variable
-			// It can be incrementally updated,
-			// However, it can only be read when assigned back to itself
+`try`... `else try`...`else` enables a limited form of **transactional execution** where multiple branches are attempted in turn until one of them succeeds (or otherwise the input is rejected). Whenever a failure occurs within a branch, its assignments are rolled back.
 
-	for _ in minTimes..maxTimes
-		try
-			results += accept p
-		else
-			break
-
-pattern Repeated<T, R> (p: Pattern<T, R>, times: integer) of (results: List<R> = [])
-	results = accept Repeated<T, R>(p, times, times)
-```
-
-`try`... `otherwise` enables a limited form of **transactional execution** where multiple branches are attempted in turn until one of them succeeds (or otherwise the pattern is entirely rejected). Whenever a failure occurs within a branch, its assignments are rolled back.
-
-
-Here's an second illustrative example which will recognize and parse a date with any one of `'/'`, `'-'` or `'.'` as separator characters:
+Here's an illustrative example which will recognize and parse a date with any one of `'/'`, `'-'` or `'.'` as separator characters:
 ```isl
 pattern Date() of (day, month, year) in string
 	// Will recognize a date like "21/5/1999" or "13-7-2020"
@@ -3899,8 +3880,7 @@ match str
 		....
 ```
 
-Pattern methods can be used for arbitrary streams. Here it is used to recognize patterns in sequences of integers.
-
+Pattern methods can be used for arbitrary streams. Here it is used to recognize patterns in sequences of integers:
 ```isl
 // Recognizes three primes p1, p2, p3
 pattern ThreePrimes() in Stream<integer>
@@ -3909,75 +3889,81 @@ pattern ThreePrimes() in Stream<integer>
 	for _ in 1..3
 		accept if isPrime(_)
 
-// Recognizes 1, 2, 3, 4, 5, ....
-pattern NaturalNumberSeries() in Stream<integer>
-	for i in 1..
+// Recognizes 2, 4, 6, 8, 10, ....
+pattern EvenNaturalNumberSeries() in Stream<integer>
+	let evenNumbers = (n in 1.. where n mod 2 == 0) => n
+
+	for i in evenNumbers
 		accept if _ == i
 ```
 
-XML Recognizer and parser:
+## Lookahead
+
 ```isl
-pattern XMLAttributeStringLiteral of (content) in string
-	accept '"'
-	content = accept AnythingUntil('"')
-	accept '"'
-
-pattern XMLAttribute() of (identifier, value) in string
-	identifier = accept Identifier
-
-	try
-		accept '='
-		value = accept XMLAttributeStringLiteral
-
-pattern XMLOpeningTag() of (tagName, attributes: List<Attribute> = []) in string
-	accept '<'
-	tagName = accept Identifier
-
-	forever
-		try
-			attributes += accept XMLAttribute
-		else
-			break
-
-	accept '>'
-
-pattern XMLClosingTag() of (tagName) in string
-	accept '</'
-	tagName = accept Identifier
-	accept '>'
-
-pattern XMLEmptyTag() of (tagName) in string
-	accept '<'
-	tagName = accept Identifier
-	accept ' />'
-
-pattern XMLComment() of (commentBody) in string
-	accept '<!--'
-	commentBody = accept AnythingUntil('-->')
-	accept '-->'
-
-pattern XMLElement() in string
-	accept XMLOpeningTag or XMLClosingTag or XMLEmptyTag or XMLComment
-
-pattern XMLText() in string
-	accept AnythingUntil('<')
-
-pattern XMLDocument() in string
-	forever
-		try
-			accept XMLElement
-		else try
-			accept XMLText
-		else
-			break
-
-pattern AnythingUntil<T>(StopPattern: Pattern<T>) of (results: List<T>) in Stream<T>
+pattern AnythingUntil<T>(StopPattern: pattern in Stream<T>) of (results: List<T>) in Stream<T>
 	forever
 		try
 			accept StopPattern
 			reject and break // Roll back if stop pattern encountered and break out of the loop
-		else
+		else try
 			results += accept
+```
+
+## Recognizing abstract patterns
+
+The `match` syntax can also apply to abstract pattern types.
+
+An abstract pattern may be expressed using a polymorphic type signature like:
+
+```isl
+type MyAbstractPattern = pattern() of (integer, boolean) in string
+```
+
+And then can be used to parameterize a function over any pattern that matches a given type signuature. For example:
+```isl
+function recognizeThis(str: string, p: MyAbstractPattern, expectedValues: (integer, boolean))
+	match str
+		case MyAbstractPattern of expectedValues:
+			return true
+		else
+			return false
+
+pattern MyPattern() of (value: integer, ok: boolean) in string
+	value = accept IntegerNumber
+	accept ' '
+
+	try
+		accept 'Yes'
+		ok = true
+	else try
+		accept 'No'
+		ok = false
+
+recognizeThis("42 Yes", MyPattern (42, true)) // returns true
+recognizeThis("10 No", MyPattern (20, false)) // returns false
+```
+
+Here's an implementation of the `Repeated` pattern mentioned in a previous section. It defines a higher-order pattern accepting an abstract pattern of polymorphic type.
+```isl
+type PatternOfList<T, R> = pattern() of (List<R>) in Stream<T>
+
+pattern Repeated<T, R> (p: PatternOfList<T, R>, minTimes: integer, maxTimes: integer) of (results: List<R> = []) in Stream<T>
+
+	if minTimes >= 1
+		for _ in 1..minTimes
+			results += accept p
+			// `results` acts similarly to a named return variable
+			// It can be incrementally updated,
+			// However, it can only be read when assigned back to itself
+
+	for _ in minTimes..maxTimes
+		try
+			results += accept p
+		else
+			break
+
+pattern Repeated<T, R> (p: PatternOfList<T, R>, times: integer) of (results: List<R> = [])
+	results = accept Repeated<T, R>(p, times, times)
 ```
 
 ## Unpacking through a pattern method
@@ -4029,12 +4015,13 @@ let x = Sqrt((Term(5) + Term(10)) - Term(4))
 
 # Misc. topics
 
-## Lists and streams as array indices
+## Lists and streams as array index specifiers
 
 A list can be sliced using secondary list to specify an ordered subset of indices to be read from a list:
 ```isl
 let nums = [10, 20, 30, 40, 50, 60, 70, 80, 90]
 let indexes = [5, 3, 7]
+
 let result = nums[indexes] // result = [50, 30, 70]
 ```
 
@@ -4122,11 +4109,11 @@ print(t2 == t3) // prints false
 
 ## Influences
 
-This work would not have been possible without ideas adapted from other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, F#, Quorum, Swift, Scala, Prolog, Java, Oz and Pascal.
+This work would not have been possible without ideas adapted from other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, Swift, F#, Quorum, Scala, Prolog, Java, Oz and Pascal.
 
 ## Who wrote this?
 
-Hi, I'm a self-taught software developer who loves designing programming languages.
+Hi, I'm a software developer who loves designing programming languages.
 
 ## Feedback for this document
 
