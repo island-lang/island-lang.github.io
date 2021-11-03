@@ -1437,9 +1437,11 @@ for n in squaresOfEvenNumbers
 	print(n) // prints 4, 16, 36, 64, ....
 ```
 
-Now the factorial example can be simplified to a single line:
+Now the factorial example can be simplified to a simple two line function:
 ```isl
-function factorial(num: 0..infinity) => ((for initial = 1, i in 1..num) => prior * i).last
+function factorial(num: 0..infinity)
+	 let facSequence = (for initial = 1, i in 1..num) => prior * i
+	 return facSequence().last
 ```
 
 Here's the infamous "Fizz-Buzz" problem implemented using a stream comprehension and a `when` expression:
@@ -2424,14 +2426,14 @@ function heavyCalculation()
 
 let x = spawn heavyCalculation() // The function heavyCalculations() starts on a seperate thread
 let y = somethingUnrelated(....) // This will execute even if heavyCalculations() has not completed
-let z = x + y; // This may block until heavyCalculations() returns and x receives a value
+let z = x + y // This may block until heavyCalculations() returns and x receives a value
 ```
 
 **Multiple methods** may be spawned at the same time:
 ```isl
 let (r1, r2) = spawn (heavyCalculation1(), heavyCalculation2())
-let a = r1 + 1; // Will block until r1 received a value and exeute even if r2 hasn't yet
-let b = r2 + 1; // Blocks until r2 receives a value
+let a = r1 + 1 // Will block until r1 received a value and exeute even if r2 hasn't yet
+let b = r2 + 1 // Blocks until r2 receives a value
 ```
 
 The `wait` statement can be used to explicitly wait for a particular value to become available:
@@ -4123,4 +4125,3 @@ The repository is located at [github.com/island-lang/island-lang.github.io](http
 
 Copyright © Rotem Dan<br />
 2017 - 2021
-
