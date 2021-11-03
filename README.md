@@ -3833,7 +3833,8 @@ pattern Digit() of (value) in string
 
 `Repeated` is a more complex, higher-order pattern method parameterized over any underlying pattern, as well as for any stream type (which includes strings). Its implementation is included in a future section about abstract patterns.
 
-`try`... `else try`...`else` enables a limited form of **transactional execution** where multiple branches are attempted in turn until one of them succeeds (or otherwise the input is rejected). Whenever a failure occurs within a branch, its assignments are rolled back.
+## Transactional execution
+The `try`... `else try`...`else` block enables a limited form of **transactional execution** where multiple branches are attempted in turn until one of them succeeds (or otherwise the input is rejected). Whenever a failure occurs within a branch, its assignments are rolled back.
 
 Here's an illustrative example which will recognize and parse a date with any one of `'/'`, `'-'` or `'.'` as separator characters:
 ```isl
@@ -3909,7 +3910,7 @@ pattern AnythingUntil<T>(StopPattern: pattern in Stream<T>) of (results: List<T>
 			results += accept
 ```
 
-## Recognizing abstract patterns
+## Abstract and higher-order patterns
 
 The `match` syntax can also apply to abstract pattern types.
 
@@ -3923,7 +3924,7 @@ And then can be used to parameterize a function over any pattern that matches a 
 ```isl
 function recognizeThis(str: string, p: MyAbstractPattern, expectedValues: (integer, boolean))
 	match str
-		case MyAbstractPattern of expectedValues:
+		case p of expectedValues:
 			return true
 		else
 			return false
@@ -3939,16 +3940,15 @@ pattern MyPattern() of (value: integer, ok: boolean) in string
 		accept 'No'
 		ok = false
 
-recognizeThis("42 Yes", MyPattern (42, true)) // returns true
-recognizeThis("10 No", MyPattern (20, false)) // returns false
+recognizeThis("42 Yes", MyPattern, (42, true)) // returns true
+recognizeThis("10 No", MyPattern, (20, false)) // returns false
 ```
 
 Here's an implementation of the `Repeated` pattern mentioned in a previous section. It defines a higher-order pattern accepting an abstract pattern of polymorphic type.
 ```isl
-type AnyPattern<T, R> = pattern() of (R) in T
+type AnyPattern<T> = pattern() in Stream<T>
 
-pattern Repeated<T, R> (p: AnyPattern<T, R>, minTimes: integer, maxTimes: integer) of (results: List<R> = []) in T
-
+pattern Repeated<T> (p: AnyPattern<T>, minTimes: integer, maxTimes: integer) of (results: List<T> = []) in Stream<T>
 	if minTimes >= 1
 		for _ in 1..minTimes
 			results += accept p
@@ -3962,8 +3962,8 @@ pattern Repeated<T, R> (p: AnyPattern<T, R>, minTimes: integer, maxTimes: intege
 		else
 			break
 
-pattern Repeated<T, R> (p: AnyPattern<T, R>, times: integer) of (results: List<R> = [])
-	results = accept Repeated<T, R>(p, times, times)
+pattern Repeated<T> (p: AnyPattern<T>, times: integer) of (results: List<T> = []) in Stream<T>
+	results = accept Repeated<T>(p, times, times)
 ```
 
 ## Unpacking through a pattern method
@@ -4123,3 +4123,4 @@ The repository is located at [github.com/island-lang/island-lang.github.io](http
 
 Copyright © Rotem Dan<br />
 2017 - 2021
+
