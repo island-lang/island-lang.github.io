@@ -325,7 +325,7 @@ writeMutableState(initialData + " changed!")
 let modifiedData = readMutableState()
 ```
 
-The program can read and write to external mutable state. However, the data must be read into a new variable (here `modifiedData`) so the _internal_ state of the program (its variables and values) is never altered.
+The program can read and write to external mutable state. However, the modified data must be read into a new variable (here `modifiedData`) so the _internal_ state of the program (its variables and values) is never altered.
 
 **Computed variables** are functions that are referenced as if they were plain variables. They are only evaluated when first used:
 
@@ -913,7 +913,7 @@ function notExhaustive(someBoolean: boolean)
 
 ## Single pattern matching
 
-Sometimes it may be useful to match a value only against a single pattern. The `matches` operator allows that:
+Sometimes it may be useful to match a value against a single pattern. The `matches` operator allows that:
 
 ```isl
 function firstTwoElementsAreConsecutive(values: List<integer>): boolean =>
@@ -924,7 +924,7 @@ function firstTwoElementsAreConsecutive(values: List<integer>): boolean =>
 
 **Loops** are control flow mechanisms for specifying code to be executed repeatedly.
 
-In Island, **loops are founded in functional iteration patterns** and describe iterative progression in a more declarative way than in conventional imperative languages.
+In Island, **loops are rooted in functional iteration patterns** and describe iterative progression in a more declarative way than in traditional sequential languages.
 
 Island's `for` loops maintain immutability for all variables within the scope of **each individual iteration** of the loop. This is achieved by:
 * Requiring all alterable variables to be declared at the head of the loop.
@@ -942,7 +942,7 @@ function factorial(num: integer)
 	return result
 ```
 
-It may seem, at first, like `i` and `result` are no different than mutable variables, since they can be repeatedly modified at every iteration, however, they are not actually mutable because they are not real variables!
+It may seem, at first, like `i` and `result` are no different than mutable variables, since they are repeatedly modified at every iteration, however, they are not actually mutable because they are not real variables!
 
 Since Island loops act a lot like functions, `i` and `result` could be thought as being analogous to a function parameter and a return variable. Since the `continue` statement is only executed at the moment the loop is ready to proceed to its next iteration, it can be seen as if the loop is "restarting" with a different initial state. This is analogous to a function being repeatedly tail-recursively invoked with a different set of arguments.
 
@@ -1721,7 +1721,7 @@ let z = Vector2.zero // z = (0, 0)
 let d = Vector2.distance(Vector2(1, 3), Vector2(-5, 9)) // d = 8.485
 ```
 
-**Operators** are functions using symbols as a calling mechanism. Operators can only defined on type companions:
+**Operators** are functions using symbols as a calling mechanism. Operators can only be defined on type companions:
 ```isl
 class Point
 	x: decimal
@@ -1754,10 +1754,16 @@ class Employee extends Labeled
 action processLabeledObject(obj: Labeled)
 	obj.printLabel()
 
-let someEmployee = Employee with label = "abc123", fullName = "John Doe"
+let someEmployee = Employee with fullName = "John Doe", label = "abc123"
+
 processLabeledObject() // prints "abc123"
 ```
 
+Note that since the `label` field doesn't have a default value it must be specified when the object is created. However, in order to initialize a new instance of `Employee` using the constructor syntax (`Employee(....)`) the value for the `label` field must be passed using a named parameter, since it doesn't have an inherent order in relation to `Employee`'s own fields:
+
+```isl
+let someEmployee = Employee("John Doe", label = "abc123")
+```
 Default implementations will be overridden if they are implemented by the extending type:
 ```isl
 class Employee extends Labeled
@@ -1765,7 +1771,7 @@ class Employee extends Labeled
 
 	action printLabel() => print("Employee: {label}")
 
-processLabeledObject(Employee("John Doe", "abc123")) // prints "Employee: abc123"
+processLabeledObject(Employee("John Doe", label = "abc123")) // prints "Employee: abc123"
 ```
 
 Features can extend any number of other features:
