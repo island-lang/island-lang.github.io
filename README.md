@@ -1809,7 +1809,6 @@ Instead, a specific implementation can be invoked by casting the constructed obj
 (test as Processor).start(1.5)
 ```
 
-
 ## Type features
 
 A **type feature** (also known as a **type class** in other languages) is a feature consisting only of type object members and operators and which consequently abstracts over different **types** (rather than instances of types). For example, a feature abstracting over all types supporting the `==` operator would be defined as:
@@ -1870,6 +1869,35 @@ type feature Equatable
 	operator ==(x: this, y: this): boolean
 
 type EquatablePerson = Equatable and Person
+```
+
+## Anonymous structures
+
+**Anonymous structure** types are simple class-like containers that describe a set of required fields, for example:
+
+```isl
+function giveMeSomeStructure(s: { url: string, speed: integer })
+	....
+
+let someStructure = { url: "https://example.com", speed: 9000 }
+giveMeSomeStructure(someStructure)
+```
+
+An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of type matching can be described as a weak form of **duck typing**:
+```isl
+class SomeClass
+	name: string
+	url: string
+	speed: integer
+	weight: decimal
+
+	....
+
+let instanceOfSomeClass = SomeClass("SomeName", "https://example.com", 10000, 125.5)
+
+giveMeSomeStructure(instanceOfSomeClass)
+// This call compiles since SomeClass is assignable to the anonymous structure type
+// { url: string, speed: integer }
 ```
 
 ## Expansion
@@ -2448,7 +2476,7 @@ Sometimes we want to allow for results to evaluate as soon as any one of several
 ```isl
 // Note both streams should have compatible return types,
 // otherwise 'result' will receive a choice type (introduced at later chapter)
-for wait any result in spawn [heavyCalculations1(), heavyCalculations2()]
+for wait any result in spawn (heavyCalculations1(), heavyCalculations2())
 	writeToDisk(result)
 ```
 
@@ -2456,7 +2484,7 @@ A similar approach can be used to simultaneously listen to multiple event source
 ```isl
 // Note that modifying 'event' with the `match` keyword here would automatically wait until a result arrives.
 // No need to specify `wait match`:
-for match any event in spawn [keyboardEvents(), mouseEvents()]
+for match any event in spawn (keyboardEvents(), mouseEvents())
 	case KeyboardEvent
 		print("Keyboard event!")
 	case MouseEvent
@@ -2470,7 +2498,10 @@ for eventSources = { "kEvents": keyboardEvents() }, match any event in spawn eve
 	case KeyboardEvent
 		print("Keyboard event!")
 		print("Now listening to mouse events instead!")
-		continue eventSources = eventSources with no ["kEvents"], ["mEvents"] = mouseEvents()
+
+		continue eventSources with
+			no ["kEvents"]
+			["mEvents"] = mouseEvents()
 
 	case MouseEvent
 		print("Mouse event!")
