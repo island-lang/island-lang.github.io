@@ -17,20 +17,21 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 * Adapt common imperative constructs like loops, objects and generators, while maintaining strict adherence to full immutability.
 * Maintain a strict separation between pure and side-effect scopes (e.g. `function` vs `action`).
 * Maintain a look-and-feel roughly resembling popular imperative languages (e.g Python, Swift, C#, TypeScript).
-* Aim for maximum simplicity and readability (good syntax does make a difference!). Aim for low-ambiguity syntax that reads like plain English (but don't overdo it for its own sake).
+* Aim for maximum simplicity and readability (good syntax does make a difference!). Aim for low-ambiguity, consistent syntax that reads like plain English (but don't overdo it for its own sake).
 * Clean syntax: avoid unnecessary punctuation like `;`, `:`, `{`, `}`, `(`, `)` and cryptic-looking symbols like `$`, `*`, `#`, `^` etc..
 * Expressive, rather than minimalist, syntax. No special emphasis on cutting down on special keywords (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
 * Types should be inferred whenever possible.
 * Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and assertion types, compile-time contracts).
-* Allow for easy concurrency (lightweight threads, deterministic dataflows, asynchronous generators).
+* Allow for easy and effective concurrency (lightweight threads, deterministic dataflows, asynchronous generators).
 
 
 ## Main innovations
 
 * **[Stateless loops](#loops)** (or alternatively **structured loops**) represent a novel approach to iterative control flow that attempts to synthesize the best of both the imperative and functional idioms.
 * **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness the language by abstracting over the notion of the "prior" output of a generator.
+* **[Partially constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of its functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
 * **[Relation classes](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
-* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that generalize over the basic pattern matching expression syntax, as well as traditional regular expressions, by enabling the recognition and capture of arbitrary patterns within any type of input stream.
+* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that generalize and abstract over the basic pattern matching expression syntax, as well as traditional regular expressions, by enabling the recognition and capture of arbitrary patterns within any type of input stream.
 
 ## Implementation state
 
@@ -1766,25 +1767,6 @@ class Employee extends Labeled
 processLabeledObject(Employee("John Doe", "abc123")) // prints "Employee: abc123"
 ```
 
-If conflicting names exist for members of two or more extended features, the method declaration can explicitly specify which feature it relates to:
-
-```isl
-feature Runner
-	action start(speed: decimal)
-
-feature Processor
-	action start(speed: decimal)
-
-class Employee extends Runner, Processor
-	fullName: string
-
-	action Runner.start(speed: decimal)
-		....
-
-	action Processor.start(speed: decimal)
-		....
-```
-
 Features can extend any number of other features:
 ```isl
 feature Named
@@ -1794,6 +1776,100 @@ feature Printable
 	action print()
 
 feature NamedAndPrintable extends Named, Printable
+```
+
+If conflicting names exist for members of two or more extended features, the method declaration can explicitly specify which feature it relates to:
+
+```isl
+feature Runner
+	action start(speed: decimal)
+
+feature Processor
+	action start(speed: decimal)
+
+class Test extends Runner, Processor
+	name: string
+
+	action Runner.start(speed: decimal)
+		....
+
+	action Processor.start(speed: decimal)
+		....
+```
+
+When a conflict like this occurs, it is not possible to directly call a method with ambiguous implementations:
+
+```isl
+let test = Test("New Test")
+
+test.start(1.5) // Which of the two actions should be invoked?
+```
+Instead, a specific implementation can be invoked by casting the constructed object to one of the feature types:
+```isl
+(test as Processor).start(1.5)
+```
+
+
+## Type features
+
+A **type feature** (also known as a **type class** in other languages) is a feature consisting only of type object members and operators and which consequently abstracts over different **types** (rather than instances of types). For example, a feature abstracting over all types supporting the `==` operator would be defined as:
+
+```isl
+type feature Equatable<T>
+	operator ==(x: T, y: T): boolean
+```
+
+In the following example, both `Point` and `Person` implement the `Equatable` feature:
+
+```isl
+class Point
+	x: decimal
+	y: decimal
+
+object Point extends Equatable<Point>
+	operator ==(a: Point, b: Point) =>
+		(a.x, a.y) == (b.x, b.y)
+
+class Person
+	fullName: string
+	age: integer
+
+object Person extends Equatable<Person>
+	operator ==(a: Person, b: Person) =>
+		(a.fullName, a.age) == (b.fullName, b.age)
+
+function areEqual<T extends Equatable<T>>(a: T, b: T) => a == b
+
+print(areEqual(Point(1, 2), Point(1, 2))) // prints "true"
+print(areEqual(Person("John Doe", 24), Person("John Doe", 24))) // prints "true"
+print(areEqual(Point(1, 2), Person("John Doe", 24))) // Error: couldn't find a type for T
+```
+
+Here's a monoid type feature (representing an associative binary operation with identity element):
+```isl
+type feature Monoid
+	operator +(x: this, y: this): this
+	identity: this
+```
+_(Note the `this` type would contextually refer to the concrete type of the object implementing the feature, not to the `Monoid` abstraction)_
+
+Multiple type features used as constraints:
+```isl
+function propertyOf3Sums<T extends Monoid and Equatable>(a: T, b: T, c: T): boolean =>
+	((a + b) == T.identity) and ((b + c) != T.identity)
+```
+
+Using a type alias and a join type we can define a feature that **combines both instance and type members**:
+
+```isl
+feature Person
+	firstName: string
+	lastName: string
+
+type feature Equatable
+	operator ==(x: this, y: this): boolean
+
+type EquatablePerson = Equatable and Person
 ```
 
 ## Expansion
@@ -1878,10 +1954,10 @@ feature X
 	someField: string
 
 feature expansion X
-	function someFunction() => "X!"
+	someFunction() => "X!"
 
 feature Y
-	function someFunction() => "Y!"
+	someFunction() => "Y!"
 
 feature Z extends X, Y
 
@@ -2013,68 +2089,6 @@ This is not always desirable. In case `p1` and `p2` are expected to have compati
 function firstsOfPairs<T>(p1: Pair<T>, p2: Pair<T>) => (p1.a, p2.a)
 
 let r = firstsOfPairs(Pair(1, 2), Pair('a', 'b')) // Error: p1 and p2 must have compatible types!
-```
-
-## Type features
-
-A **type feature** (also known as a **type class** in other languages) is a feature consisting only of type object members and operators and which consequently abstracts over different **types** (rather than instances of types). For example, a feature abstracting over all types supporting the `==` operator would be defined as:
-
-```isl
-type feature Equatable<T>
-	operator ==(x: T, y: T): boolean
-```
-
-In the following example, both `Point` and `Person` implement the `Equatable` feature:
-
-```isl
-class Point
-	x: decimal
-	y: decimal
-
-object Point extends Equatable<Point>
-	operator ==(a: Point, b: Point) =>
-		(a.x, a.y) == (b.x, b.y)
-
-class Person
-	fullName: string
-	age: integer
-
-object Person extends Equatable<Person>
-	operator ==(a: Person, b: Person) =>
-		(a.fullName, a.age) == (b.fullName, b.age)
-
-function areEqual<T extends Equatable<T>>(a: T, b: T) => a == b
-
-print(areEqual(Point(1, 2), Point(1, 2))) // prints "true"
-print(areEqual(Person("John Doe", 24), Person("John Doe", 24))) // prints "true"
-print(areEqual(Point(1, 2), Person("John Doe", 24))) // Error: couldn't find a type for T
-```
-
-Here's a monoid type feature (representing an associative binary operation with identity element):
-```isl
-type feature Monoid
-	operator +(x: this, y: this): this
-	identity: this
-```
-_(Note the `this` type would contextually refer to the concrete type of the object implementing the feature, not to the `Monoid` abstraction)_
-
-Multiple type features used as constraints:
-```isl
-function propertyOf3Sums<T extends Monoid and Equatable>(a: T, b: T, c: T): boolean =>
-	((a + b) == T.identity) and ((b + c) != T.identity)
-```
-
-Using a type alias and a join type we can define a feature that **combines both instance and type members**:
-
-```isl
-feature Person
-	firstName: string
-	lastName: string
-
-type feature Equatable
-	operator ==(x: this, y: this): boolean
-
-type EquatablePerson = Equatable and Person
 ```
 
 ## Polymorphic subtyping rules (covariance and contravariance)
@@ -2269,7 +2283,7 @@ let db2 = databaseWithMyConnection with name = "DB2"
 let db3 = databaseWithMyConnection with name = "DB3"
 ```
 
-_Note:_ in case some fields have default values but the desired behavior is to have those fields undefined on the partial object, their default values can be "erased" by explicitly applying the `no` modifier during the `with` application:
+In case some fields have default values but the desired behavior is to have those fields undefined on the partial object, their default values **can be "erased"** by explicitly applying the `no` modifier within the `with` expression:
 
 ```isl
 class Person
@@ -2280,6 +2294,17 @@ class Person
 let angelaFromUnknownPlanet = Person with firstName = "Angela", no planetResidence
 ```
 
+**Features can be partial** as well, however since features cannot be instantiated directly the `partial` type modifier is only effectively usable for specifying a subset of a feature's field that are expected to be known. For instance:
+
+```isl
+feature Named
+	name: string
+	alias: string
+	id: string
+
+action printThingName(thing: partial Named with name, id)
+	print("Name: {thing.name}, Id: {thing.id}")
+````
 
 # Concurrency, parallelism and lazy evaluation
 
@@ -3153,7 +3178,7 @@ function giveMeNamedAndNumbered(value: Named and Numbered)
 	....
 ```
 
-## Member type references
+## Member and parameter type references
 
 Object or tuple type references may include references to members, method parameter or return types:
 
@@ -3172,6 +3197,23 @@ let id: Person.data.id // id receives the type string
 let p: Person.processMe.params // p receives the tuple type (someData: integer, moreData: string)
 let md: Person.processMe.moreData // md receieves the type string (might be a choice type if overloaded)
 let r: Person.processMe.return // r receives the type Set<string>
+```
+
+Same for methods outside of a class:
+```isl
+function myFunc(p1: (integer, boolean)): List<string>
+	....
+
+let t: myFunc.p1 // t gets the type (integer, boolean)
+let r: myFunc.p1.return // r gets the type List<string>
+```
+
+Referring to the types of companion object members is possible through the `(object Type)` syntax:
+```isl
+object Person
+	bestPerson: string = "Cleopatra"
+
+let best: (object Person).bestPerson // best receives the type string
 ```
 
 ## Higher-kinded features
