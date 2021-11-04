@@ -2,7 +2,7 @@ body {
 	font-size: 18px;
 	/*font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;*/
 	font-family: Selawik, sans-serif;
-	max-width: 60em;
+	max-width: 58em;
 	margin-left: auto;
 	margin-right: auto;
 	padding: 2em;
@@ -38,7 +38,7 @@ h1:hover .header-anchor, h2:hover .header-anchor, h3:hover .header-anchor, h4:ho
 	margin-right: 1em;
 }
 
-li { margin-bottom: 0.1em; }
+li { margin-bottom: 0.15em; }
 
 nav.table-of-contents {
 	font-size: 1.0em;
