@@ -2443,7 +2443,6 @@ For convenience, the `wait` keyword can also be used as a modifier. The followin
 ```isl
 let (r1, wait r2) = spawn (heavyCalculation1(), heavyCalculation2())
 ```
-_Note: applying `wait` to all result variables, e.g. `let (wait r1, wait r2)` or `let wait r`, is not permitted, since that would imply no concurrency and most likely would be better replaced with a simple synchronous call._
 
 As demonstrated, applying `spawn` to a simple function call, it is possible to compute an **individual value** in the background. Using streams, it is also possible to instead compute a **sequence of values** in background.
 
@@ -2579,8 +2578,8 @@ function someMath2(a: decimal, b: decimal)
 	assert a + b < 5
 	....
 
-let r1 = someMath1(..) // r1 is always greater than 5
-let r2 = someMath2(r1, ..) // Compiler error regardless of the value of r1 and the second argument passed
+let r1 = someMath1(???) // r1 is always greater than 5, regardless of argument passed to `someMath1`
+let r2 = someMath2(r1, ???) // Compiler error regardless of the value of r1 and the second argument
 ```
 
 # Type abstractions
@@ -2589,7 +2588,7 @@ let r2 = someMath2(r1, ..) // Compiler error regardless of the value of r1 and t
 
 **Refinement types** can be seen as simple contracts annotated into the type itself:
 
-The following are two function declarations are practically equivalent:
+The following two function declarations are practically equivalent:
 ```isl
 function someMath1(x: decimal): (result: decimal)
 	assert x >= -4.0 and x <= 4.0
@@ -2751,7 +2750,7 @@ let euros: Euros = 45.0
 iWantDollars(euros) // No error!
 ```
 
-To ensure `Dollars` and `Euros` would not be interchangeable with each other one can add the `new` modifier. This would define the aliases as **nominal** (unique) types:
+To ensure `Dollars` and `Euros` would not be interchangeable with each other one can add the `unique` modifier. This would define the aliases as **nominal** (unique) types:
 ```isl
 unique type Dollars = decimal
 unique type Euros = decimal
