@@ -861,7 +861,7 @@ function matchAnimalAndPerson(match animal, match person)
 	case Dog where name == "Lucky", Man where age < 18 => "Good dog and young man!"
 	case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
 	case Horse where height > 180, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
-	otherwise => fail "Nothing interesting here"
+	otherwise => "Nothing interesting here"
 
 	// Note the 'otherwise' clause must fail for the parameter types to be properly inferred!
 	//
@@ -3271,14 +3271,14 @@ function divide(x: integer, y: integer)
 	when y == 0 => Failure("Divide by zero!")
 	otherwise => x / y
 
-let r1 = divide(10, someInt) // `r1` gets type integer or Failure
-let r2 = divide(10, 0) // `r2` gets type Failure
+let r1 = divide(10, someInt) // `r1` gets type integer or Failure<string>
+let r2 = divide(10, 0) // `r2` gets type Failure<string>
 
 let r3 = r1 + 10 // Works! no type assertion needed!
-let r4 = r2 + 10 // Error: r2 is of type Failure
+let r4 = r2 + 10 // Error: r2 is of type Failure<string>
 ```
 
-Note that if the result of the operation is immediately unpacked, the failure can sill be asserted for on any one of the unpacked variables:
+Note that if the result of the operation is immediately unpacked, the failure can still be asserted for any one of the unpacked variables:
 
 ```isl
 function getKeyOrFail(key: integer, dict: { string: (age: integer, bestFriend: string) })
@@ -3298,13 +3298,17 @@ if age is Failure
 The second approach, available only in action scopes (due to its use of side-effects), uses a `check`..`detect` block and behaves very similarly to `try`, `catch` in mainstream imperative languages:
 
 ```isl
-action readLineFromFile(f: File) => f.ReadLine()
+action readLineFromFile(f: File)
+	if not f.exists
+		fail IOFailure("File not found")
+
+	return f.ReadLine()
 
 action example(f: File)
 	check
 		let line = readLineFromFile(f)
 		print(line)
-	detect failure: Failure
+	detect failure: Failure<IOFailure>
 		print(failure.message)
 ```
 
