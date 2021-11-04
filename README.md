@@ -30,8 +30,8 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 * **[Stateless loops](#loops)** (or alternatively **structured loops**) represent a novel approach to iterative control flow that attempts to synthesize the best of both the imperative and functional idioms.
 * **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness the language by abstracting over the notion of the "prior" output of a generator.
 * **[Partially constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of its functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
-* **[Relation classes](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
 * **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that generalize and abstract over the basic pattern matching expression syntax, as well as traditional regular expressions, by enabling the recognition and capture of arbitrary patterns within any type of input stream.
+* **[Relation classes](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
 
 ## Implementation state
 
