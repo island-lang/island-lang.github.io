@@ -1,7 +1,6 @@
 body {
 	font-size: 18px;
-	/*font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;*/
-	font-family: Selawik, sans-serif;
+	font-family: 'Segoe UI', Selawik, sans-serif;
 	max-width: 58em;
 	margin-left: auto;
 	margin-right: auto;
