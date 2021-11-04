@@ -1805,7 +1805,7 @@ let test = Test("New Test")
 
 test.start(1.5) // Which of the two actions should be invoked?
 ```
-Instead, a specific implementation can be invoked by casting the constructed object to one of the feature types:
+Instead, a specific implementation can be invoked by casting the object to one of the feature types:
 ```isl
 (test as Processor).start(1.5)
 ```
@@ -1879,7 +1879,7 @@ A **structure** is a simple object-like container, analogous to a dictionary wit
 let myStructure = { url: "https://example.com", speed: 9000 }
 ```
 
- **Anonymous structure types** are types that describe a set of required fields. For example, here's a function that would accept any object-like entity with the fields `url: string` and `speed: integer`
+ **Anonymous structure types** are types that describe a set of required object fields. For example, here's a function that would accept any object-like entity with the fields `url: string` and `speed: integer`
 ```isl
 function giveMeSomeStructure(s: { url: string, speed: integer })
 	....
