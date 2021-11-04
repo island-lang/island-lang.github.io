@@ -543,12 +543,12 @@ let print5AndTwoNumbers = printThreeNumbers(5, ...(decimal, decimal)) // OK
 
 The `(param1: ParamType, param2: ParamType, ...) => ReturnType` syntax defines abstract method types. An identifier holding a method of this type cannot be directly invoked, only passed around or partially applied:
 ```isl
-function sum(a: integer, b: integer) => a + b
-
 type PartialIntFunc = (integer, ...) => integer
 
-function applyFirstArgument<F extends PartialIntFunc>(f: F, value: integer): PartialIntFunc
+function applyFirstArgument(f: PartialIntFunc, value: integer): PartialIntFunc
 	return f(value, ...)
+
+function sum(a: integer, b: integer) => a + b
 
 let partiallyAppliedSum = applyFirstArgument(sum, 11)
 // Type of partiallyAppliedSum is (b: integer) => integer
@@ -562,7 +562,7 @@ Other abstract function type examples:
 
 * `(...) => any` represents a function of any number of parameters returning a value of any type other than `nothing` (the `any` type is described in detail in a following chapter).
 * `(...) => any?` represents a function of any number of parameters returning a value of any type, including `nothing`.
-* `(string, integer, _, _) => any?` represents a function of four parameters where the first parameter must be of type `string` and second of type integer, and any return type (including `nothing`).
+* `(string, _, integer, _) => any?` represents a function of four parameters where the first parameter must be of type `string` and third of type integer, and any return type (including `nothing`).
 
 _Note that due to contravariance of function parameters (described in a future chapter), a function including a parameter of type `any?`, e.g `(any?) => integer` is not assignable from a function of type `(T) => integer` where `T != any?`. Unlike `any?`, the `_` type represents a type that is both a super-type of all types and a subtype of all types, so it can substitute for every possible parameter type)_.
 
@@ -1754,7 +1754,8 @@ class Employee extends Labeled
 action processLabeledObject(obj: Labeled)
 	obj.printLabel()
 
-processLabeledObject(Employee("John Doe", "abc123")) // prints "abc123"
+let someEmployee = Employee with label = "abc123", fullName = "John Doe"
+processLabeledObject() // prints "abc123"
 ```
 
 Default implementations will be overridden if they are implemented by the extending type:
@@ -1873,17 +1874,20 @@ type EquatablePerson = Equatable and Person
 
 ## Anonymous structures
 
-**Anonymous structure** types are simple class-like containers that describe a set of required fields, for example:
+A **structure** is a simple object-like container, analogous to a dictionary with a fixed set of predefined fields and varying member types:
+```isl
+let myStructure = { url: "https://example.com", speed: 9000 }
+```
 
+ **Anonymous structure types** are types that describe a set of required fields. For example, here's a function that would accept any object-like entity with the fields `url: string` and `speed: integer`
 ```isl
 function giveMeSomeStructure(s: { url: string, speed: integer })
 	....
 
-let someStructure = { url: "https://example.com", speed: 9000 }
-giveMeSomeStructure(someStructure)
+giveMeSomeStructure(myStructure)
 ```
 
-An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of type matching can be described as a weak form of **duck typing**:
+An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of type subtyping can be described as a weak form of **duck typing**:
 ```isl
 class SomeClass
 	name: string
@@ -2322,7 +2326,7 @@ class Person
 let angelaFromUnknownPlanet = Person with firstName = "Angela", no planetResidence
 ```
 
-**Features can be partial** as well, however since features cannot be instantiated directly the `partial` type modifier is only effectively usable for specifying a subset of a feature's field that are expected to be known. For instance:
+**Features can be partial** as well, however since features cannot be instantiated directly the `partial` type modifier is only effectively usable for specifying a subset of a feature's fields that are expected to be known. For instance:
 
 ```isl
 feature Named
