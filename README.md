@@ -1569,36 +1569,6 @@ A class may also be invoked like a constructor method, and would return a new ob
 ```isl
 let andy = Person("Andy", "Williams", 19)
 ```
-<!--
-The behavior of the class construction invocation can be customized using an **initializer** method.
-```isl
-class Person
-	firstName: string
-	lastName: string
-	age: integer
-
-	initialize(fullName: string, age: integer)
-		// When accessed through an initializer, fields are write-only and can be
-		// written to multiple times, but not read.
-		[self.firstName, self.lastName] = fullName.split(" ")
-		self.age = age
-
-let person = Person("John Doe", 23)
-```
-
-
-Initializers parameters can be set to automatically assign to a field with a matching name. This is equivalent:
-```isl
-class Person
-	firstName: string
-	lastName: string
-	age: integer
-
-	initialize(fullName: string, self.age: integer)
-		[self.firstName, self.lastName] = fullName.split(" ")
-		// No need to specify self.age = age, it is implied by the parameter identifier
-```
--->
 
 One or more class fields may have default values:
 ```isl
@@ -1709,19 +1679,6 @@ class PersonWithHeight extends Person
 // Shorter syntax:
 class PersonWithHeight extends Person with height: decimal
 ```
-<!--
-**Custom initializers** of an extending class require calling one of its parent class's initializers before any other code:
-```isl
-class PersonWithHeight extends Person
-	height: decimal
-
-	initialize(firstName: string, lastName: string, age: integer, height: decimal)
-		base.initialize(firstName, lastName, age)
-
-		self.height = height
-```
-_(Remember that when the initializer function is executed, fields can be written to multiple times, but not read)_
--->
 
 Extending class can override one or more members of its base class:
 ```isl
@@ -1744,25 +1701,438 @@ james.printDescription() // Prints "James Taylor, of 19 years of age and 1.8 met
 (james as Person).printDescription() // Prints "James Taylor, of 19 years of age"
 ```
 
-## Abstract classes
+## Type companion objects
 
-An **abstract class** is a class lacking a body for at least one of its methods. An abstract class cannot be used to create objects, but only to serve as a basis for another class:
+**Type companion objects** (which may also be described as dedicated **static member structures**) are special objects that may share the same name as a class (or act as **singleton objects**). They are used to provide data and functionality that are not associated with a particular instance of the class:
 
 ```isl
-abstract class Vehicle
-	action startEngine()
-	action turnLeft()
-	action turnRight()
+class Vector2
+	x: decimal
+	y: decimal
 
-let v = Vehicle() // This will not work
+object Vector2
+	zero = Vector2(0, 0)
 
-class Car extends Vehicle // This is possible
-	action startEngine()
+	distance(a: Vector2, b: Vector2) =>
+		sqrt((a.x - b.x)**2 + (a.y - b.y)**2)
+
+let z = Vector2.zero // z = (0, 0)
+let d = Vector2.distance(Vector2(1, 3), Vector2(-5, 9)) // d = 8.485
+```
+
+**Operators** are functions using symbols as a calling mechanism. Operators can only defined on type companions:
+```isl
+class Point
+	x: decimal
+	y: decimal
+
+object Point
+	operator +(a: Point, b: Point) => Point(a.x + b.x, a.y + b.y)
+	operator -(a: Point, b: Point) => Point(a.x - b.x, a.y - b.y)
+	operator -(a: Point) => Point(-a.x, -b.y)
+
+let sumOfPoints = Point(1, 4) + Point(-2, 5)
+// sumOfPoints equals Point(-1, 9)
+
+let differenceOfPoints = Point(7, 4) - Point(2, 3)
+// differenceOfPoints equals Point(5, 1)
+```
+
+## Features
+
+A **feature** (roughly similar to a **mixin** in other languages) is an abstract class-like type specifying a set of required members. Classes may extend any number of features. A feature may optionally provide **default implementations** or values for its members:
+
+```isl
+feature Labeled
+	label: string
+	action printLabel() => print(label)
+
+class Employee extends Labeled
+	fullName: string
+
+action processLabeledObject(obj: Labeled)
+	obj.printLabel()
+
+processLabeledObject(Employee("John Doe", "abc123")) // prints "abc123"
+```
+
+Default implementations will be overridden if they are implemented by the extending type:
+```isl
+class Employee extends Labeled
+	fullName: string
+
+	action printLabel() => print("Employee: {label}")
+
+processLabeledObject(Employee("John Doe", "abc123")) // prints "Employee: abc123"
+```
+
+If conflicting names exist for members of two or more extended features, the method declaration can explicitly specify which feature it relates to:
+
+```isl
+feature Runner
+	action start(speed: decimal)
+
+feature Processor
+	action start(speed: decimal)
+
+class Employee extends Runner, Processor
+	fullName: string
+
+	action Runner.start(speed: decimal)
 		....
-	action turnLeft()
+
+	action Processor.start(speed: decimal)
 		....
-	action turnRight()
-		....
+```
+
+Features can extend any number of other features:
+```isl
+feature Named
+	name: string
+
+feature Printable
+	action print()
+
+feature NamedAndPrintable extends Named, Printable
+```
+
+## Expansion
+
+**Expansion** introduces new members to an existing class, feature or type object, and can be performed any number of times:
+```isl
+class Person
+	firstName: string
+	lastName: string
+	age: integer
+
+class expansion Person
+	fullname => "{firstName} {lastName}"
+
+object Person
+	anonymous = Person("Anonymous", "", 0)
+	haveSameFirstName(p1: Person, p2: Person) => p1.firstName == p2.firstName
+
+object expansion Person
+	operator ==(a: Person, b: Person) =>
+		(a.firstName, a.lastName, a.age) == (b.firstName, b.lastName, b.age)
+```
+
+Expansion can add any member kind apart from instance fields (though it can add type object fields):
+```isl
+class Person
+	firstName: string
+	lastName: string
+	age: integer
+
+class expansion Person
+	favoriteNumber: integer // ERROR: This will not work
+
+object Person
+	andy = Person("Andy", "Jones", 22)
+
+object expansion Person
+	angela = Person("Anegla", "Jones", 25) // But this will work
+
+object expansion Person
+	ben = Person("Ben", "Smith", 23) // And so will this
+```
+
+Class expansions can **extend features**, as well as override their default implementations:
+```isl
+class Employee
+	fullName: string
+
+feature Labeled
+	label: string
+	action printLabel() => print(label)
+
+class expansion Employee extends Labeled
+	action printLabel() => print("Great Employee: {label}")
+```
+
+Expansions can **add members to features**, as long as they provide default values or implementations:
+```isl
+feature Labeled
+	label: string
+	action printLabel() => print(label)
+
+feature expansion Labeled
+	reversedLabel => label.reversed
+```
+
+Expansions are designed such that they never change the behavior of code outside of their own scope. This is ensured by several **precedence rules**.
+
+For class or type object members added through an expansion:
+```text
+overriden members > feature default implementations > expansion members
+```
+
+For feature members added through an expansion:
+```text
+any feature members with same name and signature (including in features other than the expanded one) > feature expansion members
+```
+
+This means that if `X` and `Y` are features, and `Z` extends both `X` and `Y`, and `X` is expanded with a method that also exists in `Y`, `X`'s expansion will be shadowed by `Y`'s implementation:
+```isl
+feature X
+	someField: string
+
+feature expansion X
+	function someFunction() => "X!"
+
+feature Y
+	function someFunction() => "Y!"
+
+feature Z extends X, Y
+
+function test(z: Z)
+	return z.someFunction() // There is no conflict here, this is will always return "Y!"
+```
+
+## Generics
+
+**Generic typing** (also known as **parametric polymorphism**) allows types and methods to refer to unknown, or partially known, types, which can vary and are determined individually at each class instantiation or method call.
+
+A **type parameter** is introduced using the `<T>` notation:
+
+```isl
+class Pair<T>
+	a: T
+	b: T
+```
+
+The unknown type parameter (named `T` in this example) can accept any type:
+```isl
+let pairOfIntegers = Pair<integer>(1, 2)
+let pairOfstrings = Pair<string>("a", "b")
+let pairOfBooleans = Pair<boolean>(true, false)
+```
+
+Including the `Pair` type itself:
+```isl
+let pairOfPairs = Pair<Pair<string>>(Pair<string>("a", "b"), Pair<string>("c","d"))
+```
+
+The type argument e.g. `<integer>` is not required if it **can be inferred** from the constructor arguments, this simplifies the above to:
+
+```isl
+let pairOfIntegers = Pair(1, 2)
+let pairOfstrings = Pair("a", "b")
+let pairOfBooleans = Pair(true, false)
+let pairOfPairs = Pair(Pair("a", "b"), Pair("c","d"))
+```
+
+_(Note: Unlike C#, Java, TypeScript, and several other languages, the Island language does not allow both generic and non-generic types sharing a common identifier. This enables to safely omit the type argument with no chance of ambiguity)_
+
+Methods can accept and infer type arguments as well:
+```isl
+function firstOfPair<A>(p: Pair<A>) => p.a
+
+let firstInteger = firstOfPair(Pair(1, 2)) // returns 1
+let firststring = firstOfPair(Pair("a", "b")) // returns a
+```
+
+Type parameters can have **constraints**, which enforce a minimum assignability requirement:
+```isl
+feature Named
+	name: string
+
+class Person extends Named
+	age: integer
+
+function loveAffair<T extends Named>(a: T, b: T) =>
+	"{a.name} loves {b.name}"
+
+let l = loveAffair(Person("Angela", 21), Person("Mike", 20))
+// l = "Angela loves Mike"
+```
+
+Note that applying a type as a constraint is subtly different than specifying the type directly, especially in the case where the type parameter is used in multiple places:
+
+```isl
+class Fruit extends Named
+	name: string
+	weight: decimal
+
+let l = loveAffair(Person("Angela", 21), Fruit("Apple", 1.5)) // Error! could not find a binding for type parameter T.
+```
+
+Even though both the types `Person` and `Fruit` satisfy the `Named` feature, the `T` type parameter can only be instantiated by a single type, therefore a compilation error is emitted.
+
+Alternatively, if the `Named` feature was used directly as `a` and `b`'s parameter types, the code would compile successfully:
+
+```isl
+function loveAffair2(a: Named, b: Named) =>
+	"{a.name} loves {b.name}"
+
+let l = loveAffair2(Person("Angela", 21), Fruit("Apple", 1.5)) // Works!
+// l = "Angela loves Apple"
+```
+
+**Multiple constraints** may be applied to a type parameter:
+```isl
+feature Printable
+	action printMe()
+
+class Fruit extends Named, Printable
+	name: string
+	weight: decimal
+
+	action printMe() => print(A "{a.name} weighing {weight}kg")
+
+action printNamedThing<T extends Named and Printable>(a: T) => a.printMe()
+
+printNamedThing(Fruit("Banana", 0.5)) // prints "A Banana weighing 0.5kg"
+```
+
+Type parameters can have **default values**:
+```isl
+function MakePair<T = integer>(v1: T, v2: T): (T, T)
+	....
+```
+
+Island supports **implicit type parameters**, meaning that generic types referenced without the introduction of type parameters will accept any type argument, given it satisfies their constraint set:
+
+```isl
+function firstsOfPairs(p1: Pair, p2: Pair) => (p1.a, p2.a)
+```
+which would be roughly equivalent to:
+```isl
+function firstsOfPairs(p1: Pair<*>, p2: Pair<*>) => (p1.a, p2.a)
+// ('<*>' is pseudo-syntax, it has no real meaning)
+```
+
+`p1` and `p2` can accept any instances of `Pair`, including ones with incompatible types:
+```isl
+let r = firstsOfPairs(Pair(1, 2), Pair('a', 'b')) // r = (1, 'a')
+```
+
+This is not always desirable. In case `p1` and `p2` are expected to have compatible instantiations of `Pair`, a type parameter must be introduced:
+
+```isl
+function firstsOfPairs<T>(p1: Pair<T>, p2: Pair<T>) => (p1.a, p2.a)
+
+let r = firstsOfPairs(Pair(1, 2), Pair('a', 'b')) // Error: p1 and p2 must have compatible types!
+```
+
+## Type features
+
+A **type feature** (also known as a **type class** in other languages) is a feature consisting only of type object members and operators and which consequently abstracts over different **types** (rather than instances of types). For example, a feature abstracting over all types supporting the `==` operator would be defined as:
+
+```isl
+type feature Equatable<T>
+	operator ==(x: T, y: T): boolean
+```
+
+In the following example, both `Point` and `Person` implement the `Equatable` feature:
+
+```isl
+class Point
+	x: decimal
+	y: decimal
+
+object Point extends Equatable<Point>
+	operator ==(a: Point, b: Point) =>
+		(a.x, a.y) == (b.x, b.y)
+
+class Person
+	fullName: string
+	age: integer
+
+object Person extends Equatable<Person>
+	operator ==(a: Person, b: Person) =>
+		(a.fullName, a.age) == (b.fullName, b.age)
+
+function areEqual<T extends Equatable<T>>(a: T, b: T) => a == b
+
+print(areEqual(Point(1, 2), Point(1, 2))) // prints "true"
+print(areEqual(Person("John Doe", 24), Person("John Doe", 24))) // prints "true"
+print(areEqual(Point(1, 2), Person("John Doe", 24))) // Error: couldn't find a type for T
+```
+
+Here's a monoid type feature (representing an associative binary operation with identity element):
+```isl
+type feature Monoid
+	operator +(x: this, y: this): this
+	identity: this
+```
+_(Note the `this` type would contextually refer to the concrete type of the object implementing the feature, not to the `Monoid` abstraction)_
+
+Multiple type features used as constraints:
+```isl
+function propertyOf3Sums<T extends Monoid and Equatable>(a: T, b: T, c: T): boolean =>
+	((a + b) == T.identity) and ((b + c) != T.identity)
+```
+
+Using a type alias and a join type we can define a feature that **combines both instance and type members**:
+
+```isl
+feature Person
+	firstName: string
+	lastName: string
+
+type feature Equatable
+	operator ==(x: this, y: this): boolean
+
+type EquatablePerson = Equatable and Person
+```
+
+## Polymorphic subtyping rules (covariance and contravariance)
+
+When assigning a value to a plain variable of a given type, the value would be assignable to it only if the target type is identical to, or more general than the type of the value:
+
+```isl
+let a1: Animal = Animal() // Works: identical types
+let a2: Animal = 34 // Doesn't work: unrelated types
+let a3: Animal = Cat() // Works: target type is more general than assigned value type
+let a4: Cat = Animal() // Doesn't work: target type is more specific than assigned value type
+```
+
+It may seem, at first, like this is the only manner in which types can relate to each other: after all, it doesn't make sense that an any `Animal` type would substitute a `Cat` type. However, there are cases where this is exactly what happens!
+
+Here are two function types, one accepting an `Animal` parameter type, the other a `Cat` parameter type:
+```isl
+type GiveMeAnimal = (Animal) => string
+type GiveMeCat = (Cat) => string
+
+```
+
+Now ponder this carefully: do you think that `GiveMeCat` should assign to `GiveMeAnimal`? `GiveMeAnimal` should assign to `GiveMeCat`? or maybe both should assign to each other? or neither one to any?
+
+Let's go through it again:
+
+* The type `GiveMeCat` describes a function that accepts a `Cat` object, and returns a string.
+* The type `GiveMeAnimal` describes a function that accepts an `Animal` object, and returns a string.
+
+`GiveMeAnimal` is more permissive, it will accept any animal, however `GiveMeCat` is more strict, and will only accept a cat.
+
+If you attempted to assign a function of type `GiveMeCat` to a variable of type `GiveMeAnimal` you'd take a strict function and put in a placeholder designated for a more permissive function:
+```isl
+let giveMeAnimal: (Animal) => string
+
+giveMeAnimal = (Cat) => "Hello cat!"
+
+// Because 'giveMeAnimal' accepts any animal, passing a dog as argument should work,
+// but would it make any sense?
+let str = giveMeAnimal(Dog()) // Would return "Hello cat!" ??!!
+```
+
+However, if you assigned `GiveMeAnimal` to `GiveMeCat`, it would, surprisingly, make more sense:
+```isl
+let giveMeCat: (Cat) => string
+
+giveMeCat = (Animal) => "Hello animal!" // Seems to work, but why?
+```
+
+This phenomenon is called **contravariance** (substitution of general with specific) and the more "intuitive" substitution rule, mentioned in the context of plain variables, is called **covariance** (substitution of specific with general).
+
+It turns out that when thinking about functions: return types ("out" positions) are covariant, however, parameter types ("in" positions) are contravariant.
+
+Sometimes we may wish to constrain type parameters so that they can only be used in one of these positions. This is possible with the `in` and `out` modifiers:
+
+```isl
+class LookupTable<in K, out V>
+	function getValue(key: K): V
 ```
 
 ## Fixed fields and partially constructed objects
@@ -1910,443 +2280,6 @@ class Person
 let angelaFromUnknownPlanet = Person with firstName = "Angela", no planetResidence
 ```
 
-## Type companion objects
-
-**Type companion objects** (which may also be described as dedicated **static member structures**) are special objects that may share the same name as a class (or act as **singleton objects**). They are used to provide data and functionality that are not associated with a particular instance of the class:
-
-```isl
-class Vector2
-	x: decimal
-	y: decimal
-
-object Vector2
-	zero = Vector2(0, 0)
-
-	function distance(a: Vector2, b: Vector2) =>
-		sqrt((a.x - b.x)**2 + (a.y - b.y)**2)
-
-let z = Vector2.zero // z = (0, 0)
-let d = Vector2.distance(Vector2(1, 3), Vector2(-5, 9)) // d = 8.485
-```
-
-**Operators** are functions using symbols as a calling mechanism. Operators can only defined on type companions:
-```isl
-class Point
-	x: decimal
-	y: decimal
-
-object Point
-	operator +(a: Point, b: Point) => Point(a.x + b.x, a.y + b.y)
-	operator -(a: Point, b: Point) => Point(a.x - b.x, a.y - b.y)
-	operator -(a: Point) => Point(-a.x, -b.y)
-
-let sumOfPoints = Point(1, 4) + Point(-2, 5)
-// sumOfPoints equals Point(-1, 9)
-
-let differenceOfPoints = Point(7, 4) - Point(2, 3)
-// differenceOfPoints equals Point(5, 1)
-```
-
-## Traits
-
-A **trait** is an abstract class-like type specifying a set of required members. Classes may implement any number of traits. A trait may optionally provide **default implementations** or values for its members:
-
-```isl
-trait Labeled
-	label: string
-	action printLabel() => print(label)
-
-class Employee extends Labeled
-	fullName: string
-	label: string
-
-action processLabeledObject(obj: Labeled)
-	obj.printLabel()
-
-processLabeledObject(Employee("John Doe", "abc123")) // prints "abc123"
-```
-
-Default implementations will be overridden if they are implemented in the concrete type:
-```isl
-class Employee extends Labeled
-	fullName: string
-	label: string
-
-	action printLabel() => print("Employee: {label}")
-
-processLabeledObject(Employee("John Doe", "abc123")) // prints "Employee: abc123"
-```
-
-When trying to provide different implementations for two or more different trait members with identical signatures, the method declaration can explicitly specify which trait it relates to:
-
-```isl
-trait Runner
-	action start(speed: decimal)
-
-trait Processor
-	action start(speed: decimal)
-
-class Employee extends Runner, Processor
-	fullName: string
-
-	action Runner.start(speed: decimal)
-		....
-
-	action Processor.start(speed: decimal)
-		....
-```
-
-Traits can extend any number of other traits:
-```isl
-trait Named
-	name: string
-
-trait Printable
-	action print()
-
-trait NamedAndPrintable extends Named, Printable
-```
-
-## Expansion
-
-**Expansion** introduces new members to an existing class, trait or type object, and can be performed any number of times:
-```isl
-class Person
-	firstName: string
-	lastName: string
-	age: integer
-
-class expansion Person
-	fullname => "{firstName} {lastName}"
-
-object Person
-	anonymous = Person("Anonymous", "", 0)
-	haveSameFirstName(p1: Person, p2: Person) => p1.firstName == p2.firstName
-
-object expansion Person
-	operator ==(a: Person, b: Person) =>
-		(a.firstName, a.lastName, a.age) == (b.firstName, b.lastName, b.age)
-```
-
-Expansion can add any member kind apart from instance fields (though it can add type object fields):
-```isl
-class Person
-	firstName: string
-	lastName: string
-	age: integer
-
-class expansion Person
-	favoriteNumber: integer // ERROR: This will not work
-
-object Person
-	andy = Person("Andy", "Jones", 22)
-
-object expansion Person
-	angela = Person("Anegla", "Jones", 25) // But this will work
-
-object expansion Person
-	ben = Person("Ben", "Smith", 23) // And so will this
-```
-
-Expansions can **implement traits**, as well as override their default implementations:
-```isl
-class Employee
-	fullName: string
-	label: string
-
-trait Labeled
-	label: string
-	action printLabel() => print(label)
-
-class expansion Employee extends Labeled
-	action printLabel() => print("Great Employee: {label}")
-```
-
-Expansions can **add members to traits**, as long as they provide default values or implementations:
-```isl
-trait Labeled
-	label: string
-	action printLabel() => print(label)
-
-trait expansion Labeled
-	reversedLabel => label.reversed
-```
-
-Expansions are designed such that they never change the behavior of code outside of their own scope. This is ensured by several **precedence rules**.
-
-For class or type object members added through an expansion:
-```text
-overriden members > trait default implementations > expansion members
-```
-
-For trait members added through an expansion:
-```text
-any trait members with same name and signature (including in traits other than the expanded one) > trait expansion members
-```
-
-This means that if `X` and `Y` are traits, and `Z` extends both `X` and `Y`, and `X` is expanded with a method that also exists in `Y`, `X`'s expansion will be shadowed by `Y`'s implementation:
-```isl
-trait X
-	someField: string
-
-trait expansion X
-	function someFunction() => "X!"
-
-trait Y
-	function someFunction() => "Y!"
-
-trait Z extends X, Y
-
-function test(z: Z)
-	return z.someFunction() // There is no conflict here, this is will always return "Y!"
-```
-
-## Generics
-
-**Generic typing** (also known as **parametric polymorphism**) allows types and methods to refer to unknown, or partially known, types, which can vary and are determined individually at each class instantiation or method call.
-
-A **type parameter** is introduced using the `<T>` notation:
-
-```isl
-class Pair<T>
-	a: T
-	b: T
-```
-
-The unknown type parameter (named `T` in this example) can accept any type:
-```isl
-let pairOfIntegers = Pair<integer>(1, 2)
-let pairOfstrings = Pair<string>("a", "b")
-let pairOfBooleans = Pair<boolean>(true, false)
-```
-
-Including the `Pair` type itself:
-```isl
-let pairOfPairs = Pair<Pair<string>>(Pair<string>("a", "b"), Pair<string>("c","d"))
-```
-
-The type argument e.g. `<integer>` is not required if it **can be inferred** from the constructor arguments, this simplifies the above to:
-
-```isl
-let pairOfIntegers = Pair(1, 2)
-let pairOfstrings = Pair("a", "b")
-let pairOfBooleans = Pair(true, false)
-let pairOfPairs = Pair(Pair("a", "b"), Pair("c","d"))
-```
-
-_(Note: Unlike C#, Java, TypeScript, and several other languages, the Island language does not allow both generic and non-generic types sharing a common identifier. This enables to safely omit the type argument with no chance of ambiguity)_
-
-Methods can accept and infer type arguments as well:
-```isl
-function firstOfPair<A>(p: Pair<A>) => p.a
-
-let firstInteger = firstOfPair(Pair(1, 2)) // returns 1
-let firststring = firstOfPair(Pair("a", "b")) // returns a
-```
-
-Type parameters can have **constraints**, which enforce a minimum assignability requirement:
-```isl
-trait Named
-	name: string
-
-class Person extends Named
-	name: string
-	age: integer
-
-function loveAffair<T extends Named>(a: T, b: T) =>
-	"{a.name} loves {b.name}"
-
-let l = loveAffair(Person("Angela", 21), Person("Mike", 20))
-// l = "Angela loves Mike"
-```
-
-Note that applying a type as a constraint is subtly different than specifying the type directly, especially in the case where the type parameter is used in multiple places:
-
-```isl
-class Fruit extends Named
-	name: string
-	weight: decimal
-
-let l = loveAffair(Person("Angela", 21), Fruit("Apple", 1.5)) // Error! could not find a binding for type parameter T.
-```
-
-Even though both the types `Person` and `Fruit` satisfy the `Named` trait, the `T` type parameter can only be instantiated by a single type, therefore a compilation error is emitted.
-
-Alternatively, if the `Named` trait was used directly as `a` and `b`'s parameter types, the code would compile successfully:
-
-```isl
-function loveAffair2(a: Named, b: Named) =>
-	"{a.name} loves {b.name}"
-
-let l = loveAffair2(Person("Angela", 21), Fruit("Apple", 1.5)) // Works!
-// l = "Angela loves Apple"
-```
-
-**Multiple constraints** may be applied to a type parameter:
-```isl
-trait Printable
-	action printMe()
-
-class Fruit extends Named, Printable
-	name: string
-	weight: decimal
-
-	action printMe() => print(A "{a.name} weighing {weight}kg")
-
-action printNamedThing<T extends Named and Printable>(a: T) => a.printMe()
-
-printNamedThing(Fruit("Banana", 0.5)) // prints "A Banana weighing 0.5kg"
-```
-
-Type parameters can have **default values**:
-```isl
-function MakePair<T = integer>(v1: T, v2: T): (T, T)
-	....
-```
-
-Island supports **implicit type parameters**, meaning that generic types referenced without the introduction of type parameters will accept any type argument, given it satisfies their constraint set:
-
-```isl
-function firstsOfPairs(p1: Pair, p2: Pair) => (p1.a, p2.a)
-```
-which would be roughly equivalent to:
-```isl
-function firstsOfPairs(p1: Pair<*>, p2: Pair<*>) => (p1.a, p2.a)
-// ('<*>' is pseudo-syntax, it has no real meaning)
-```
-
-`p1` and `p2` can accept any instances of `Pair`, including ones with incompatible types:
-```isl
-let r = firstsOfPairs(Pair(1, 2), Pair('a', 'b')) // r = (1, 'a')
-```
-
-This is not always desirable. In case `p1` and `p2` are expected to have compatible instantiations of `Pair`, a type parameter must be introduced:
-
-```isl
-function firstsOfPairs<T>(p1: Pair<T>, p2: Pair<T>) => (p1.a, p2.a)
-
-let r = firstsOfPairs(Pair(1, 2), Pair('a', 'b')) // Error: p1 and p2 must have compatible types!
-```
-
-## Type traits
-
-A **type trait** (also known as a **type class** in other languages) is a trait consisting only of type object members and operators and which consequently abstracts over different **types** (rather than instances of types). For example, a trait abstracting over all types supporting the `==` operator would be defined as:
-
-```isl
-type trait Equatable<T>
-	operator ==(x: T, y: T): boolean
-```
-
-In the following example, both `Point` and `Person` implement the `Equatable` trait:
-
-```isl
-class Point
-	x: decimal
-	y: decimal
-
-object Point extends Equatable<Point>
-	operator ==(a: Point, b: Point) =>
-		(a.x, a.y) == (b.x, b.y)
-
-class Person
-	fullName: string
-	age: integer
-
-object Person extends Equatable<Person>
-	operator ==(a: Person, b: Person) =>
-		(a.fullName, a.age) == (b.fullName, b.age)
-
-function areEqual<T extends Equatable<T>>(a: T, b: T) => a == b
-
-print(areEqual(Point(1, 2), Point(1, 2))) // prints "true"
-print(areEqual(Person("John Doe", 24), Person("John Doe", 24))) // prints "true"
-print(areEqual(Point(1, 2), Person("John Doe", 24))) // Error: couldn't find a type for T
-```
-
-Here's a monoid type trait (representing an associative binary operation with identity element):
-```isl
-type trait Monoid
-	operator +(x: this, y: this): this
-	identity: this
-```
-_(Note the `this` type would contextually refer to the concrete type of the object implementing the trait, not to the `Monoid` abstraction)_
-
-Multiple type traits used as constraints:
-```isl
-function propertyOf3Sums<T extends Monoid and Equatable>(a: T, b: T, c: T): boolean =>
-	((a + b) == T.identity) and ((b + c) != T.identity)
-```
-
-Using a type alias and a join type we can define a trait that **combines both instance and type members**:
-
-```isl
-trait Person
-	firstName: string
-	lastName: string
-
-type trait Equatable
-	operator ==(x: this, y: this): boolean
-
-type EquatablePerson = Equatable and Person
-```
-
-## Polymorphic subtyping rules (covariance and contravariance)
-
-When assigning a value to a plain variable of a given type, the value would be assignable to it only if the target type is identical to, or more general than the type of the value:
-
-```isl
-let a1: Animal = Animal() // Works: identical types
-let a2: Animal = 34 // Doesn't work: unrelated types
-let a3: Animal = Cat() // Works: target type is more general than assigned value type
-let a4: Cat = Animal() // Doesn't work: target type is more specific than assigned value type
-```
-
-It may seem, at first, like this is the only manner in which types can relate to each other: after all, it doesn't make sense that an any `Animal` type would substitute a `Cat` type. However, there are cases where this is exactly what happens!
-
-Here are two function types, one accepting an `Animal` parameter type, the other a `Cat` parameter type:
-```isl
-type GiveMeAnimal = (Animal) => string
-type GiveMeCat = (Cat) => string
-
-```
-
-Now ponder this carefully: do you think that `GiveMeCat` should assign to `GiveMeAnimal`? `GiveMeAnimal` should assign to `GiveMeCat`? or maybe both should assign to each other? or neither one to any?
-
-Let's go through it again:
-
-* The type `GiveMeCat` describes a function that accepts a `Cat` object, and returns a string.
-* The type `GiveMeAnimal` describes a function that accepts an `Animal` object, and returns a string.
-
-`GiveMeAnimal` is more permissive, it will accept any animal, however `GiveMeCat` is more strict, and will only accept a cat.
-
-If you attempted to assign a function of type `GiveMeCat` to a variable of type `GiveMeAnimal` you'd take a strict function and put in a placeholder designated for a more permissive function:
-```isl
-let giveMeAnimal: (Animal) => string
-
-giveMeAnimal = (Cat) => "Hello cat!"
-
-// Because 'giveMeAnimal' accepts any animal, passing a dog as argument should work,
-// but would it make any sense?
-let str = giveMeAnimal(Dog()) // Would return "Hello cat!" ??!!
-```
-
-However, if you assigned `GiveMeAnimal` to `GiveMeCat`, it would, surprisingly, make more sense:
-```isl
-let giveMeCat: (Cat) => string
-
-giveMeCat = (Animal) => "Hello animal!" // Seems to work, but why?
-```
-
-This phenomenon is called **contravariance** (substitution of general with specific) and the more "intuitive" substitution rule, mentioned in the context of plain variables, is called **covariance** (substitution of specific with general).
-
-It turns out that when thinking about functions: return types ("out" positions) are covariant, however, parameter types ("in" positions) are contravariant.
-
-Sometimes we may wish to constrain type parameters so that they can only be used in one of these positions. This is possible with the `in` and `out` modifiers:
-
-```isl
-class LookupTable<in K, out V>
-	function getValue(key: K): V
-```
 
 # Concurrency, parallelism and lazy evaluation
 
@@ -2980,7 +2913,7 @@ variant BinaryTree<V>
 			yield stream rightNode?.traverse()
 ```
 
-Like classes, variants may have **companion type objects**, which also enable them to support type traits:
+Like classes, variants may have **companion type objects**, which also enable them to support type features:
 ```isl
 variant BinaryTree<V>
 	....
@@ -3193,27 +3126,27 @@ The `never` type is also known as the **bottom type**, meaning it is a type that
 
 ## Join types
 
-A **join type** (also called an **intersection type**) allows combining multiple traits in a convenient form:
+A **join type** (also called an **intersection type**) allows combining multiple features in a convenient form:
 
-If we wanted to write a function that accepts a parameter of a type implementing the two traits `Named` and `Numbered` we could do something like:
+If we wanted to write a function that accepts a parameter of a type implementing the two features `Named` and `Numbered` we could do something like:
 ```isl
-trait Named
+feature Named
 	name: string
 
-trait Numbered
+feature Numbered
 	id: integer
 
-trait NamedAndNumbered extends Named, Numbered
+feature NamedAndNumbered extends Named, Numbered
 
 function giveMeNamedAndNumbered(value: NamedAndNumbered)
 	....
 ```
 Using a join type, this can be shortened to:
 ```isl
-trait Named
+feature Named
 	name: string
 
-trait Numbered
+feature Numbered
 	id: integer
 
 function giveMeNamedAndNumbered(value: Named and Numbered)
@@ -3241,7 +3174,7 @@ let md: Person.processMe.moreData // md receieves the type string (might be a ch
 let r: Person.processMe.return // r receives the type Set<string>
 ```
 
-## Higher-kinded traits
+## Higher-kinded features
 
 # Reactive programming
 
@@ -3377,8 +3310,8 @@ let r4 = r2 + 10 // Error: r2 is of type Failure
 Note that if the result of the operation is immediately unpacked, the failure can sill be asserted for on any one of the unpacked variables:
 
 ```isl
-function getKeyOrFail(key: integer, match dict: { string: (age: integer, bestFriend: string) })
-	case { ..., key, ... } => dict[key]
+function getKeyOrFail(key: integer, dict: { string: (age: integer, bestFriend: string) })
+	when key in dict => dict[key]
 	otherwise => Failure("Key '{key}' not found!")
 
 let someDictionary = { "Linda": (25, "Mary"),  "Alan": (34, "Anton") }
