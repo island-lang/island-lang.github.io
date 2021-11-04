@@ -1759,7 +1759,7 @@ let someEmployee = Employee with fullName = "John Doe", label = "abc123"
 processLabeledObject() // prints "abc123"
 ```
 
-Note that since the `label` field doesn't have a default value it must be specified when the object is created. However, in order to initialize a new instance of `Employee` using the constructor syntax (`Employee(....)`) the value for the `label` field must be passed using a named parameter, since it doesn't have an inherent order in relation to `Employee`'s own fields:
+Note that since the `label` field doesn't have a default value it must be explicitly assigned when the object is created. However, in order to initialize a new instance of `Employee` using the constructor syntax (`Employee(....)`) the value for the `label` field must be passed using a named parameter, since it doesn't have an inherent order in relation to `Employee`'s own fields:
 
 ```isl
 let someEmployee = Employee("John Doe", label = "abc123")
