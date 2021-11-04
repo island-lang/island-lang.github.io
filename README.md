@@ -3218,77 +3218,6 @@ let best: (object Person).bestPerson // best receives the type string
 
 ## Higher-kinded features
 
-# Reactive programming
-
-## Reactive values
-
-```isl
-for currentTemperature in Weather.currentTemperature
-	print("Current temperature is {currentTemperature}")
-
-let temperatureIsOver20: reactive boolean = temperature > 20
-
-for match currentlyOver20 in temperatureIsOver20
-	case true
-		print("Current temperature is over 20 degrees!")
-	otherwise
-		print("Current temperature is under 20 degrees!")
-
-reactive lightSwitchState()
-	for currentState: boolean? = nothing
-		let newState = getLightSwitchState()
-
-		if newState != currentState
-			emit newState
-			currentState = newState
-
-		wait 100
-
-reactive selection oneOfSeveralEvents
-	Temperature = Weather.currentTemperature
-	LightSwitch = lightSwitchState
-	CustomIntEvent: integer
-
-for match event in oneOfSeveralEvents
-	case Temperature(let t)
-		print("Temperature is now {t}")
-		oneOfSeveralEvents << someAction(t) as CustomIntEvent // Implicitly spawns someAction
-		// Execution immediately proceeds here
-
-	case LightSwitch(let s)
-		print("Light switch state is now {t}")
-
-	case CustomIntEvent(let i)
-		print("Custom int event of {i}")
-```
-
-```isl
-class MyState
-	downloadingFile: boolean = false
-
-	downloadButtonPressed: reactive boolean = downloadButton.Pressed
-	downloadResult: reactive (url: string, fileContent: string)
-	outsideTemperature: reactive decimal = Weather.outsideTemperature
-
-for state = MyState(), change in observe state
-	match change, state.downloadingFile
-		case MyState.downloadButtonPressed of (true), false
-			print("Starting download..")
-			let result = spawn downloadFile("https://example.com/someFile")
-			continue state with (downloadingFile = true, downloadResult << result)
-
-		case MyState.downloadButtonPressed of (true), true
-			print("Already downloading!")
-
-		case MyState.downloadResult of (let url, let fileContent), _
-			print("Finished downloading {url}")
-			spawn saveFile("myFile", fileContent)
-			continue state with downloadingFile = false
-
-		case MyState.outsideTemperature of (let temperature), _
-			print("Current temperature is {temperature}")
-```
-
 # Exception handling
 
 ## Failure types
@@ -3377,6 +3306,235 @@ action example(f: File)
 		print(line)
 	detect failure: Failure
 		print(failure.message)
+```
+
+# Patterns and parsers
+## Pattern methods
+
+We've previously introduced a syntax for list, tuple and object patterns, which can be used for pattern matching in conditional statements and expressions, such as:
+
+```isl
+match myList
+	case []
+		....
+	case [let head < 10, ...]
+		....
+	case [25, ..., let last]
+		....
+	case [_ >= 10, let ...tail]
+		....
+	case [let first < 0, let second != first, let ...rest]
+		....
+	case [..., let v > 5, ...]
+		....
+```
+
+**Pattern methods** generalize over this feature, and allow to define arbitrary pattern recognizers via special-purpose subroutine-like helpers.
+
+Pattern methods can also be used as a full replacement for string regular expressions.
+
+For instance, we'll look at a regular expression that captures a phone number pattern. Conventionally we'll define something like:
+```isl
+let PhoneNumberRegExp = /^[\+]?[ ]?([0-9][0-9]?[0-9]?)[ ]?\(([0-9][0-9][0-9])\)[ ]?([0-9][0-9][0-9])\-([0-9][0-9][0-9][0-9])$/
+
+// Example matching string: "+1 (534) 953-6345"
+
+match str
+	case PhoneNumberRegExp of ("1", "800", _, let lineNumber)
+		....
+```
+
+With a pattern method, we could instead write:
+```isl
+match str
+	case PhoneNumberPattern of ("1", "800", _, let lineNumber)
+		....
+```
+
+Where `PhoneNumberPattern` would be a pattern method defined as:
+```isl
+pattern PhoneNumberPattern() of (countryCode, areaCode, prefix, lineNumber) in string
+	accept optional '+'
+	countryCode = accept Repeated(Digit, 1, 3)
+	accept optional ' '
+	accept '('
+	areaCode = accept Repeated(Digit, 3)
+	accept ')'
+	accept optional ' '
+	prefix = accept Repeated(Digit, 3)
+	accept '-'
+	lineNumber = accept Repeated(Digit, 4)
+```
+
+A pattern method is written similarly to a standard method only it employs the `accept` keyword which implicitly "advances" the recognizer whenever a pattern is matched:
+
+```isl
+.... = accept .... // Require the next member of the stream to match the given pattern and return it
+.... = accept optional ....  // Try to match the given pattern and return it, or skip if failed
+```
+
+In the above example, `Repeated` and `Digit` are references to secondary pattern methods.
+
+`Digit` can be defined as:
+```isl
+pattern Digit() of (value) in string
+	value = accept if _ in { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }
+```
+
+`accept if ....` will accept only if the given condition is satisfied. The `_` has semantics similar to how its used in pattern matching, i.e. analogous to what it would mean in a pattern like `[_ >= 10, ...]` where it contextually matches the corresponding element of a list.
+
+`Repeated` is a more complex, higher-order pattern method parameterized over any underlying pattern, as well as for any stream type (which includes strings). Its implementation is included in a future section about abstract patterns.
+
+## Transactional execution
+The `try`... `else try`...`else` block enables a limited form of **transactional execution** where multiple branches are attempted in turn until one of them succeeds (or otherwise the input is rejected). Whenever a failure occurs within a branch, its assignments are rolled back.
+
+Here's an illustrative example which will recognize and parse a date with any one of `'/'`, `'-'` or `'.'` as separator characters:
+```isl
+pattern Date() of (day, month, year) in string
+	// Will recognize a date like "21/5/1999" or "13-7-2020"
+	day = accept IntegerNumber(1, 31)
+
+	try
+		accept '/'
+		month = accept IntegerNumber(1, 12)
+		accept '/'
+	else try
+		accept '-'
+		month = accept IntegerNumber(1, 12)
+		accept '-'
+	else try
+		accept '.'
+		month = accept IntegerNumber(1, 12)
+		accept '.'
+
+	year = accept IntegerNumber
+
+match str
+	case Date of (1, 12, let year >= 2005)
+		....
+```
+
+Pattern methods can recognize and parse patterns that go well beyond the constraints of regular languages.
+
+We could rewrite the previous example such that the pattern method would be parameterized by an arbitrary set of separator characters:
+
+```isl
+pattern Date(seperatorCharacterSet: Set<string>) of (day, month, year) in string
+	day = accept IntegerNumber(1, 31)
+
+	let seperator = accept if _ in seperatorCharacterSet
+	month = accept IntegerNumber(1, 12)
+	accept separator // The accepted character must be the same as the one previously captured
+
+	year = accept IntegerNumber
+
+match str
+	case Date({'/', '-', '.'}) of (1, 12, let year >= 2005)
+		....
+```
+
+Pattern methods can be used for arbitrary streams. Here it is used to recognize patterns in sequences of integers:
+```isl
+// Recognizes three primes p1, p2, p3
+pattern ThreePrimes() in Stream<integer>
+	predicate isPrime(num) => ....
+
+	for _ in 1..3
+		accept if isPrime(_)
+
+// Recognizes 2, 4, 6, 8, 10, ....
+pattern EvenNaturalNumberSeries() in Stream<integer>
+	let evenNumbers = (n in 1.. where n mod 2 == 0) => n
+
+	for i in evenNumbers
+		accept if _ == i
+```
+
+## Lookahead
+
+```isl
+pattern AnythingUntil<T>(StopPattern: pattern in Stream<T>) of (results: List<T>) in Stream<T>
+	forever
+		try
+			accept StopPattern
+			reject and break // Roll back if stop pattern encountered and break out of the loop
+		else try
+			results += accept
+```
+
+## Abstract and higher-order patterns
+
+The `match` syntax can also apply to abstract pattern types.
+
+An abstract pattern may be expressed using a polymorphic type signature like:
+
+```isl
+type MyAbstractPattern = pattern() of (integer, boolean) in string
+```
+
+And then can be used to parameterize a function over any pattern that matches a given type signature. For example:
+```isl
+function recognizeThis(str: string, p: MyAbstractPattern, expectedValues: (integer, boolean))
+	match str
+		case p of expectedValues:
+			return true
+		else
+			return false
+
+pattern MyPattern() of (value: integer, ok: boolean) in string
+	value = accept IntegerNumber
+	accept ' '
+
+	try
+		accept 'Yes'
+		ok = true
+	else try
+		accept 'No'
+		ok = false
+
+recognizeThis("42 Yes", MyPattern, (42, true)) // returns true
+recognizeThis("10 No", MyPattern, (20, false)) // returns false
+```
+
+Here's an implementation of the `Repeated` pattern mentioned in a previous section. It defines a higher-order pattern accepting an abstract pattern of polymorphic type.
+```isl
+type AnyPattern<T> = pattern() in Stream<T>
+
+pattern Repeated<T> (p: AnyPattern<T>, minTimes: integer, maxTimes: integer) of (results: List<T> = []) in Stream<T>
+	if minTimes >= 1
+		for _ in 1..minTimes
+			results += accept p
+			// `results` acts similarly to a named return variable
+			// It can be incrementally updated,
+			// However, it can only be read when assigned back to itself
+
+	for _ in minTimes..maxTimes
+		try
+			results += accept p
+		else
+			break
+
+pattern Repeated<T> (p: AnyPattern<T>, times: integer) of (results: List<T> = []) in Stream<T>
+	results = accept Repeated<T>(p, times, times)
+```
+
+## Unpacking through a pattern method
+
+Since pattern methods may reject some inputs, it is not possible to directly unpack via a pattern, say, with this kind of hypothetical syntax:
+```isl
+let str = "5/11/1972"
+
+Date of let (day, month, year) = str // What would be assigned if the string is rejected?
+```
+
+Instead, the `matches` operator, introduced in a previous chapter, allows to conditionally "unpack" through the pattern, as well as safely handle the case where the input is rejected:
+```isl
+let str = "5/11/1972"
+
+if str matches Date of let (day, month, year)
+	....
+else
+	....
 ```
 
 # Logic programming
@@ -3733,237 +3891,78 @@ Determinism (which is related to the property of referential transparency), mean
 * Objects containing relations cannot be modified in-place. Facts cannot be added or removed from a relation unless the object is copied first (as is done with the `with` operator).
 * The inference engine is designed to always perform the search in the same order (even if the search is parallelized), so given the same clauses and fact database, it would always produce identical results (note it is meant that it would produce the same results **for a given runtime session**, changes in the ordering of declarations or files, or different versions of the compiler, might cause variations in the ordering).
 
-# Patterns and parsers
-## Pattern methods
+# Reactive programming
 
-We've previously introduced a syntax for list, tuple and object patterns, which can be used for pattern matching in conditional statements and expressions, such as:
+## Reactive values
 
 ```isl
-match myList
-	case []
-		....
-	case [let head < 10, ...]
-		....
-	case [25, ..., let last]
-		....
-	case [_ >= 10, let ...tail]
-		....
-	case [let first < 0, let second != first, let ...rest]
-		....
-	case [..., let v > 5, ...]
-		....
+for currentTemperature in Weather.currentTemperature
+	print("Current temperature is {currentTemperature}")
+
+let temperatureIsOver20: reactive boolean = temperature > 20
+
+for match currentlyOver20 in temperatureIsOver20
+	case true
+		print("Current temperature is over 20 degrees!")
+	otherwise
+		print("Current temperature is under 20 degrees!")
+
+reactive lightSwitchState()
+	for currentState: boolean? = nothing
+		let newState = getLightSwitchState()
+
+		if newState != currentState
+			emit newState
+			currentState = newState
+
+		wait 100
+
+reactive selection oneOfSeveralEvents
+	Temperature = Weather.currentTemperature
+	LightSwitch = lightSwitchState
+	CustomIntEvent: integer
+
+for match event in oneOfSeveralEvents
+	case Temperature(let t)
+		print("Temperature is now {t}")
+		oneOfSeveralEvents << someAction(t) as CustomIntEvent // Implicitly spawns someAction
+		// Execution immediately proceeds here
+
+	case LightSwitch(let s)
+		print("Light switch state is now {t}")
+
+	case CustomIntEvent(let i)
+		print("Custom int event of {i}")
 ```
 
-**Pattern methods** generalize over this feature, and allow to define arbitrary pattern recognizers via special-purpose subroutine-like helpers.
-
-Pattern methods can also be used as a full replacement for string regular expressions.
-
-For instance, we'll look at a regular expression that captures a phone number pattern. Conventionally we'll define something like:
 ```isl
-let PhoneNumberRegExp = /^[\+]?[ ]?([0-9][0-9]?[0-9]?)[ ]?\(([0-9][0-9][0-9])\)[ ]?([0-9][0-9][0-9])\-([0-9][0-9][0-9][0-9])$/
+class MyState
+	downloadingFile: boolean = false
 
-// Example matching string: "+1 (534) 953-6345"
+	downloadButtonPressed: reactive boolean = downloadButton.Pressed
+	downloadResult: reactive (url: string, fileContent: string)
+	outsideTemperature: reactive decimal = Weather.outsideTemperature
 
-match str
-	case PhoneNumberRegExp of ("1", "800", _, let lineNumber)
-		....
-```
+for state = MyState(), change in observe state
+	match change, state.downloadingFile
+		case MyState.downloadButtonPressed of (true), false
+			print("Starting download..")
+			let result = spawn downloadFile("https://example.com/someFile")
+			continue state with (downloadingFile = true, downloadResult << result)
 
-With a pattern method, we could instead write:
-```isl
-match str
-	case PhoneNumberPattern of ("1", "800", _, let lineNumber)
-		....
-```
+		case MyState.downloadButtonPressed of (true), true
+			print("Already downloading!")
 
-Where `PhoneNumberPattern` would be a pattern method defined as:
-```isl
-pattern PhoneNumberPattern() of (countryCode, areaCode, prefix, lineNumber) in string
-	accept optional '+'
-	countryCode = accept Repeated(Digit, 1, 3)
-	accept optional ' '
-	accept '('
-	areaCode = accept Repeated(Digit, 3)
-	accept ')'
-	accept optional ' '
-	prefix = accept Repeated(Digit, 3)
-	accept '-'
-	lineNumber = accept Repeated(Digit, 4)
-```
+		case MyState.downloadResult of (let url, let fileContent), _
+			print("Finished downloading {url}")
+			spawn saveFile("myFile", fileContent)
+			continue state with downloadingFile = false
 
-A pattern method is written similarly to a standard method only it employs the `accept` keyword which implicitly "advances" the recognizer whenever a pattern is matched:
-
-```isl
-.... = accept .... // Require the next member of the stream to match the given pattern and return it
-.... = accept optional ....  // Try to match the given pattern and return it, or skip if failed
-```
-
-In the above example, `Repeated` and `Digit` are references to secondary pattern methods.
-
-`Digit` can be defined as:
-```isl
-pattern Digit() of (value) in string
-	value = accept if _ in { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }
-```
-
-`accept if ....` will accept only if the given condition is satisfied. The `_` has semantics similar to how its used in pattern matching, i.e. analogous to what it would mean in a pattern like `[_ >= 10, ...]` where it contextually matches the corresponding element of a list.
-
-`Repeated` is a more complex, higher-order pattern method parameterized over any underlying pattern, as well as for any stream type (which includes strings). Its implementation is included in a future section about abstract patterns.
-
-## Transactional execution
-The `try`... `else try`...`else` block enables a limited form of **transactional execution** where multiple branches are attempted in turn until one of them succeeds (or otherwise the input is rejected). Whenever a failure occurs within a branch, its assignments are rolled back.
-
-Here's an illustrative example which will recognize and parse a date with any one of `'/'`, `'-'` or `'.'` as separator characters:
-```isl
-pattern Date() of (day, month, year) in string
-	// Will recognize a date like "21/5/1999" or "13-7-2020"
-	day = accept IntegerNumber(1, 31)
-
-	try
-		accept '/'
-		month = accept IntegerNumber(1, 12)
-		accept '/'
-	else try
-		accept '-'
-		month = accept IntegerNumber(1, 12)
-		accept '-'
-	else try
-		accept '.'
-		month = accept IntegerNumber(1, 12)
-		accept '.'
-
-	year = accept IntegerNumber
-
-match str
-	case Date of (1, 12, let year >= 2005)
-		....
-```
-
-Pattern methods can recognize and parse patterns that go well beyond the constraints of regular languages.
-
-We could rewrite the previous example such that the pattern method would be parameterized by an arbitrary set of separator characters:
-
-```isl
-pattern Date(seperatorCharacterSet: Set<string>) of (day, month, year) in string
-	day = accept IntegerNumber(1, 31)
-
-	let seperator = accept if _ in seperatorCharacterSet
-	month = accept IntegerNumber(1, 12)
-	accept separator // The accepted character must be the same as the one previously captured
-
-	year = accept IntegerNumber
-
-match str
-	case Date({'/', '-', '.'}) of (1, 12, let year >= 2005)
-		....
-```
-
-Pattern methods can be used for arbitrary streams. Here it is used to recognize patterns in sequences of integers:
-```isl
-// Recognizes three primes p1, p2, p3
-pattern ThreePrimes() in Stream<integer>
-	predicate isPrime(num) => ....
-
-	for _ in 1..3
-		accept if isPrime(_)
-
-// Recognizes 2, 4, 6, 8, 10, ....
-pattern EvenNaturalNumberSeries() in Stream<integer>
-	let evenNumbers = (n in 1.. where n mod 2 == 0) => n
-
-	for i in evenNumbers
-		accept if _ == i
-```
-
-## Lookahead
-
-```isl
-pattern AnythingUntil<T>(StopPattern: pattern in Stream<T>) of (results: List<T>) in Stream<T>
-	forever
-		try
-			accept StopPattern
-			reject and break // Roll back if stop pattern encountered and break out of the loop
-		else try
-			results += accept
-```
-
-## Abstract and higher-order patterns
-
-The `match` syntax can also apply to abstract pattern types.
-
-An abstract pattern may be expressed using a polymorphic type signature like:
-
-```isl
-type MyAbstractPattern = pattern() of (integer, boolean) in string
-```
-
-And then can be used to parameterize a function over any pattern that matches a given type signature. For example:
-```isl
-function recognizeThis(str: string, p: MyAbstractPattern, expectedValues: (integer, boolean))
-	match str
-		case p of expectedValues:
-			return true
-		else
-			return false
-
-pattern MyPattern() of (value: integer, ok: boolean) in string
-	value = accept IntegerNumber
-	accept ' '
-
-	try
-		accept 'Yes'
-		ok = true
-	else try
-		accept 'No'
-		ok = false
-
-recognizeThis("42 Yes", MyPattern, (42, true)) // returns true
-recognizeThis("10 No", MyPattern, (20, false)) // returns false
-```
-
-Here's an implementation of the `Repeated` pattern mentioned in a previous section. It defines a higher-order pattern accepting an abstract pattern of polymorphic type.
-```isl
-type AnyPattern<T> = pattern() in Stream<T>
-
-pattern Repeated<T> (p: AnyPattern<T>, minTimes: integer, maxTimes: integer) of (results: List<T> = []) in Stream<T>
-	if minTimes >= 1
-		for _ in 1..minTimes
-			results += accept p
-			// `results` acts similarly to a named return variable
-			// It can be incrementally updated,
-			// However, it can only be read when assigned back to itself
-
-	for _ in minTimes..maxTimes
-		try
-			results += accept p
-		else
-			break
-
-pattern Repeated<T> (p: AnyPattern<T>, times: integer) of (results: List<T> = []) in Stream<T>
-	results = accept Repeated<T>(p, times, times)
-```
-
-## Unpacking through a pattern method
-
-Since pattern methods may reject some inputs, it is not possible to directly unpack via a pattern, say, with this kind of hypothetical syntax:
-```isl
-let str = "5/11/1972"
-
-Date of let (day, month, year) = str // What would be assigned if the string is rejected?
-```
-
-Instead, the `matches` operator, introduced in a previous chapter, allows to conditionally "unpack" through the pattern, as well as safely handle the case where the input is rejected:
-```isl
-let str = "5/11/1972"
-
-if str matches Date of let (day, month, year)
-	....
-else
-	....
+		case MyState.outsideTemperature of (let temperature), _
+			print("Current temperature is {temperature}")
 ```
 
 # Symbolic data structures
-
 ## Symbolic structures
 
 ```isl
