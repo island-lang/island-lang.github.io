@@ -1893,7 +1893,7 @@ function giveMeSomeStructure(s: { url: string, speed: integer })
 giveMeSomeStructure(myStructure)
 ```
 
-An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of type subtyping can be described as a weak form of **duck typing**:
+An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of subtyping may be described as a weak form of **duck typing**:
 ```isl
 class SomeClass
 	name: string
@@ -1961,6 +1961,7 @@ feature Labeled
 	action printLabel() => print(label)
 
 class expansion Employee extends Labeled
+	label = fullName
 	action printLabel() => print("Great Employee: {label}")
 ```
 

@@ -1359,7 +1359,7 @@
 <span style="color: #5B5B5B">	....</span>
 
 <span style="color: #5B5B5B">giveMeSomeStructure</span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">myStructure</span><span style="color: #B338FF">)</span></code></pre>
-<p>An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of type subtyping can be described as a weak form of <strong>duck typing</strong>:</p>
+<p>An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of subtyping may be described as a weak form of <strong>duck typing</strong>:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0057E6">class</span><span style="color: #5B5B5B"> SomeClass</span>
 <span style="color: #5B5B5B">	name: </span><span style="color: #0057E6">string</span>
 <span style="color: #5B5B5B">	url: </span><span style="color: #0057E6">string</span>
@@ -1416,6 +1416,7 @@
 <span style="color: #5B5B5B">	</span><span style="color: #0057E6">action</span><span style="color: #5B5B5B"> printLabel</span><span style="color: #B338FF">()</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> print</span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">label</span><span style="color: #B338FF">)</span>
 
 <span style="color: #0057E6">class</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">expansion</span><span style="color: #5B5B5B"> Employee </span><span style="color: #0057E6">extends</span><span style="color: #5B5B5B"> Labeled</span>
+<span style="color: #5B5B5B">	label </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> fullName</span>
 <span style="color: #5B5B5B">	</span><span style="color: #0057E6">action</span><span style="color: #5B5B5B"> printLabel</span><span style="color: #B338FF">()</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> print</span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">"</span><span style="color: #AA6631">Great Employee: </span><span style="color: #B338FF">{</span><span style="color: #AA6631">label</span><span style="color: #B338FF">}</span><span style="color: #5B5B5B">"</span><span style="color: #B338FF">)</span></code></pre>
 <p>Expansions can <strong>add members to features</strong>, as long as they provide default values or implementations:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0057E6">feature</span><span style="color: #5B5B5B"> Labeled</span>
