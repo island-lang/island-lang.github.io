@@ -1665,7 +1665,7 @@ let deeplyAlteredGroup = golfers with { members: [{ firstName: "Michael" }, { ag
 
 ## Extension
 
-**Extension** (also called **inheritance**) allows a new type to built on the basis of an existing type.
+**Extension** allows a new type to be built on the basis of an existing type.
 
 Classes can only extend a single **base class**:
 ```isl
@@ -1700,6 +1700,174 @@ let james = PersonWithHeight("James", "Taylor", 19, 1.8)
 
 james.printDescription() // Prints "James Taylor, of 19 years of age and 1.8 meters tall"
 (james as Person).printDescription() // Prints "James Taylor, of 19 years of age"
+```
+
+If a class does not provide a body to one or more of its methods, it cannot be instantiated, however it can be used as a base class to a secondary class. This type of class is also known as an **abstract class**:
+
+```isl
+abstract class AbstractPerson
+	firstName: string
+	lastName: string
+	age: integer
+
+	computed description()
+	action printDescription()
+
+class ConcretePerson extends AbstractPerson
+	description => "{firstName} {lastName}, of {age} years of age"
+	action printDescription() => print(description)
+```
+
+## Features
+
+A **feature** (roughly resembling a **mixin** in other languages) is an abstract class-like type specifying a set of required members. Classes may extend any number of features. A feature may optionally provide **default implementations** or values for its members:
+
+```isl
+feature Labeled
+	label: string
+	action printLabel() => print(label)
+
+class Employee extends Labeled
+	fullName: string
+
+action processLabeledObject(obj: Labeled)
+	obj.printLabel()
+
+let someEmployee = Employee with fullName = "John Doe", label = "abc123"
+
+processLabeledObject() // prints "abc123"
+```
+
+Note that since the `label` field doesn't have a default value it must be explicitly assigned when the object is created. However, in order to initialize a new instance of `Employee` using the constructor syntax (`Employee(....)`) the value for the `label` field must be passed using a named parameter, since it doesn't have an inherent order in relation to `Employee`'s own fields:
+
+```isl
+let someEmployee = Employee("John Doe", label = "abc123")
+```
+Default implementations will be overridden if they are implemented by the extending type:
+```isl
+class Employee extends Labeled
+	fullName: string
+
+	action printLabel() => print("Employee: {label}")
+
+processLabeledObject(Employee("John Doe", label = "abc123")) // prints "Employee: abc123"
+```
+
+If several extended features have methods with conflicting names or signatures, the overriding method declaration may specify to which feature it relates to:
+```isl
+feature Runner
+	action start(speed: decimal)
+
+feature Processor
+	action start(speed: decimal)
+
+class Example extends Runner, Processor
+	name: string
+
+	action Runner.start(speed: decimal)
+		....
+
+	action Processor.start(speed: decimal)
+		....
+```
+
+When a an method is overridden in this way, it is not possible to directly call it through the extending class:
+
+```isl
+let test = Example("New Example")
+
+test.start(15) // Which of the two actions should be invoked?
+```
+Instead, a specific implementation can be invoked by casting the object to one of the feature types:
+```isl
+(test as Processor).start(15)
+```
+
+When a similar conflict occurs to the two or more fields, it can be resolved in analogous way:
+
+```isl
+feature FeatureA
+	index: integer
+
+feature FeatureB
+	index: string
+
+class Example extends FeatureA, FeatureB
+	name: string
+
+	// 'Example' has no field named 'index', instead it has:
+	FeatureA.index = 10 // default value for FeatureA field
+	FeatureB.index = "10" // default value for FeatureB field
+```
+
+Initialization must prefix the field name with the feature it relates to:
+```isl
+let test = Test("Something", FeatureA.index = 20, FeatureB.index = "20")
+```
+
+A secondary approach is to introduce an additional field and define the two feature's fields as computed fields:
+
+```isl
+class Test extends FeatureA, FeatureB
+	name: string
+
+	index: integer = 10
+
+	FeatureA.index => index
+	FeatureB.index => index.toString()
+```
+
+Now the object can be instantiated normally using the constructor syntax:
+```isl
+let test = Test("Something", 20)
+```
+
+Features can extend any number of other features:
+```isl
+feature Named
+	name: string
+
+feature Printable
+	action printThis()
+
+feature SomeFeature extends Named, Printable
+	weight: decimal
+	doubleWeight => weight * 2
+
+	action printThis()
+		print("Hello!")
+```
+
+## Anonymous structures
+
+A **structure** is a simple object-like container, analogous to a dictionary with a fixed set of predefined fields and varying member types:
+```isl
+let myStructure = { url: "https://example.com", speed: 9000 }
+```
+
+ **Anonymous structure types** are types that describe a set of required object fields. For example, here's a function that would accept any object-like entity with the fields `url: string` and `speed: integer`
+```isl
+function giveMeSomeStructure(s: { url: string, speed: integer })
+	....
+
+giveMeSomeStructure(myStructure)
+```
+
+An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of subtyping may be described as a weak form of **duck typing**:
+```isl
+class SomeClass
+	name: string
+	url: string
+	speed: integer
+	weight: decimal
+
+	....
+
+let instanceOfSomeClass = SomeClass("SomeName", "https://example.com", 10000, 125.5)
+
+giveMeSomeStructure(instanceOfSomeClass)
+// This call compiles since SomeClass is assignable to the anonymous structure type
+// { url: string, speed: integer }
 ```
 
 ## Type companion objects
@@ -1737,83 +1905,6 @@ let sumOfPoints = Point(1, 4) + Point(-2, 5)
 
 let differenceOfPoints = Point(7, 4) - Point(2, 3)
 // differenceOfPoints equals Point(5, 1)
-```
-
-## Features
-
-A **feature** (roughly similar to a **mixin** in other languages) is an abstract class-like type specifying a set of required members. Classes may extend any number of features. A feature may optionally provide **default implementations** or values for its members:
-
-```isl
-feature Labeled
-	label: string
-	action printLabel() => print(label)
-
-class Employee extends Labeled
-	fullName: string
-
-action processLabeledObject(obj: Labeled)
-	obj.printLabel()
-
-let someEmployee = Employee with fullName = "John Doe", label = "abc123"
-
-processLabeledObject() // prints "abc123"
-```
-
-Note that since the `label` field doesn't have a default value it must be explicitly assigned when the object is created. However, in order to initialize a new instance of `Employee` using the constructor syntax (`Employee(....)`) the value for the `label` field must be passed using a named parameter, since it doesn't have an inherent order in relation to `Employee`'s own fields:
-
-```isl
-let someEmployee = Employee("John Doe", label = "abc123")
-```
-Default implementations will be overridden if they are implemented by the extending type:
-```isl
-class Employee extends Labeled
-	fullName: string
-
-	action printLabel() => print("Employee: {label}")
-
-processLabeledObject(Employee("John Doe", label = "abc123")) // prints "Employee: abc123"
-```
-
-Features can extend any number of other features:
-```isl
-feature Named
-	name: string
-
-feature Printable
-	action print()
-
-feature NamedAndPrintable extends Named, Printable
-```
-
-If conflicting names exist for members of two or more extended features, the method declaration can explicitly specify which feature it relates to:
-
-```isl
-feature Runner
-	action start(speed: decimal)
-
-feature Processor
-	action start(speed: decimal)
-
-class Test extends Runner, Processor
-	name: string
-
-	action Runner.start(speed: decimal)
-		....
-
-	action Processor.start(speed: decimal)
-		....
-```
-
-When a conflict like this occurs, it is not possible to directly call a method with ambiguous implementations:
-
-```isl
-let test = Test("New Test")
-
-test.start(1.5) // Which of the two actions should be invoked?
-```
-Instead, a specific implementation can be invoked by casting the object to one of the feature types:
-```isl
-(test as Processor).start(1.5)
 ```
 
 ## Type features
@@ -1865,7 +1956,7 @@ function propertyOf3Sums<T extends Monoid and Equatable>(a: T, b: T, c: T): bool
 	((a + b) == T.identity) and ((b + c) != T.identity)
 ```
 
-Using a type alias and a join type we can define a feature that **combines both instance and type members**:
+Using a type alias and a join type we can define a type that **combines both instance and type members**:
 
 ```isl
 feature Person
@@ -1876,38 +1967,6 @@ type feature Equatable
 	operator ==(x: this, y: this): boolean
 
 type EquatablePerson = Equatable and Person
-```
-
-## Anonymous structures
-
-A **structure** is a simple object-like container, analogous to a dictionary with a fixed set of predefined fields and varying member types:
-```isl
-let myStructure = { url: "https://example.com", speed: 9000 }
-```
-
- **Anonymous structure types** are types that describe a set of required object fields. For example, here's a function that would accept any object-like entity with the fields `url: string` and `speed: integer`
-```isl
-function giveMeSomeStructure(s: { url: string, speed: integer })
-	....
-
-giveMeSomeStructure(myStructure)
-```
-
-An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of subtyping may be described as a weak form of **duck typing**:
-```isl
-class SomeClass
-	name: string
-	url: string
-	speed: integer
-	weight: decimal
-
-	....
-
-let instanceOfSomeClass = SomeClass("SomeName", "https://example.com", 10000, 125.5)
-
-giveMeSomeStructure(instanceOfSomeClass)
-// This call compiles since SomeClass is assignable to the anonymous structure type
-// { url: string, speed: integer }
 ```
 
 ## Expansion
@@ -2109,12 +2168,13 @@ function MakePair<T = integer>(v1: T, v2: T): (T, T)
 Island supports **implicit type parameters**, meaning that generic types referenced without the introduction of type parameters will accept any type argument, given it satisfies their constraint set:
 
 ```isl
-function firstsOfPairs(p1: Pair, p2: Pair) => (p1.a, p2.a)
+function firstsOfPairs(p1: Pair, p2: Pair) =>
+	(p1.a, p2.a)
 ```
 which would be roughly equivalent to:
 ```isl
-function firstsOfPairs(p1: Pair<*>, p2: Pair<*>) => (p1.a, p2.a)
-// ('<*>' is pseudo-syntax, it has no real meaning)
+function firstsOfPairs<A, B>(p1: Pair<A>, p2: Pair<B>): (A, B) =>
+	(p1.a, p2.a)
 ```
 
 `p1` and `p2` can accept any instances of `Pair`, including ones with incompatible types:
