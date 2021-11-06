@@ -1840,7 +1840,7 @@ feature SomeFeature extends Named, Printable
 
 ## Anonymous structures
 
-A **structure** is a simple object-like container, analogous to a dictionary with a fixed set of predefined fields and varying member types:
+A **structure** is a simple object-like container, analogous to a dictionary with a fixed set of predefined fields and member types:
 ```isl
 let myStructure = { url: "https://example.com", speed: 9000 }
 ```
@@ -1852,6 +1852,21 @@ function giveMeSomeStructure(s: { url: string, speed: integer })
 
 giveMeSomeStructure(myStructure)
 ```
+
+**Fields can be added or removed** from a structure in an ad-hoc fashion, such that its type signature changes accordingly:
+
+```isl
+let s1 = { a: 1, b: false } // type of s1 is { a: integer, b: boolean }
+let s2 = s1 with new c = "Hi" // type of s2 is { a: integer, b: boolean, c: string }
+let s3 = s2 with no b // type of s3 is { a: integer, c: string }
+
+// Note that if the assigned values are constants, like in the above example,
+// the inferred types will be narrowed further via refinement typing:
+// For example, the type of s1 will actually be narrowed to { a: 1, b: false }
+// where '1' and 'false' are literal types.
+```
+
+This behavior doesn't imply dynamic typing. Whenever a value is altered in this way, its new type is statically inferred during compile-time. There is no runtime type management involved.
 
 An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of subtyping may be described as a weak form of **duck typing**:
 ```isl
@@ -1869,6 +1884,8 @@ giveMeSomeStructure(instanceOfSomeClass)
 // This call compiles since SomeClass is assignable to the anonymous structure type
 // { url: string, speed: integer }
 ```
+
+
 
 ## Type companion objects
 
