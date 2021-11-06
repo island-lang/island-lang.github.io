@@ -16,7 +16,7 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 * **All variables and values should be strictly immutable**. I.e. both variables (locally and globally scoped) and values (primitive and compound objects, including any of their fields) must maintain their initial value, forever.
 * Adapt common imperative constructs like loops, objects and generators, while maintaining strict adherence to full immutability.
 * Maintain a strict separation between pure and side-effect scopes (e.g. `function` vs `action`).
-* Maintain a look-and-feel roughly resembling popular imperative languages (e.g Python, Swift, C#, TypeScript).
+* Maintain a look-and-feel roughly resembling popular imperative languages (e.g Python, TypeScript, C#, Swift).
 * Aim for maximum simplicity and readability (good syntax does make a difference!). Aim for low-ambiguity, consistent syntax that reads like plain English (but don't overdo it for its own sake).
 * Clean syntax: avoid unnecessary punctuation like `;`, `:`, `{`, `}`, `(`, `)` and cryptic-looking symbols like `$`, `*`, `#`, `^` etc..
 * Expressive, rather than minimalist, syntax. No special emphasis on cutting down on special keywords (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
@@ -1643,7 +1643,7 @@ class Person
 		this with age += yearsToAdd
 ```
 
-Alterations can be applied deeper into the object hierarchy:
+Alterations can be applied deeply into the object hierarchy:
 ```isl
 class Group
 	members: List<Person>
@@ -1702,7 +1702,7 @@ james.printDescription() // Prints "James Taylor, of 19 years of age and 1.8 met
 (james as Person).printDescription() // Prints "James Taylor, of 19 years of age"
 ```
 
-If a class does not provide a body to one or more of its methods, it cannot be instantiated, however it can be used as a base class to a secondary class. This type of class is also known as an **abstract class**:
+If a class does not provide a body to one or more of its methods, it cannot be instantiated, however it can be used as a base class to a secondary class. This kind of class is called an **abstract class**:
 
 ```isl
 abstract class AbstractPerson
@@ -1738,7 +1738,7 @@ let someEmployee = Employee with fullName = "John Doe", label = "abc123"
 processLabeledObject() // prints "abc123"
 ```
 
-Note that since the `label` field doesn't have a default value it must be explicitly assigned when the object is created. However, in order to initialize a new instance of `Employee` using the constructor syntax (`Employee(....)`) the value for the `label` field must be passed using a named parameter, since it doesn't have an inherent order in relation to `Employee`'s own fields:
+Note that since the `label` field doesn't have a default value it must be explicitly assigned when the object is created. However, in order to initialize a new instance of `Employee` using the constructor syntax (`Employee(....)`) the value for the `label` field must be passed using a named argument, since it doesn't have an inherent order in relation to `Employee`'s own fields:
 
 ```isl
 let someEmployee = Employee("John Doe", label = "abc123")
@@ -1805,7 +1805,7 @@ Initialization must prefix the field name with the feature it relates to:
 let test = Test("Something", FeatureA.index = 20, FeatureB.index = "20")
 ```
 
-A secondary approach is to introduce an additional field and define the two feature's fields as computed fields:
+A secondary approach is to introduce an additional field and define the two feature's fields as computed fields that "route" back to it:
 
 ```isl
 class Test extends FeatureA, FeatureB
@@ -1872,7 +1872,7 @@ giveMeSomeStructure(instanceOfSomeClass)
 
 ## Type companion objects
 
-**Type companion objects** (which may also be described as dedicated **static member structures**) are special objects that may share the same name as a class (or act as **singleton objects**). They are used to provide data and functionality that are not associated with a particular instance of the class:
+**Type companion objects** (which may also be described as dedicated **static member structures**) are special objects that may share the same name as a class (or act as **singleton objects**). They are used to provide data and functionality that are not associated with a particular instance of a class:
 
 ```isl
 class Vector2
@@ -2020,7 +2020,7 @@ feature Labeled
 	action printLabel() => print(label)
 
 class expansion Employee extends Labeled
-	label = fullName
+	label => fullName
 	action printLabel() => print("Great Employee: {label}")
 ```
 
@@ -3409,7 +3409,7 @@ action example(f: File)
 	check
 		let line = readLineFromFile(f)
 		print(line)
-	detect failure: Failure<IOFailure>
+	detect failure: IOFailure
 		print(failure.message)
 ```
 
@@ -3620,7 +3620,7 @@ pattern Repeated<T> (p: AnyPattern<T>, minTimes: integer, maxTimes: integer) of 
 			break
 
 pattern Repeated<T> (p: AnyPattern<T>, times: integer) of (results: List<T> = []) in Stream<T>
-	results = accept Repeated<T>(p, times, times)
+	results = accept Repeated(p, times, times)
 ```
 
 ## Unpacking through a pattern method
