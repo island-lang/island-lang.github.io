@@ -2639,7 +2639,7 @@ This will define a stream method that computes an unbounded series of primes in 
 let backgroundPrimes = (for p in spawn calculatePrimes()) => p
 ```
 
-## Automated parallelization via implicit spawning
+## Automatic parallelization via implicit spawning
 
 In the case of `function`s and plain (pure) `stream`s (i.e. non-`action stream`s), spawning may be done automatically, without any need for explicit annotation in the code, since execution of these methods does not carry any impact beyond the scope of their own running context.
 
@@ -3548,6 +3548,7 @@ pattern PhoneNumberPattern() of (countryCode, areaCode, prefix, lineNumber) in s
 	prefix = accept Repeated(Digit, 3)
 	accept '-'
 	lineNumber = accept Repeated(Digit, 4)
+	accept end
 ```
 
 A pattern method is written similarly to a standard method only it employs the `accept` keyword which implicitly "advances" the recognizer whenever a pattern is matched:
@@ -3555,6 +3556,7 @@ A pattern method is written similarly to a standard method only it employs the `
 ```isl
 .... = accept .... // Require the next member of the stream to match the given pattern and return it
 .... = accept optional ....  // Try to match the given pattern and return it, or skip if failed
+accept end // Accept only if the stream ended
 ```
 
 In the above example, `Repeated` and `Digit` are references to secondary pattern methods.
@@ -3593,6 +3595,8 @@ pattern Date() of (day, month, year) in string
 
 	year = accept IntegerNumber
 
+	accept end
+
 match str
 	case Date of (1, 12, let year >= 2005)
 		....
@@ -3612,6 +3616,8 @@ pattern Date(seperatorCharacterSet: Set<string>) of (day, month, year) in string
 
 	year = accept IntegerNumber
 
+	accept end
+
 match str
 	case Date({'/', '-', '.'}) of (1, 12, let year >= 2005)
 		....
@@ -3621,22 +3627,27 @@ match str
 
 Pattern methods can be used for arbitrary streams. Here it is used to recognize patterns in sequences of integers:
 ```isl
-// Recognizes three primes p1, p2, p3
+// Recognizes a sequence of exactly three primes p1, p2, p3
 pattern ThreePrimes() in Stream<integer>
 	predicate isPrime(num) => ....
 
 	for _ in 1..3
 		accept if isPrime(_)
 
+	accept end
+
 // Recognizes 2, 4, 6, 8, 10, ....
 pattern EvenNaturalNumberSeries() in Stream<integer>
 	let evenNumbers = (n in 1.. where n mod 2 == 0) => n
 
 	for i in evenNumbers
-		accept if _ == i
+		try
+			accept if _ == i
+		else try
+			accept end
 
 // Recognizes a stream of twin prime tuples like:
-// (3, 5), (5, 7), (11, 13), (5, 7), (29, 31), (3, 5)
+// (3, 5), (5, 7), (11, 13), (5, 7), (29, 31), (3, 5), ....
 // (The sequence doesn't have to be ordered and pairs don't have to be unique)
 pattern TwinPrimesSequence() in Stream<(integer, integer)>
 	predicate isPrime(num) => ....
@@ -3651,18 +3662,38 @@ pattern TwinPrimesSequence() in Stream<(integer, integer)>
 	repeat
 		try
 			accept TwinPrimes
-		else
-			break
+		else try
+			accept end
 ```
 
 ## Lookahead
 
+Sometimes it is useful to access one or more upcoming members of the stream without consuming it.
+
+The `expect` keyword acts similarly to `accept`, only without advancing the current position in the stream.
+
+For example in order to define a pattern that parses the content of an XML `<title>` element:
+```isl
+pattern TitleXMLElement() in string
+	accept "<title>"
+
+	repeat
+		try
+			expect "</title>"
+			break // break out of the loop without advancing the read position
+		else try
+			accept Letter
+
+	accept "</title>" // since the stream position has not advanced, this should always succeed
+```
+
+More generally, this approach can be used to define a pattern which would accept anything until a stop pattern is encountered:
 ```isl
 pattern AnythingUntil<T>(StopPattern: pattern in Stream<T>) of (results: List<T>) in Stream<T>
 	repeat
 		try
-			accept StopPattern
-			reject and break // Roll back if stop pattern encountered and break out of the loop
+			expect StopPattern
+			break // break out of the loop without advancing the read position
 		else try
 			results += accept
 ```
@@ -3686,7 +3717,7 @@ function recognizeThis(str: string, p: MyAbstractPattern, expectedValues: (integ
 		else
 			return false
 
-pattern MyPattern() of (value: integer, ok: boolean) in string
+pattern MyPattern() of (value, ok) in string
 	value = accept IntegerNumber
 	accept ' '
 
@@ -3696,6 +3727,8 @@ pattern MyPattern() of (value: integer, ok: boolean) in string
 	else try
 		accept 'No'
 		ok = false
+
+	accept end
 
 recognizeThis("42 Yes", MyPattern, (42, true)) // returns true
 recognizeThis("10 No", MyPattern, (20, false)) // returns false
