@@ -579,8 +579,8 @@ We can roughly classify the first class as "strong", since they clearly impact t
 The Island language provides an optional way to explicitly mark those weaker scopes, albeit these are open to the developers' own judgment to be marked as such:
 
 ```isl
-	view action getCurrentTime()
-		....
+view action getCurrentTime()
+	....
 ```
 
 `view` actions can only call other view actions, as well as functions. They cannot call regular (strong) actions.
@@ -2638,6 +2638,31 @@ This will define a stream method that computes an unbounded series of primes in 
 ```isl
 let backgroundPrimes = (for p in spawn calculatePrimes()) => p
 ```
+
+## Automated parallelization via implicit spawning
+
+In the case of `function`s and plain (pure) `stream`s (i.e. non-`action stream`s), spawning may be done automatically, without any need for explicit annotation in the code, since execution of these methods does not carry any impact beyond the scope of their own running context.
+
+This means that normal code may be internally transformed during compilation to include `spawn` modifiers based on the compiler's own judgement. For example:
+
+```isl
+let x = someFunction(....)
+let y = anotherFunction(....)
+
+for a in somePureStream()
+	....
+```
+
+May be automatically transformed to:
+```isl
+let x = spawn someFunction(....)
+let y = spawn anotherFunction(....)
+
+for a in spawn somePureStream()
+	....
+```
+
+In the case of a pure (functional) stream, the compiler may also choose to precompute one or more future elements ahead of time (that is, in parallel to the execution of the loop body), since doing so would have no impact on the program's behavior (aside form slightly increased memory use).
 
 # Contracts
 
