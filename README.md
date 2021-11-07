@@ -1034,8 +1034,12 @@ function binarySearch(values: List<integer>, target: integer)
 Loops can be **nested**:
 ```isl
 function combinationsOf2(min: integer, max: integer)
-	for x = min, out result: List<(integer, integer)> = [] while x <= max advance x += 1
-		for y = min, out row: List<(integer, integer)> = [] while y <= max advance y += 1
+	for x = min, out result: List<(integer, integer)> = []
+	while x <= max
+	advance x += 1
+		for y = min, out row: List<(integer, integer)> = []
+		while y <= max
+		advance y += 1
 			continue row += [(x, y)]
 
 		continue result += row
@@ -1062,8 +1066,12 @@ function combinationsOf2(min: integer, max: integer): List<(integer, integer)>
 However, directly returning from an inner loop would be more tricky to express in recursive form. For example, the following function, which iterates to find a value in a square matrix:
 ```isl
 function findFirstInSquareMatrix(matrix: List<List<integer>>, value: integer): (integer, integer)?
-	for x = 1 while x <= matrix.length advance x += 1
-		for y = 1 while y <= matrix.length advance y += 1
+	for x = 1
+	while x <= matrix.length
+	advance x += 1
+		for y = 1
+		while y <= matrix.length
+		advance y += 1
 			if matrix[x][y] == value
 				return (x, y)
 
@@ -1125,7 +1133,7 @@ for i in naturalNumbers() // Loops forever
 **Multiple streams** may be consumed within a single `for` loop. At every iteration, each stream is evaluated once by its order of declaration. The loop will terminate whenever any one of the streams end:
 ```isl
 action stream keypresses()
-	forever
+	repeat
 		let key = getKeyPress()
 		yield key
 
@@ -3584,6 +3592,8 @@ match str
 		....
 ```
 
+## Patterns in non-character streams
+
 Pattern methods can be used for arbitrary streams. Here it is used to recognize patterns in sequences of integers:
 ```isl
 // Recognizes three primes p1, p2, p3
@@ -3599,13 +3609,32 @@ pattern EvenNaturalNumberSeries() in Stream<integer>
 
 	for i in evenNumbers
 		accept if _ == i
+
+// Recognizes a stream of twin prime tuples like:
+// (3, 5), (5, 7), (11, 13), (5, 7), (29, 31), (3, 5)
+// (The sequence doesn't have to be ordered and pairs don't have to be unique)
+pattern TwinPrimesSequence() in Stream<(integer, integer)>
+	predicate isPrime(num) => ....
+
+	pattern TwinPrimes in Stream<(integer, integer)>
+		try
+			let (p1, p2) = accept
+
+			if p2 != p1 + 2 or not isPrime(p1) or not isPrime(p2)
+				reject
+
+	repeat
+		try
+			accept TwinPrimes
+		else
+			break
 ```
 
 ## Lookahead
 
 ```isl
 pattern AnythingUntil<T>(StopPattern: pattern in Stream<T>) of (results: List<T>) in Stream<T>
-	forever
+	repeat
 		try
 			accept StopPattern
 			reject and break // Roll back if stop pattern encountered and break out of the loop
