@@ -1853,21 +1853,6 @@ function giveMeSomeStructure(s: { url: string, speed: integer })
 giveMeSomeStructure(myStructure)
 ```
 
-**Fields can be added or removed** from a structure in an ad-hoc fashion, such that its type signature changes accordingly:
-
-```isl
-let s1 = { a: 1, b: false } // type of s1 is { a: integer, b: boolean }
-let s2 = s1 with new c = "Hi" // type of s2 is { a: integer, b: boolean, c: string }
-let s3 = s2 with no b // type of s3 is { a: integer, c: string }
-
-// Note that if the assigned values are constants, like in the above example,
-// the inferred types will be narrowed further via refinement typing:
-// For example, the type of s1 will actually be narrowed to { a: 1, b: false }
-// where '1' and 'false' are literal types.
-```
-
-This behavior doesn't imply dynamic typing. Whenever a value is altered in this way, its new type is statically inferred during compile-time. There is no runtime type management involved.
-
 An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of subtyping may be described as a weak form of **duck typing**:
 ```isl
 class SomeClass
@@ -1885,7 +1870,27 @@ giveMeSomeStructure(instanceOfSomeClass)
 // { url: string, speed: integer }
 ```
 
+**Structure fields may be set to computed values**:
 
+```isl
+let s1 = { a: 1, b: false, c => when b is true: a + 1, otherwise: a - 1 }
+```
+The computed (or "lazy") nature of `c` is not reflected in the type - the type of `s1` is nonetheless inferred as `{ a: integer, b: boolean, c: integer }`. Since structures are always read-only, it doesn't really matter whether a value is memorized or computed via a function.
+
+**Structure fields can be added and removed** in an ad-hoc fashion, such that its type signature changes accordingly:
+
+```isl
+let s1 = { a: 1, b: false } // type of s1 is { a: integer, b: boolean }
+let s2 = s1 with c: string = "Hi" // type of s2 is { a: integer, b: boolean, c: string }
+let s3 = s2 with no b // type of s3 is { a: integer, c: string }
+
+// Note that if the assigned values are constants, like in the above example,
+// the inferred types will be narrowed further via refinement typing:
+// For example, the type of s1 will actually be narrowed to { a: 1, b: false }
+// where '1' and 'false' are literal types.
+```
+
+This behavior doesn't imply dynamic typing. Whenever a value is altered in this way, its new type is statically inferred during compile-time. There is no runtime type management involved.
 
 ## Type companion objects
 
