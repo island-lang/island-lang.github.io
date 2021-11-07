@@ -1753,7 +1753,7 @@ class Employee extends Labeled
 processLabeledObject(Employee("John Doe", label = "abc123")) // prints "Employee: abc123"
 ```
 
-If several extended features have methods with conflicting names or signatures, the overriding method declaration may specify to which feature it relates to:
+If several extended features have methods with **conflicting names or signatures**, the overriding method declaration may specify to which feature it relates to:
 ```isl
 feature Runner
 	action start(speed: decimal)
@@ -1783,7 +1783,7 @@ Instead, a specific implementation can be invoked by casting the object to one o
 (test as Processor).start(15)
 ```
 
-When a similar conflict occurs to the two or more fields, it can be resolved in analogous way:
+When a similar conflict occurs between two or more fields, it can be resolved in an analogous way:
 
 ```isl
 feature FeatureA
@@ -1792,7 +1792,7 @@ feature FeatureA
 feature FeatureB
 	index: string
 
-class Example extends FeatureA, FeatureB
+class ExampleClass extends FeatureA, FeatureB
 	name: string
 
 	// 'Example' has no field named 'index', instead it has:
@@ -1802,13 +1802,13 @@ class Example extends FeatureA, FeatureB
 
 Initialization must prefix the field name with the feature it relates to:
 ```isl
-let test = Test("Something", FeatureA.index = 20, FeatureB.index = "20")
+let test = ExampleClass("Something", FeatureA.index = 20, FeatureB.index = "20")
 ```
 
 A secondary approach is to introduce an additional field and define the two feature's fields as computed fields that "route" back to it:
 
 ```isl
-class Test extends FeatureA, FeatureB
+class ExampleClass extends FeatureA, FeatureB
 	name: string
 
 	index: integer = 10
@@ -1819,24 +1819,40 @@ class Test extends FeatureA, FeatureB
 
 Now the object can be instantiated normally using the constructor syntax:
 ```isl
-let test = Test("Something", 20)
+let test = ExampleClass("Something", 20)
 ```
 
-Features can extend any number of other features:
+Features may **extend any number of other features**. A feature may override one or more of its base feature's members. When a feature extends two or more features with conflicting member names, the resolution can be done with a similar approach to the one described above:
 ```isl
-feature Named
+feature Runner
+	action start(speed: decimal)
+		....
+
+feature Processor
+	action start(speed: decimal)
+		....
+
+feature ExampleFeature extends Runner, Processor
 	name: string
 
-feature Printable
-	action printThis()
+	action Runner.start(speed: decimal)
+		....
 
-feature SomeFeature extends Named, Printable
-	weight: decimal
-	doubleWeight => weight * 2
-
-	action printThis()
-		print("Hello!")
+	action Processor.start(speed: decimal)
+		....
 ```
+In this case, this means that the `ExampleFeature` feature doesn't have its own `start` method. Instead it  modified the default implementations for members of the features it inherited from such that a class which extends `Example` will have different default behaviors when it is cast to `Runner` or `Processor`:
+
+```isl
+class ExampleClass extends ExampleFeature
+
+let x = ExampleClass("Test")
+
+(x as Runner).start(13)
+// The invoked implementation of `start` is the one overriden by ExampleFeature,
+// not the original one specified in `Runner`
+```
+
 
 ## Anonymous structures
 
@@ -1870,13 +1886,6 @@ giveMeSomeStructure(instanceOfSomeClass)
 // { url: string, speed: integer }
 ```
 
-**Structure fields may be set to computed values**:
-
-```isl
-let s1 = { a: 1, b: false, c => when b is true: a + 1, otherwise: a - 1 }
-```
-The computed (or "lazy") nature of `c` is not reflected in the type - the type of `s1` is nonetheless inferred as `{ a: integer, b: boolean, c: integer }`. Since structures are always read-only, it doesn't really matter whether a value is memorized or computed via a function.
-
 **Structure fields can be added and removed** in an ad-hoc fashion, such that its type signature changes accordingly:
 
 ```isl
@@ -1891,6 +1900,13 @@ let s3 = s2 with no b // type of s3 is { a: integer, c: string }
 ```
 
 This behavior doesn't imply dynamic typing. Whenever a value is altered in this way, its new type is statically inferred during compile-time. There is no runtime type management involved.
+
+**Structure fields may be set to computed values**:
+
+```isl
+let s1 = { a: 1, b: false, c => when b is true: a + 1, otherwise: a - 1 }
+```
+The computed (or "lazy") nature of `c` is not reflected in the type - the type of `s1` is nonetheless inferred as `{ a: integer, b: boolean, c: integer }`. Since structures are always read-only, it doesn't really matter whether a value is memorized or computed via a function.
 
 ## Type companion objects
 
