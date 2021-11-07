@@ -1841,7 +1841,7 @@ feature ExampleFeature extends Runner, Processor
 	action Processor.start(speed: decimal)
 		....
 ```
-In this case, this means that the `ExampleFeature` feature doesn't have its own `start` method. Instead it  modified the default implementations for members of the features it inherited from such that a class which extends `Example` will have different default behaviors when it is cast to `Runner` or `Processor`:
+In this case, this means that `ExampleFeature` doesn't have its own `start` method. Instead it  modified the default implementations for members of the features it inherited from such that a class which extends `ExampleFeature` will have different default behaviors when it is cast to `Runner` or `Processor`:
 
 ```isl
 class ExampleClass extends ExampleFeature
@@ -1850,7 +1850,7 @@ let x = ExampleClass("Test")
 
 (x as Runner).start(13)
 // The invoked implementation of `start` is the one overriden by ExampleFeature,
-// not the original one specified in `Runner`
+// not the original one specified in `Runner`.
 ```
 
 
@@ -2190,7 +2190,7 @@ class Fruit extends Named, Printable
 	name: string
 	weight: decimal
 
-	action printMe() => print(A "{a.name} weighing {weight}kg")
+	action printMe() => print("A {a.name} weighing {weight}kg")
 
 action printNamedThing<T extends Named and Printable>(a: T) => a.printMe()
 
@@ -2227,6 +2227,14 @@ function firstsOfPairs<T>(p1: Pair<T>, p2: Pair<T>) => (p1.a, p2.a)
 
 let r = firstsOfPairs(Pair(1, 2), Pair('a', 'b')) // Error: p1 and p2 must have compatible types!
 ```
+
+Type associations may be defined ad-hoc, such that they only describe relationships between different polymorphic entities, but are not actually exposed as parameters. This kind of typing is called **existential typing**:
+
+```isl
+function firstsOfPairs(p1: Pair<any E>, p2: Pair<any E>) => (p1.a, p2.a)
+```
+This means that `p1` and `p2` must have a compatible type instantiation (which is "code-named" `E`). However, an assignment for `E` cannot be explicitly specified when `firstOfPairs` is invoked.
+
 
 ## Polymorphic subtyping rules (covariance and contravariance)
 
