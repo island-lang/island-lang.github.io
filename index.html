@@ -1349,7 +1349,7 @@
 <span style="color: #5B5B5B">	....</span>
 
 <span style="color: #5B5B5B">giveMeSomeStructure</span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">myStructure</span><span style="color: #B338FF">)</span></code></pre>
-<p>An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of subtyping may be described as a weak form of <strong>duck typing</strong>:</p>
+<p>An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of subtyping may be described as a weak form of <strong>structural typing</strong>:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0057E6">class</span><span style="color: #5B5B5B"> SomeClass</span>
 <span style="color: #5B5B5B">	name: </span><span style="color: #0057E6">string</span>
 <span style="color: #5B5B5B">	url: </span><span style="color: #0057E6">string</span>
@@ -1373,6 +1373,15 @@
 <span style="color: #A1A1A1">// For example, the type of s1 will actually be narrowed to { a: 1, b: false }</span>
 <span style="color: #A1A1A1">// where '1' and 'false' are literal types.</span></code></pre>
 <p>This behavior doesn't imply dynamic typing. Whenever a value is altered in this way, its new type is statically inferred during compile-time. There is no runtime type management involved.</p>
+<p><strong>Structures may nest other structures</strong>. The nested structures may be similarly modified:</p>
+<pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0057E6">let</span><span style="color: #5B5B5B"> s1 </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">{</span><span style="color: #5B5B5B"> a: </span><span style="color: #E65C00">1</span><span style="color: #5B5B5B">, b: </span><span style="color: #B338FF">{</span><span style="color: #5B5B5B"> c: </span><span style="color: #5B5B5B">"</span><span style="color: #AA6631">Hello</span><span style="color: #5B5B5B">"</span><span style="color: #5B5B5B">, d: </span><span style="color: #0057E6">false</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">}</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">}</span>
+<span style="color: #A1A1A1">// Type of s1 is { a: integer, b: { c: string, d: boolean } }</span>
+
+<span style="color: #0057E6">let</span><span style="color: #5B5B5B"> s2 </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> s1 </span><span style="color: #0057E6">with</span><span style="color: #5B5B5B"> b.e: </span><span style="color: #0057E6">decimal</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">3</span><span style="color: #5B5B5B">.</span><span style="color: #E65C00">14</span>
+<span style="color: #A1A1A1">// Type of s2 is { a: integer, b: { c: string, d: boolean, e: decimal } }</span>
+
+<span style="color: #0057E6">let</span><span style="color: #5B5B5B"> s3 </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> s2 </span><span style="color: #0057E6">with</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">no</span><span style="color: #5B5B5B"> b.c</span>
+<span style="color: #A1A1A1">// Type of s3 is { a: integer, b: { d: boolean, e: decimal } }</span></code></pre>
 <p><strong>Structure fields may be set to computed values</strong>:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0057E6">let</span><span style="color: #5B5B5B"> s1 </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">{</span><span style="color: #5B5B5B"> a: </span><span style="color: #E65C00">1</span><span style="color: #5B5B5B">, b: </span><span style="color: #0057E6">false</span><span style="color: #5B5B5B">, c </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">when</span><span style="color: #5B5B5B"> b </span><span style="color: #0057E6">is</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">true</span><span style="color: #5B5B5B">: a </span><span style="color: #000000">+</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">1</span><span style="color: #5B5B5B">, </span><span style="color: #0057E6">otherwise</span><span style="color: #5B5B5B">: a </span><span style="color: #000000">-</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">1</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">}</span></code></pre>
 <p>The computed (or &quot;lazy&quot;) nature of <code>c</code> is not reflected in the type - the type of <code>s1</code> is nonetheless inferred as <code>{ a: integer, b: boolean, c: integer }</code>. Since structures are always read-only, it doesn't really matter whether a value is memorized or computed via a function.</p>
@@ -2513,7 +2522,7 @@
 <span style="color: #5B5B5B">	</span><span style="color: #0057E6">case</span><span style="color: #5B5B5B"> Date</span><span style="color: #B338FF">({</span><span style="color: #5B5B5B">'</span><span style="color: #AA6631">/</span><span style="color: #5B5B5B">'</span><span style="color: #5B5B5B">, </span><span style="color: #5B5B5B">'</span><span style="color: #AA6631">-</span><span style="color: #5B5B5B">'</span><span style="color: #5B5B5B">, </span><span style="color: #5B5B5B">'</span><span style="color: #AA6631">.</span><span style="color: #5B5B5B">'</span><span style="color: #B338FF">})</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">of</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">(</span><span style="color: #E65C00">1</span><span style="color: #5B5B5B">, </span><span style="color: #E65C00">12</span><span style="color: #5B5B5B">, </span><span style="color: #0057E6">let</span><span style="color: #5B5B5B"> year </span><span style="color: #000000">&gt;=</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">2005</span><span style="color: #B338FF">)</span>
 <span style="color: #5B5B5B">		....</span></code></pre>
 <h2 id="patterns-in-non-character-streams"><a class="header-anchor" href="#patterns-in-non-character-streams">§</a>Patterns in non-character streams</h2>
-<p>Pattern methods can be used for arbitrary streams. Here it is used to recognize patterns in sequences of integers:</p>
+<p>Pattern methods can be used for arbitrary streams. Here it is used to recognize patterns in sequences of various types:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #A1A1A1">// Recognizes a sequence of exactly three primes p1, p2, p3</span>
 <span style="color: #0057E6">pattern</span><span style="color: #5B5B5B"> ThreePrimes</span><span style="color: #B338FF">()</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">in</span><span style="color: #5B5B5B"> Stream</span><span style="color: #000000">&lt;</span><span style="color: #0057E6">integer</span><span style="color: #000000">&gt;</span>
 <span style="color: #5B5B5B">	</span><span style="color: #0057E6">predicate</span><span style="color: #5B5B5B"> isPrime</span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">num</span><span style="color: #B338FF">)</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> ....</span>
@@ -2533,28 +2542,33 @@
 <span style="color: #5B5B5B">		</span><span style="color: #0057E6">else</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">try</span>
 <span style="color: #5B5B5B">			</span><span style="color: #0057E6">accept</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">end</span>
 
-<span style="color: #A1A1A1">// Recognizes a stream of twin prime tuples like:</span>
-<span style="color: #A1A1A1">// (3, 5), (5, 7), (11, 13), (5, 7), (29, 31), (3, 5), ....</span>
-<span style="color: #A1A1A1">// (The sequence doesn't have to be ordered and pairs don't have to be unique)</span>
+<span style="color: #A1A1A1">// Recognizes a stream of ascending twin prime tuples like:</span>
+<span style="color: #A1A1A1">// (3, 5), (5, 7), (11, 13), (29, 31), ....</span>
 <span style="color: #0057E6">pattern</span><span style="color: #5B5B5B"> TwinPrimesSequence</span><span style="color: #B338FF">()</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">in</span><span style="color: #5B5B5B"> Stream</span><span style="color: #000000">&lt;</span><span style="color: #B338FF">(</span><span style="color: #0057E6">integer</span><span style="color: #5B5B5B">, </span><span style="color: #0057E6">integer</span><span style="color: #B338FF">)</span><span style="color: #000000">&gt;</span>
 <span style="color: #5B5B5B">	</span><span style="color: #0057E6">predicate</span><span style="color: #5B5B5B"> isPrime</span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">num</span><span style="color: #B338FF">)</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> ....</span>
 
-<span style="color: #5B5B5B">	</span><span style="color: #0057E6">pattern</span><span style="color: #5B5B5B"> TwinPrimes </span><span style="color: #0057E6">in</span><span style="color: #5B5B5B"> Stream</span><span style="color: #000000">&lt;</span><span style="color: #B338FF">(</span><span style="color: #0057E6">integer</span><span style="color: #5B5B5B">, </span><span style="color: #0057E6">integer</span><span style="color: #B338FF">)</span><span style="color: #000000">&gt;</span>
+<span style="color: #5B5B5B">	</span><span style="color: #0057E6">pattern</span><span style="color: #5B5B5B"> TwinPrimes </span><span style="color: #0057E6">of</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">p1, p2</span><span style="color: #B338FF">)</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">in</span><span style="color: #5B5B5B"> Stream</span><span style="color: #000000">&lt;</span><span style="color: #B338FF">(</span><span style="color: #0057E6">integer</span><span style="color: #5B5B5B">, </span><span style="color: #0057E6">integer</span><span style="color: #B338FF">)</span><span style="color: #000000">&gt;</span>
 <span style="color: #5B5B5B">		</span><span style="color: #0057E6">try</span>
-<span style="color: #5B5B5B">			</span><span style="color: #0057E6">let</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">p1, p2</span><span style="color: #B338FF">)</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">accept</span>
+<span style="color: #5B5B5B">			</span><span style="color: #0057E6">accept</span>
 
 <span style="color: #5B5B5B">			</span><span style="color: #0057E6">if</span><span style="color: #5B5B5B"> p2 </span><span style="color: #000000">!=</span><span style="color: #5B5B5B"> p1 </span><span style="color: #000000">+</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">2</span><span style="color: #5B5B5B"> </span><span style="color: #000000">or</span><span style="color: #5B5B5B"> </span><span style="color: #000000">not</span><span style="color: #5B5B5B"> isPrime</span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">p1</span><span style="color: #B338FF">)</span><span style="color: #5B5B5B"> </span><span style="color: #000000">or</span><span style="color: #5B5B5B"> </span><span style="color: #000000">not</span><span style="color: #5B5B5B"> isPrime</span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">p2</span><span style="color: #B338FF">)</span>
 <span style="color: #5B5B5B">				</span><span style="color: #0057E6">reject</span>
 
-<span style="color: #5B5B5B">	</span><span style="color: #0057E6">repeat</span>
+<span style="color: #5B5B5B">	</span><span style="color: #0057E6">for</span><span style="color: #5B5B5B"> previousLowPrime </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #000000">-</span><span style="color: #E65C00">1</span>
 <span style="color: #5B5B5B">		</span><span style="color: #0057E6">try</span>
-<span style="color: #5B5B5B">			</span><span style="color: #0057E6">accept</span><span style="color: #5B5B5B"> TwinPrimes</span>
+<span style="color: #5B5B5B">			</span><span style="color: #0057E6">let</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">p1, _</span><span style="color: #B338FF">)</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">accept</span><span style="color: #5B5B5B"> TwinPrimes</span>
+
+<span style="color: #5B5B5B">			</span><span style="color: #0057E6">if</span><span style="color: #5B5B5B"> </span><span style="color: #000000">not</span><span style="color: #5B5B5B"> p1 </span><span style="color: #000000">&gt;</span><span style="color: #5B5B5B"> previousLowPrime</span>
+<span style="color: #5B5B5B">				</span><span style="color: #0057E6">reject</span>
+
+<span style="color: #5B5B5B">			</span><span style="color: #0057E6">continue</span><span style="color: #5B5B5B"> previousLowPrime </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> p1</span>
 <span style="color: #5B5B5B">		</span><span style="color: #0057E6">else</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">try</span>
-<span style="color: #5B5B5B">			</span><span style="color: #0057E6">accept</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">end</span></code></pre>
+<span style="color: #5B5B5B">			</span><span style="color: #0057E6">accept</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">end</span>
+<span style="color: #5B5B5B">			</span><span style="color: #0057E6">break</span></code></pre>
 <h2 id="lookahead"><a class="header-anchor" href="#lookahead">§</a>Lookahead</h2>
-<p>Sometimes it is useful to access one or more upcoming members of the stream without consuming it.</p>
+<p>Sometimes it is useful to &quot;peek&quot; on one or more upcoming members of the stream without advancing its position.</p>
 <p>The <code>expect</code> keyword acts similarly to <code>accept</code>, only without advancing the current position in the stream.</p>
-<p>For example in order to define a pattern that parses the content of an XML <code>&lt;title&gt;</code> element:</p>
+<p>For example in order to define a pattern that parses the content of a simplified HTML <code>&lt;title&gt;</code> element:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0057E6">pattern</span><span style="color: #5B5B5B"> TitleXMLElement</span><span style="color: #B338FF">()</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">in</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">string</span>
 <span style="color: #5B5B5B">	</span><span style="color: #0057E6">accept</span><span style="color: #5B5B5B"> </span><span style="color: #5B5B5B">"</span><span style="color: #AA6631">&lt;title&gt;</span><span style="color: #5B5B5B">"</span>
 
@@ -2566,14 +2580,17 @@
 <span style="color: #5B5B5B">			</span><span style="color: #0057E6">accept</span><span style="color: #5B5B5B"> Letter</span>
 
 <span style="color: #5B5B5B">	</span><span style="color: #0057E6">accept</span><span style="color: #5B5B5B"> </span><span style="color: #5B5B5B">"</span><span style="color: #AA6631">&lt;/title&gt;</span><span style="color: #5B5B5B">"</span><span style="color: #5B5B5B"> </span><span style="color: #A1A1A1">// since the stream position has not advanced, this should always succeed</span></code></pre>
-<p>More generally, this approach can be used to define a pattern which would accept anything until a stop pattern is encountered:</p>
+<p>More generally, this approach can be used to define a pattern which would accept anything until a stop pattern is encountered. This example relies on a higher-order pattern, which is introduced in the next section:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0057E6">pattern</span><span style="color: #5B5B5B"> AnythingUntil</span><span style="color: #000000">&lt;</span><span style="color: #5B5B5B">T</span><span style="color: #000000">&gt;</span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">StopPattern: </span><span style="color: #0057E6">pattern</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">in</span><span style="color: #5B5B5B"> Stream</span><span style="color: #000000">&lt;</span><span style="color: #5B5B5B">T</span><span style="color: #000000">&gt;</span><span style="color: #B338FF">)</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">of</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">results: List</span><span style="color: #000000">&lt;</span><span style="color: #5B5B5B">T</span><span style="color: #000000">&gt;</span><span style="color: #B338FF">)</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">in</span><span style="color: #5B5B5B"> Stream</span><span style="color: #000000">&lt;</span><span style="color: #5B5B5B">T</span><span style="color: #000000">&gt;</span>
 <span style="color: #5B5B5B">	</span><span style="color: #0057E6">repeat</span>
 <span style="color: #5B5B5B">		</span><span style="color: #0057E6">try</span>
 <span style="color: #5B5B5B">			</span><span style="color: #0057E6">expect</span><span style="color: #5B5B5B"> StopPattern</span>
 <span style="color: #5B5B5B">			</span><span style="color: #0057E6">break</span><span style="color: #5B5B5B"> </span><span style="color: #A1A1A1">// break out of the loop without advancing the read position</span>
 <span style="color: #5B5B5B">		</span><span style="color: #0057E6">else</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">try</span>
-<span style="color: #5B5B5B">			results </span><span style="color: #000000">+=</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">accept</span></code></pre>
+<span style="color: #5B5B5B">			results </span><span style="color: #000000">+=</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">accept</span>
+<span style="color: #5B5B5B">			</span><span style="color: #A1A1A1">// `results` acts similarly to a named return variable</span>
+<span style="color: #5B5B5B">			</span><span style="color: #A1A1A1">// It can be incrementally updated,</span>
+<span style="color: #5B5B5B">			</span><span style="color: #A1A1A1">// However, it can only be read when assigned back to itself</span></code></pre>
 <h2 id="abstract-and-higher-order-patterns"><a class="header-anchor" href="#abstract-and-higher-order-patterns">§</a>Abstract and higher-order patterns</h2>
 <p>The <code>match</code> syntax can also apply to abstract pattern types.</p>
 <p>An abstract pattern may be expressed using a polymorphic type signature like:</p>
@@ -2608,9 +2625,6 @@
 <span style="color: #5B5B5B">	</span><span style="color: #0057E6">if</span><span style="color: #5B5B5B"> minTimes </span><span style="color: #000000">&gt;=</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">1</span>
 <span style="color: #5B5B5B">		</span><span style="color: #0057E6">for</span><span style="color: #5B5B5B"> _ </span><span style="color: #0057E6">in</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">1</span><span style="color: #5B5B5B">..minTimes</span>
 <span style="color: #5B5B5B">			results </span><span style="color: #000000">+=</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">accept</span><span style="color: #5B5B5B"> p</span>
-<span style="color: #5B5B5B">			</span><span style="color: #A1A1A1">// `results` acts similarly to a named return variable</span>
-<span style="color: #5B5B5B">			</span><span style="color: #A1A1A1">// It can be incrementally updated,</span>
-<span style="color: #5B5B5B">			</span><span style="color: #A1A1A1">// However, it can only be read when assigned back to itself</span>
 
 <span style="color: #5B5B5B">	</span><span style="color: #0057E6">for</span><span style="color: #5B5B5B"> _ </span><span style="color: #0057E6">in</span><span style="color: #5B5B5B"> minTimes..maxTimes</span>
 <span style="color: #5B5B5B">		</span><span style="color: #0057E6">try</span>
@@ -2625,7 +2639,7 @@
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0057E6">let</span><span style="color: #5B5B5B"> str </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #5B5B5B">"</span><span style="color: #AA6631">5/11/1972</span><span style="color: #5B5B5B">"</span>
 
 <span style="color: #5B5B5B">Date </span><span style="color: #0057E6">of</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">let</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">day, month, year</span><span style="color: #B338FF">)</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> str </span><span style="color: #A1A1A1">// What would be assigned if the string is rejected?</span></code></pre>
-<p>Instead, the <code>matches</code> operator, introduced in a previous chapter, allows to conditionally &quot;unpack&quot; through the pattern, as well as safely handle the case where the input is rejected:</p>
+<p>Instead, the <code>matches</code> operator, which was mentioned in a previous chapter, allows to conditionally &quot;unpack&quot; through the pattern, as well as safely handle the case where the input is rejected:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0057E6">let</span><span style="color: #5B5B5B"> str </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #5B5B5B">"</span><span style="color: #AA6631">5/11/1972</span><span style="color: #5B5B5B">"</span>
 
 <span style="color: #0057E6">if</span><span style="color: #5B5B5B"> str </span><span style="color: #0057E6">matches</span><span style="color: #5B5B5B"> Date </span><span style="color: #0057E6">of</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">let</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">day, month, year</span><span style="color: #B338FF">)</span>

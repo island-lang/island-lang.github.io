@@ -1877,7 +1877,7 @@ function giveMeSomeStructure(s: { url: string, speed: integer })
 giveMeSomeStructure(myStructure)
 ```
 
-An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of subtyping may be described as a weak form of **duck typing**:
+An anonymous structure type is different from dictionary or a tuple with named members by the fact that it can structurally match any class or feature with compatible member names and types. This kind of subtyping may be described as a weak form of **structural typing**:
 ```isl
 class SomeClass
 	name: string
@@ -1908,6 +1908,18 @@ let s3 = s2 with no b // type of s3 is { a: integer, c: string }
 ```
 
 This behavior doesn't imply dynamic typing. Whenever a value is altered in this way, its new type is statically inferred during compile-time. There is no runtime type management involved.
+
+**Structures may nest other structures**. The nested structures may be similarly modified:
+```isl
+let s1 = { a: 1, b: { c: "Hello", d: false } }
+// Type of s1 is { a: integer, b: { c: string, d: boolean } }
+
+let s2 = s1 with b.e: decimal = 3.14
+// Type of s2 is { a: integer, b: { c: string, d: boolean, e: decimal } }
+
+let s3 = s2 with no b.c
+// Type of s3 is { a: integer, b: { d: boolean, e: decimal } }
+```
 
 **Structure fields may be set to computed values**:
 
@@ -3625,7 +3637,7 @@ match str
 
 ## Patterns in non-character streams
 
-Pattern methods can be used for arbitrary streams. Here it is used to recognize patterns in sequences of integers:
+Pattern methods can be used for arbitrary streams. Here it is used to recognize patterns in sequences of various types:
 ```isl
 // Recognizes a sequence of exactly three primes p1, p2, p3
 pattern ThreePrimes() in Stream<integer>
@@ -3646,33 +3658,38 @@ pattern EvenNaturalNumberSeries() in Stream<integer>
 		else try
 			accept end
 
-// Recognizes a stream of twin prime tuples like:
-// (3, 5), (5, 7), (11, 13), (5, 7), (29, 31), (3, 5), ....
-// (The sequence doesn't have to be ordered and pairs don't have to be unique)
+// Recognizes a stream of ascending twin prime tuples like:
+// (3, 5), (5, 7), (11, 13), (29, 31), ....
 pattern TwinPrimesSequence() in Stream<(integer, integer)>
 	predicate isPrime(num) => ....
 
-	pattern TwinPrimes in Stream<(integer, integer)>
+	pattern TwinPrimes of (p1, p2) in Stream<(integer, integer)>
 		try
-			let (p1, p2) = accept
+			accept
 
 			if p2 != p1 + 2 or not isPrime(p1) or not isPrime(p2)
 				reject
 
-	repeat
+	for previousLowPrime = -1
 		try
-			accept TwinPrimes
+			let (p1, _) = accept TwinPrimes
+
+			if not p1 > previousLowPrime
+				reject
+
+			continue previousLowPrime = p1
 		else try
 			accept end
+			break
 ```
 
 ## Lookahead
 
-Sometimes it is useful to access one or more upcoming members of the stream without consuming it.
+Sometimes it is useful to "peek" on one or more upcoming members of the stream without advancing its position.
 
 The `expect` keyword acts similarly to `accept`, only without advancing the current position in the stream.
 
-For example in order to define a pattern that parses the content of an XML `<title>` element:
+For example in order to define a pattern that parses the content of a simplified HTML `<title>` element:
 ```isl
 pattern TitleXMLElement() in string
 	accept "<title>"
@@ -3687,7 +3704,7 @@ pattern TitleXMLElement() in string
 	accept "</title>" // since the stream position has not advanced, this should always succeed
 ```
 
-More generally, this approach can be used to define a pattern which would accept anything until a stop pattern is encountered:
+More generally, this approach can be used to define a pattern which would accept anything until a stop pattern is encountered. This example relies on a higher-order pattern, which is introduced in the next section:
 ```isl
 pattern AnythingUntil<T>(StopPattern: pattern in Stream<T>) of (results: List<T>) in Stream<T>
 	repeat
@@ -3696,6 +3713,9 @@ pattern AnythingUntil<T>(StopPattern: pattern in Stream<T>) of (results: List<T>
 			break // break out of the loop without advancing the read position
 		else try
 			results += accept
+			// `results` acts similarly to a named return variable
+			// It can be incrementally updated,
+			// However, it can only be read when assigned back to itself
 ```
 
 ## Abstract and higher-order patterns
@@ -3742,9 +3762,6 @@ pattern Repeated<T> (p: AnyPattern<T>, minTimes: integer, maxTimes: integer) of 
 	if minTimes >= 1
 		for _ in 1..minTimes
 			results += accept p
-			// `results` acts similarly to a named return variable
-			// It can be incrementally updated,
-			// However, it can only be read when assigned back to itself
 
 	for _ in minTimes..maxTimes
 		try
@@ -3765,7 +3782,7 @@ let str = "5/11/1972"
 Date of let (day, month, year) = str // What would be assigned if the string is rejected?
 ```
 
-Instead, the `matches` operator, introduced in a previous chapter, allows to conditionally "unpack" through the pattern, as well as safely handle the case where the input is rejected:
+Instead, the `matches` operator, which was mentioned in a previous chapter, allows to conditionally "unpack" through the pattern, as well as safely handle the case where the input is rejected:
 ```isl
 let str = "5/11/1972"
 
