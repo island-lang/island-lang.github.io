@@ -3949,8 +3949,8 @@ relation Subtraction
 
 		// Alternate between positive and negative values for num1
 		for i = 1 advance i += 1
-			yield num1 = i, num2 = i - difference
-			yield num1 = -i, num2 = -i - difference
+			yield (i, i - difference, difference)
+			yield (-i, -i - difference, difference)
 
 		// For the case where difference = 2 this would yield:
 		// (0, -2, 2), (1, -1, 2), (-1, -3, 2), (2, 0, 2), (-2, -4, 2), ....
@@ -4055,7 +4055,7 @@ GreaterThan(5, smallerValue)
 
 Once `smallerValue` receives a value in `GreaterThan(3, _)` the next evaluations of `GreaterThan` test for that value. If it doesn't satisfy them, the inference engine backtracks until a value for `smallerValue` is found that satisfies all the members (i.e. in this case `1`, which is smaller than all the members).
 
-As you may notice this is a highly inefficient way to calculate this! Consider the case where `list = [3, 2, 4, -1000000]`, it would require more than one million backtracking attempts to find the first satisfying result `-1000001`!
+As you may notice this is a highly inefficient way to calculate this! Consider the case where `list = [3, 2, 4, -1000000]`. It would require more than one million backtracking attempts to find the first satisfying result `-1000001`!
 
 A more efficient way would be to to define an overload based on a `relation function` that quickly finds the minimum of the list and yields all the values smaller than it:
 ```isl
@@ -4153,6 +4153,8 @@ Determinism (which is related to the property of referential transparency), mean
 
 # Reactive programming
 
+_(This chapter is currently an early sketch)_
+
 ## Reactive values
 
 ```isl
@@ -4223,6 +4225,8 @@ for state = MyState(), change in observe state
 ```
 
 # Symbolic data structures
+_(This chapter is currently an early sketch)_
+
 ## Symbolic structures
 
 ```isl
