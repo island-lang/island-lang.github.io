@@ -31,7 +31,7 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 * **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness the language by abstracting over the notion of the "prior" output of a generator.
 * **[Partially constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of its functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
 * **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that generalize and abstract over the basic pattern matching expression syntax, as well as traditional regular expressions, by enabling the recognition and capture of arbitrary patterns within any type of input stream.
-* **[Relation classes](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
+* **[Relation objects](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
 
 ## Implementation state
 
@@ -643,7 +643,7 @@ function gcd(a: integer, b: integer) =>
 	when b == 0: abs(a), otherwise: gcd(b, a mod b)
 ```
 
-This function uses a dictionary and a `when` statement to convert an integer number on the range 1..999 to words:
+This function uses a structure and a `when` statement to convert an integer number on the range 1..999 to words:
 ```isl
 function numToWords(num: 1..999): string
 	let numberNames = { 0: "", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "thirteen", 13: "thirteen", 14: "fourteen", 15: "fifteen", 16: "sixteen", 17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty", 30: "thirty", 40: "fourty", 50: "fifty", 60: "sixty", 70: "seventy", 80: "eighty", 90: "ninety" }
@@ -1111,7 +1111,7 @@ for someTuple = (a: 1, b: 2)
 	continue someTuple with (a += 2, b -= 5)
 ```
 
-# Data streams
+# Streams
 
 ## Stream methods
 
@@ -1864,7 +1864,7 @@ let x = ExampleClass("Test")
 
 ## Anonymous structures
 
-A **structure** is a simple object-like container, analogous to a dictionary with a fixed set of predefined fields and member types:
+A **structure** is a simple object-like container, analogous to a dictionary, but with a fixed set of predefined fields and member types:
 ```isl
 let myStructure = { url: "https://example.com", speed: 9000 }
 ```
@@ -2219,8 +2219,11 @@ printNamedThing(Fruit("Banana", 0.5)) // prints "A Banana weighing 0.5kg"
 
 Type parameters can have **default values**:
 ```isl
-function MakePair<T = integer>(v1: T, v2: T): (T, T)
+function transformToPair<T, R = integer>(v1: T, v2: T): (R, R)
 	....
+
+let result = transformToPair(42.53, -14.7) // T inferred as decimal, R defaults to integer
+// `result` has the type `(integer, integer)`
 ```
 
 Island supports **implicit type parameters**, meaning that generic types referenced without the introduction of type parameters will accept any type argument, given it satisfies their constraint set:
@@ -2248,7 +2251,9 @@ function firstsOfPairs<T>(p1: Pair<T>, p2: Pair<T>) => (p1.a, p2.a)
 let r = firstsOfPairs(Pair(1, 2), Pair('a', 'b')) // Error: p1 and p2 must have compatible types!
 ```
 
-Type associations may be defined ad-hoc, such that they only describe relationships between different polymorphic entities, but are not actually exposed as parameters. This kind of typing is called **existential typing**:
+Type associations may be defined ad-hoc, such that they only describe relationships between different polymorphic entities, but are not actually exposed as parameters. This kind of typing is called **existential typing**.
+
+By introducing an existential type `E`, it is possible to simplify the previous example to:
 
 ```isl
 function firstsOfPairs(p1: Pair<any E>, p2: Pair<any E>) => (p1.a, p2.a)
@@ -2674,7 +2679,7 @@ for a in spawn somePureStream()
 	....
 ```
 
-In the case of a pure (functional) stream, the compiler may also choose to precompute one or more future elements ahead of time (that is, in parallel to the execution of the loop body), since doing so would have no impact on the program's behavior (aside form slightly increased memory use).
+In the case of a pure (functional) stream, the compiler may also choose to precompute one or more future elements ahead of time (that is, in parallel to the execution of the loop body), since doing so would have no impact on the program's behavior (aside from slightly increased memory use).
 
 # Contracts
 
@@ -3663,9 +3668,9 @@ pattern EvenNaturalNumberSeries() in Stream<integer>
 pattern TwinPrimesSequence() in Stream<(integer, integer)>
 	predicate isPrime(num) => ....
 
-	pattern TwinPrimes of (p1, p2) in Stream<(integer, integer)>
+	pattern TwinPrimes in Stream<(integer, integer)>
 		try
-			accept
+			let (p1, p2) = accept
 
 			if p2 != p1 + 2 or not isPrime(p1) or not isPrime(p2)
 				reject
