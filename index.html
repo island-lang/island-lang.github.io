@@ -9,6 +9,7 @@
 	<meta name="description" content="Multiparadigm general-purpose programming language, fusing aspects of imperative, functional, object-oriented, and logic programming.">
 	<meta name="author" content="Rotem Dan">
 
+	<link rel="shortcut icon" href="/icons/oasis-32x32.png" />
 	<link rel="stylesheet" href="styles/style.css">
 </head>
 
@@ -35,7 +36,7 @@
 <h2 id="main-innovations"><a class="header-anchor" href="#main-innovations">§</a>Main innovations</h2>
 <ul>
 <li><strong><a href="#loops">Stateless loops</a></strong> (or alternatively <strong>structured loops</strong>) are an approach to iterative control flow that attempts to unify the best of both the imperative and functional idioms. Stateless loops are written in a sequential style but are bound by a strict structure that ensures they can be trivially reduced to tail-recursive functional iteration.</li>
-<li><strong><a href="#accumulative-streams-and-named-return-variables">Accumulative generators</a></strong>, as well as <strong>accumulative generator comprehensions</strong> enhance the declarative expressiveness the language by abstracting over the notion of the &quot;prior&quot; output of a generator. <strong>Named return variables</strong> emulate a restricted form of mutability by enabling the return value to be &quot;accumulated&quot; in a way analogous to an accumulative generator.</li>
+<li><strong><a href="#accumulative-streams-and-named-return-variables">Accumulative generators</a></strong>, as well as <strong>accumulative generator comprehensions</strong> enhance the declarative expressiveness of the language by abstracting over the notion of the &quot;prior&quot; output of a generator. <strong>Named return variables</strong> provide a safe and restricted form of mutability by enabling the return value to be &quot;accumulated&quot; in a write-only fashion, analogous to an accumulative generator.</li>
 <li><strong><a href="#fixed-fields-and-partially-constructed-objects">Partially constructed objects</a></strong> enable the instantiation of classes with one or more missing fields, such that some of the object's functionality becomes inaccessible. The language models this &quot;partial&quot; instantiation through special types that explicitly specify which of its fields are known and which are not.</li>
 <li><strong><a href="#patterns-and-parsers">Abstract pattern recognizers</a></strong> are special methods that provide a generalized way to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input stream, as well as be written as polymorphic or higher-order abstractions.</li>
 <li><strong><a href="#logic-programming">Relation objects</a></strong> encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.</li>
