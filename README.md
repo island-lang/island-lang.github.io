@@ -22,15 +22,15 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 * Expressive, rather than minimalist, syntax. No special emphasis on cutting down on special keywords (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
 * Types should be inferred whenever possible.
 * Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and assertion types, compile-time contracts).
-* Allow for easy and effective concurrency (lightweight threads, deterministic dataflows, asynchronous generators).
+* Allow for easy and effective concurrency (lightweight threads, deterministic dataflows, asynchronous generators, automatic parallelization).
 
 
 ## Main innovations
 
-* **[Stateless loops](#loops)** (or alternatively **structured loops**) represent a novel approach to iterative control flow that attempts to synthesize the best of both the imperative and functional idioms.
-* **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness the language by abstracting over the notion of the "prior" output of a generator.
-* **[Partially constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of its functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
-* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that generalize and abstract over the basic pattern matching expression syntax, as well as traditional regular expressions, by enabling the recognition and capture of arbitrary patterns within any type of input stream.
+* **[Stateless loops](#loops)** (or alternatively **structured loops**) are an approach to iterative control flow that attempts to unify the best of both the imperative and functional idioms. Stateless loops are written in a sequential style but are bound by a strict structure that ensures they can be trivially reduced to tail-recursive functional iteration.
+* **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness the language by abstracting over the notion of the "prior" output of a generator. **Named return variables** emulate a restricted form of mutability by enabling the return value to be "accumulated" in a way analogous to an accumulative generator.
+* **[Partially constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of the object's functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
+* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that provide a generalized way to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input stream, as well as be written as polymorphic or higher-order abstractions.
 * **[Relation objects](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
 
 ## Implementation state
@@ -3589,7 +3589,7 @@ pattern Digit() of (value) in string
 `Repeated` is a more complex, higher-order pattern method parameterized over any underlying pattern, as well as for any stream type (which includes strings). Its implementation is included in a future section about abstract patterns.
 
 ## Transactional execution
-The `try`... `else try`...`else` block enables a limited form of **transactional execution** where multiple branches are attempted in turn until one of them succeeds (or otherwise the input is rejected). Whenever a failure occurs within a branch, its assignments are rolled back.
+The `try`... `else try`...`else` block enables a limited form of **transactional execution** where multiple branches are attempted in turn until one of them succeeds (or otherwise the input is rejected). Whenever a rejection occurs within a branch, its assignments are rolled back.
 
 Here's an illustrative example which will recognize and parse a date with any one of `'/'`, `'-'` or `'.'` as separator characters:
 ```isl
