@@ -31,7 +31,7 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 * **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness of the language by abstracting over the notion of the "prior" output of a generator. **Named return variables** provide a safe and restricted form of mutability by enabling the return value to be "accumulated" in a write-only fashion, analogous to an accumulative generator.
 * **[Partially constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of the object's functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
 * **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that provide a generalized way to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input stream, as well as be written as polymorphic or higher-order abstractions.
-* **[Relation objects](#logic-programming)** encapsulate logic-programming style relations within immutable container objects. Relation classes are defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
+* **[Class-embedded relations](#logic-programming)** enable logic-programming style relations to be encapsulated within immutable container objects. Relations can be defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
 
 ## Implementation state
 
@@ -1662,8 +1662,8 @@ let golfers = Group with
 	sharedInterest = "Golf"
 
 let deeplyAlteredGroup = golfers with
-	members[0].firstName = "Michael"
-	members[1].age = 45
+	members[1].firstName = "Michael"
+	members[2].age = 45
 ```
 
 The `with` operator also allows for merging syntax on objects, the following is equivalent:
@@ -2875,7 +2875,7 @@ action processSomething
 Having no identifiers, the first two parameters can still accept named arguments by being referenced by their index:
 
 ```isl
-processSomething([1]: false, owner: Person("Lea","Johnson", 16), [0]: "Animal")
+processSomething([2] = false, owner = Person("Lea","Johnson", 16), [1] = "Animal")
 // prints "Hello young animal lover!"
 ```
 
@@ -3674,6 +3674,9 @@ pattern TwinPrimesSequence() in Stream<(integer, integer)>
 
 			if p2 != p1 + 2 or not isPrime(p1) or not isPrime(p2)
 				reject
+
+		// Single-line alternative:
+		// accept if _[1] == _[2] + 2 and isPrime(_[1]) and isPrime(_[2])
 
 	for previousLowPrime = -1
 		try
