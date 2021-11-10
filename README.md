@@ -3668,15 +3668,8 @@ pattern EvenNaturalNumberSeries() in Stream<integer>
 pattern TwinPrimesSequence() in Stream<(integer, integer)>
 	predicate isPrime(num) => ....
 
-	pattern TwinPrimes in Stream<(integer, integer)>
-		try
-			let (p1, p2) = accept
-
-			if p2 != p1 + 2 or not isPrime(p1) or not isPrime(p2)
-				reject
-
-		// Single-line alternative:
-		// accept if _[1] == _[2] + 2 and isPrime(_[1]) and isPrime(_[2])
+	pattern TwinPrimes in Stream<(first: integer, second: integer)>
+		accept if _.second == _.first + 2 and isPrime(_.first) and isPrime(_.second)
 
 	for previousLowPrime = -1
 		try
