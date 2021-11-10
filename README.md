@@ -3665,20 +3665,19 @@ pattern EvenNaturalNumberSeries() in Stream<integer>
 
 // Recognizes a stream of ascending twin prime tuples like:
 // (3, 5), (5, 7), (11, 13), (29, 31), ....
-pattern TwinPrimesSequence() in Stream<(integer, integer)>
+type IntegerPair = (first: integer, second: integer)
+
+pattern TwinPrimesSequence() in Stream<IntegerPair>
 	predicate isPrime(num) => ....
 
-	pattern TwinPrimes in Stream<(first: integer, second: integer)>
+	pattern TwinPrimes in Stream<IntegerPair>
 		accept if _.second == _.first + 2 and isPrime(_.first) and isPrime(_.second)
 
 	for previousLowPrime = -1
 		try
-			let (p1, _) = accept TwinPrimes
-
-			if not p1 > previousLowPrime
-				reject
-
+			(p1, _) = accept TwinPrimes if _.first > previousLowPrime
 			continue previousLowPrime = p1
+
 		else try
 			accept end
 			break
