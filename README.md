@@ -2253,12 +2253,12 @@ let r = firstsOfPairs(Pair(1, 2), Pair('a', 'b')) // Error: p1 and p2 must have 
 
 Type associations may be defined ad-hoc, such that they only describe relationships between different polymorphic entities, but are not actually exposed as parameters. This kind of typing is called **existential typing**.
 
-By introducing an existential type `E`, it is possible to simplify the previous example to:
+By introducing an existential type `U`, it is possible to simplify the previous example to:
 
 ```isl
-function firstsOfPairs(p1: Pair<any E>, p2: Pair<any E>) => (p1.a, p2.a)
+function firstsOfPairs(p1: Pair<any U>, p2: Pair<any U>) => (p1.a, p2.a)
 ```
-This means that `p1` and `p2` must have a compatible type instantiation (which is "code-named" `E`). However, an assignment for `E` cannot be explicitly specified when `firstOfPairs` is invoked.
+This means that `p1` and `p2` must have a compatible type instantiation (which is "code-named" `U`). However, an assignment for `U` cannot be explicitly specified when `firstOfPairs` is invoked.
 
 
 ## Polymorphic subtyping rules (covariance and contravariance)
