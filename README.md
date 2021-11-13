@@ -1,19 +1,37 @@
 <h1 class="main-header">The Island Programming Language</h1>
 
-**Island** (**I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of imperative, functional, object-oriented, and logic programming.
+**Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
 
-It primarily aims to serve as a pragmatic programming tool for real-world applications, and generally inclined towards the mainstream, sequential programming style.
+It aspires to eventually serve as a pragmatic programming tool for real-world applications, and designed with a strong emphasis on clarity, ease-of-use and aesthetics.
 
-However, the language cannot be formally classified as imperative (it has **no mutable state**), nor as truly functional (it does not promote an idiomatically functional style), nor as traditionally object-oriented language. It is not intended as a hybrid language, but represents a conceptually independent programming approach named **stateless-sequential programming**.
+The core of the language is characterized by a sequential, statement-driven style. However, the language cannot be formally classified as imperative (it has **no mutable state**), nor as truly functional (it does not promote an idiomatically functional style), or traditionally object-oriented. Instead it may be said to represent a conceptually independent programming approach called **stateless-sequential programming**.
 
 The language also embeds a statically-typed **logic programming subsystem**, that significantly deviates from the Prolog tradition - which mostly concentrates on the centrality of relations - and instead encourages tight interconnections between relations, functions and objects as complementary entities.
 
-A novel, conceptually distinct form of declarative programming called **knowledge-driven programming** is introduced. It is currently a part of an ongoing experimental design process and may later mature enough to receive its own dedicated language.
+A new form of declarative programming called **knowledge-driven programming** is introduced. It is currently a part of an ongoing experimental design process and may eventually receive its own dedicated language once it becomes sufficiently mature.
 
 [TOC]
 # Introduction
 
-## Design goals and constraints
+## Design philosophy
+
+* **Programming should be made accessible for every person who wishes to learn it**. A language designer's role is to try to make the language as friendly and approachable as possible. This doesn't mean that abstractions like types, generics or more advanced features should be avoided. Instead, try to make the core of the language beginner-friendly, and more advanced features as transparent and unobtrusive as possible, such that users could learn more of them as they develop their skills.
+* **A programming language doesn't have to look like math or logic formulas**. The vast majority of real-world programming tasks have weak, if any, resemblance to abstract mathematics. Most programmers would benefit more from comprehensive, domain-specific language features that simplify common tasks, than minimalistic, math-like syntax that is possibly "mathematically beautiful" but either very difficult to understand or becomes unusably complicated even when confronted with mundane real-world problems.
+* **A programming language is a work of art!** It can be made aesthetically pleasing and enjoyable to use. That doesn't mean this objective is going to be easy to achieve. Beauty requires effort!
+* For the most part, **a programming language should be fully-designed** before it reaches a full implementation stage. Spend as much time as needed (even years, if that's what it takes). Try to cover all possible aspects, including advanced features, until the design matures into a coherent whole.
+* Many **common programming traps can be prevented right at the design stage**, either by stricter syntax and semantics, better tooling or documentation. It is a part of the designer's responsibility to ensure that their language doesn't invite trivial mistakes that frustrate programmers and waste their time.
+* Many **mundane programming tasks can already be made partially, or fully automated**, or for the very least, drastically simplified. Machine-learning based tools like [GitHub Copilot](https://copilot.github.com/) are extremely impressive. However, much of their contribution is to introduce boilerplate or cut-and-paste code that might be better avoided or replaced with unambiguous semantic annotations that would enable safe and convenient code reuse, of the kind proposed on the [chapter discussing knowledge-driven programming](http://localhost:5500/#universal-identifiers).
+
+## Main innovations
+
+* **[Stateless loops](#loops)** (or alternatively **structured loops**) are an approach to iterative control flow that attempts to unify the best of both the imperative and functional idioms. Stateless loops are written in a sequential style but are bound by a strict structure that ensures they can be trivially reduced to tail-recursive functional iteration.
+* **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness of the language by abstracting over the notion of the "prior" output of a generator. **Named return variables** provide a safe and restricted form of mutability by enabling the return value to be "accumulated" in a write-only fashion, analogous to an accumulative generator.
+* **[Partially constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of the object's functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
+* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that provide a generalized way to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input stream, as well as be written as polymorphic or higher-order abstractions.
+* **[Class-embedded relations](#logic-programming)** enable logic-programming style relations to be encapsulated within immutable container objects. Relations can be defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
+* **[Knowledge-driven programming](#knowledge-driven-programming)** is a form of declarative programming where information entities are given precise semantics via universally referenceable schemas, and computations are synthesized at compile-time, by composing chains of inference rules that derive unknown information entities from known ones.
+
+## Technical goals and constraints
 
 * **All variables and values should be strictly immutable**. I.e. both variables (locally and globally scoped) and values (primitive and compound objects, including any of their fields) must maintain their initial value, forever.
 * Adapt common imperative constructs like loops, objects and generators, while maintaining strict adherence to full immutability.
@@ -25,16 +43,6 @@ A novel, conceptually distinct form of declarative programming called **knowledg
 * Types should be inferred whenever possible.
 * Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and assertion types, compile-time contracts).
 * Allow for easy and effective concurrency (lightweight threads, deterministic dataflows, asynchronous generators, automatic parallelization).
-
-
-## Main innovations
-
-* **[Stateless loops](#loops)** (or alternatively **structured loops**) are an approach to iterative control flow that attempts to unify the best of both the imperative and functional idioms. Stateless loops are written in a sequential style but are bound by a strict structure that ensures they can be trivially reduced to tail-recursive functional iteration.
-* **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness of the language by abstracting over the notion of the "prior" output of a generator. **Named return variables** provide a safe and restricted form of mutability by enabling the return value to be "accumulated" in a write-only fashion, analogous to an accumulative generator.
-* **[Partially constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of the object's functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
-* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that provide a generalized way to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input stream, as well as be written as polymorphic or higher-order abstractions.
-* **[Class-embedded relations](#logic-programming)** enable logic-programming style relations to be encapsulated within immutable container objects. Relations can be defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
-* **[Knowledge-driven programming](#knowledge-driven-programming)** is a novel form of declarative programming where individual values are ascribed semantics via universally referenceable class-like schemas, and computations are fabricated at compile-time, by composing chains of inference rules that derive unknown information entities from known ones.
 
 ## Implementation state
 
@@ -5043,7 +5051,7 @@ Hi, I'm a software developer who loves designing programming languages.
 
 The repository is located at [github.com/island-lang/island-lang.github.io](https://github.com/island-lang/island-lang.github.io)
 
-Feel free to ask questions, point out errors or make constructive suggestions.
+Feel free to ask questions, report errors or make constructive suggestions.
 
 ## Copyrights
 
