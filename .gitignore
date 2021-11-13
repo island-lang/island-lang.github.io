@@ -3,5 +3,6 @@ archived
 watch.js
 node_modules
 *.json
+*.temp
 
 

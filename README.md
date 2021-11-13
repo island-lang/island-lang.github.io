@@ -8,6 +8,8 @@ However, the language cannot be formally classified as imperative (it has **no m
 
 The language also embeds a statically-typed **logic programming subsystem**, that significantly deviates from the Prolog tradition - which mostly concentrates on the centrality of relations - and instead encourages tight interconnections between relations, functions and objects as complementary entities.
 
+A novel, conceptually distinct form of declarative programming called **knowledge-driven programming** is introduced. It is currently a part of an ongoing experimental design process and may later mature enough to receive its own dedicated language.
+
 [TOC]
 # Introduction
 
@@ -32,6 +34,7 @@ The language also embeds a statically-typed **logic programming subsystem**, tha
 * **[Partially constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of the object's functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
 * **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that provide a generalized way to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input stream, as well as be written as polymorphic or higher-order abstractions.
 * **[Class-embedded relations](#logic-programming)** enable logic-programming style relations to be encapsulated within immutable container objects. Relations can be defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
+* **[Knowledge-driven programming](#knowledge-driven-programming)** is a novel form of declarative programming where individual values are ascribed semantics via universally referenceable class-like schemas, and computations are fabricated at compile-time, by composing chains of inference rules that derive unknown information entities from known ones.
 
 ## Implementation state
 
@@ -3677,7 +3680,6 @@ pattern TwinPrimesSequence() in Stream<IntegerPair>
 		try
 			(p1, _) = accept TwinPrimes if _.first > previousLowPrime
 			continue previousLowPrime = p1
-
 		else try
 			accept end
 			break
@@ -4146,6 +4148,693 @@ Determinism (which is related to the property of referential transparency), mean
 * Objects containing relations cannot be modified in-place. Facts cannot be added or removed from a relation unless the object is copied first (as is done with the `with` operator).
 * The inference engine is designed to always perform the search in the same order (even if the search is parallelized), so given the same clauses and fact database, it would always produce identical results (note it is meant that it would produce the same results **for a given runtime session**, changes in the ordering of declarations or files, or different versions of the compiler, might cause variations in the ordering).
 
+# Knowledge-driven programming
+
+## Introduction
+
+**Knowledge-driven programming** is a form of declarative programming where programs are structured around semantically meaningful information entities, rather than computations. It does not involve conventional subroutines (i.e. named functions or relations). Instead, knowledge-driven programs specify general inference rules describing methods for generating new knowledge from existing knowledge.
+
+Knowledge-driven programs (or program subsets, if within a hybrid language) are **synthesized at compile-time** by composing a computational graph mapping an initial set of known information entities to a target set of unknown information entities.
+
+Unlike logic programs, knowledge-driven programs don't involve any runtime search. All planning and synthesis is done at compile-time, such that the resulting runtime code can be optimized to run at a performance closer to the machine's native capabilities.
+
+## Contexts, properties and mappings
+
+A knowledge-driven program consists of contexts, properties and mappings.
+
+A **context** is a knowledge and reasoning space in which information entities (properties) and inference rules (mappings) can be defined.
+
+A **property** is a semantically meaningful piece of information.
+
+A **mapping** is an unnamed inference rule specifying a method for deriving one or more unknown properties from a set of one or more known properties, within a given context.
+
+For example, this context describes the basic kinematic relations between distance, time and speed.
+
+```isl
+context BasicKinematics
+	distance: decimal
+	time: decimal
+	speed: decimal
+
+	distance given time, speed => time * speed
+	time given distance, speed => distance / speed
+	speed given distance, time => distance / time
+```
+
+`.... given ....` defines a mapping rule that specifies a method for a property to be computed given the knowledge of the value of other properties.
+
+If the set of required properties can be automatically inferred from the body of the rule, the `given` clause may be omitted:
+
+```isl
+context BasicKinematics
+	distance: decimal
+	time: decimal
+	speed: decimal
+
+	distance => time * speed
+	time => distance / speed
+	speed => distance / time
+```
+
+A context may be instantiated similarly to a class, though unlike a class, it has no predefined set of required fields. All of its properties are effectively optional, in a sense, as they may be either given or computed using a composition of one or more mapping rules.
+
+We'll instantiate the `BasicKinematics` context with values for `distance` and `time`:
+```isl
+let kinematics = BasicKinematics with distance = 10.0, time = 5.0,
+```
+
+Once instantiated, its properties may be queried directly, as if they were values. We'll query for the `speed` property:
+```isl
+let speed = kinematics.speed // `speed` gets the value 2.0
+```
+Despite the fact no value was provided for `speed`, the compiler was able to compose a sequence of mapping rules that computed its value, given the known information (here `distance` and `time`). The details of the particular rules the compiler selects are not a part of the program itself. The compiler may choose any rules it decides on, including rules the programmer is not aware of.
+
+In this case, only one simple rule was needed:
+```isl
+speed => distance / time
+```
+
+However, consider a slightly more complex case, where an additional property is introduced:
+
+```isl
+context BasicKinematics
+	distance: decimal
+	time: decimal
+	speed: decimal // Assume this property is measured in meters per seconds
+	speedInMph: decimal
+
+	distance => time * speed
+	time => distance / speed
+	speed => distance / time
+
+	speedInMph => speed * 2.23694
+	speed => speedInMph / 2.23694
+```
+
+Now querying for `speedInMph`
+```isl
+let kinematics = BasicKinematics with distance = 10.0, time = 5.0,
+let speed = kinematics.speedInMph // `speed` gets the value 4.47388
+```
+requires two rules:
+```isl
+speed => distance / time // speed = 2.0
+speedInMph => speed * 2.23694 // speedInMph = 4.47388
+```
+
+Up until now this may not look very different from computed fields, albeit with the ability to define distinct computations for different combinations of known and unknown properties. In the next sections we'll introduce the concepts of embeddings, preconditions and semantic associations, which should demonstrate how its capabilities go well beyond being just a form of "computed fields on steroids".
+
+## Context embedding
+
+At the end of the last section we've mentioned the notion of describing speed in a unit other than the default (say, in miles per hour instead of meters per second).
+
+If we wanted to include additional measurement units, we could add more properties and mapping rules to `BasicKinematics`, but that wouldn't be a good style.  Instead, it would be better to define a new context dedicated only for speed units, such as:
+
+```isl
+context Speed
+	metersPerSecond: decimal
+	milesPerHour: decimal
+	kilometersPerHour: decimal
+
+	metersPerSecond => milesPerHour / 2.23694
+	milesPerHour => metersPerSecond * 2.23694
+	metersPerSecond => kilometersPerHour / 3.6
+	kilometersPerHour => metersPerSecond * 3.6
+```
+
+But now we need some way to "combine" the knowledge we've expressed in this secondary context with the one in `BasicKinematics`. We can do that by embedding `Speed` inside of `BasicKinematics`:
+
+```isl
+context BasicKinematics
+	distance: decimal
+	time: decimal
+	speed: Speed
+
+	distance => time * speed.metersPerSecond
+	time => distance / speed.metersPerSecond
+	speed.metersPerSecond => distance / time
+```
+
+When a context is embedded in this way, its properties effectively become "namespaced" in the parent context, so they can be accessed from within mapping rules, or become their target - such as the rule that computes `speed.metersPerSecond` above, as if `metersPerSecond` was a part of the parent context itself.
+
+Now speed can be read in multiple units of measurement:
+```isl
+let kinematics = BasicKinematics with time = 5.0, distance = 10.0
+let speedInMph = kinematics.speed.milesPerHour
+let speedInKph = kinematics.speed.kilometersPerHour
+```
+
+As well as be provided in units other than `metersPerSecond`:
+```isl
+let kinematics = BasicKinematics with time = 5.0, speed.milesPerHour = 15.0
+let distance = kinematics.distance
+```
+
+The ability to set a value to a nested property like `speed.milesPerHour` may seem a bit strange at first since it isn't something we're used to do with classes and objects, but remember that the embedded context really does become an integral part of the parent context, and that contexts, unlike classes, don't have a predefined set of required members, so a notation like `speed.milesPerHour = 15.0` may make more sense, as there's no need to think of `Speed` as needing to be initialized as an independent entity.
+
+## Mapping rule preconditions
+
+A mapping rule precondition is a predicate that must be satisfied in order for the mapping rule to be available for use.
+
+The simplest form of a precondition is conditioned on the truth-value of a secondary Boolean property like in this example:
+```isl
+context AbsoluteValue
+	input: decimal
+	result: decimal
+
+	inputIsNegative: boolean
+	inputIsNegative => input < 0
+
+	result given input, inputIsNegative == true => input * -1
+	result given input, inputIsNegative == false => input
+```
+`inputIsNegative` will receive `true` if `input` is greater or equal to 0 and `false` otherwise. Consequently, `result` will receive `input * -1` if `inputIsNegative` is true, and `input` otherwise.
+
+You may now realize that given the ability to define simple preconditions on the truth-value of Boolean properties opens up the possibility for arbitrarily complex preconditions, since the Boolean property's mapping rules may possibly involve highly sophisticated computations.
+
+However, introducing a new Boolean property for every precondition is not very convenient or elegant. It would be nicer to be able to use more compact syntax. This is made possible by **ad-hoc preconditions**:
+
+```isl
+context AbsoluteValue
+	input: decimal
+	result: decimal
+
+	result given input < 0 => input * -1
+	result given input >= 0 => input
+```
+
+An ad-hoc precondition like `input < 0` implicitly introduces a Boolean property and an associated mapping rule.
+
+Note that the second mapping rule can be shortened further. Instead of explicitly describing a precondition for the case where `input >= 0` it can just describe a fallback case that would take effect whenever the others fails:
+
+```isl
+context AbsoluteValue
+	input: decimal
+	result: decimal
+
+	result given input < 0 => input * -1
+	result given input => input // This will take effect if input is known and the other precondition fails
+```
+
+## Mappers
+
+Up until now the only way to make use of contexts has been via explicit instantiation like:
+
+```isl
+let absoluteValue = AbsoluteValue with input = -11
+let result = absoluteValue.result // result gets the value 11
+```
+
+This may become too cumbersome in many cases. An alternative would be using a **mapper** to define a simple function-like method which accepts a set of known properties as parameters, and returns one or more unknown ones as return values:
+```isl
+mapper abs = (AbsoluteValue.input) => (AbsoluteValue.result)
+
+let x = abs(-11) // x gets the value 11
+```
+
+## Recursive instantiation and embedding
+
+So far, we've only dealt with very simple problems that did not require much algorithmic "depth". Say now we want to approach a slightly more complex computations, like the factorial.
+
+Based on the syntax we've introduced so far. We could write something like:
+
+```isl
+context Factorial
+	input: integer
+	result: integer
+
+	result given input == 0 or input == 1 => 1
+	result given input > 1
+		for i = 1, out output = 1 while i <= input advance i += 1
+			continue output *= i
+
+		return output
+
+	result given input < 0 => Failure("Invalid input")
+```
+
+Well, that might work, but wouldn't it be nicer if we could write it in a manner that is more idiomatic of the knowledge-driven style? One approach would be to recursively create an instance of `Factorial` within the body of the mapping rule itself:
+
+```isl
+context Factorial
+	input: integer
+	result: integer
+
+	result given input == 0 or input == 1 => 1
+	result given input > 1
+		let previousFactorial = Factorial with input = this.input - 1
+		return input * previousFactorial.result
+
+	result given input < 0 => Failure("Invalid input")
+```
+This approach is called **recursive instantiation**, and works quite similarly to how functions may invoke themselves, or class members create an instance of their own class.
+
+However, there's another, possibly more thought-provoking alternative. In a previous section we've embedded one context (`Speed`) inside another (`BasicKinematics`). What if we could embed `Factorial` inside of `Factorial` itself?
+
+Long story short, it turns out there's no reason why that shouldn't be possible! There you go:
+
+```isl
+context Factorial
+	input: integer
+	result: integer
+
+	previousFactorial: Factorial // Notice how the type of `previousFactorial` is Factorial itself!
+
+	result given input == 0 or input == 1 => 1
+	previousFactorial.input given input > 1 => input - 1
+	result given input > 1 => input * previousFactorial.result
+```
+
+But how? Why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become usable. Context instances represent scopes of knowledge and reasoning, not data or functions. If `Factorial` is embedded inside of `Factorial` itself, all that means is that an instance of  `Factorial` would also include a secondary scope that happens to share its own knowledge schema, and which can be initialized with a different set of known and unknown properties than itself.
+
+This kind of "nesting" is called **recursive embedding**.
+
+The way it operates in `Factorial` is that there's one mapping rule that infers into the recursively embedded context:
+
+```isl
+previousFactorial.input given input > 1 => input - 1
+```
+
+Informally, what this mapping rule says is that _"when input is greater than one, the input of the previous factorial is same as this one, minus one"_.
+
+There's a second reference to `previousFactorial` in the subsequent mapping rule:
+```isl
+result given input > 1 => input * previousFactorial.result
+```
+
+This one says that _"when input is greater than one, the result of this factorial is the input multiplied by the result of the previous factorial"_.
+
+Together these rules help form a declarative description of how the factorial can be computed, without the need to define explicit control flow or even ordering of operations.
+
+This same approach can be used to describe more complex computations. For example, here is a purely knowledge-driven implementation of the quicksort algorithm:
+
+```isl
+context Quicksort
+	items: List<integer>
+	sortedItems: List<integer>
+	pivot: integer => items[items.length / 2] // `pivot` declaration is integerated into a mapping rule
+	smallerThanPivot: Quicksort
+	greaterOrEqualToPivot: Quicksort
+
+	smallerThanPivot.items => [(i in items where i < pivot) => i]
+	greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
+	sortedItems given items == [] => []
+	sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
+```
+
+Here are natural language translations of the mapping rules included in `Quicksort`, written in a slightly altered order:
+```isl
+sortedItems given items == [] => []
+```
+means: _"When the input is an empty list, the sorted items list is empty as well"_.
+
+and
+```isl
+sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
+```
+means: _"When the input items are nonempty, the sorted items list is a concatenation of the sorted versions of the items that are smaller than the pivot and greater or equal to the pivot"_.
+
+and
+```isl
+smallerThanPivot.items => [(i in items where i < pivot) => i]
+greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
+```
+
+means: _"The items fed to the 'smaller than pivot' context are the given items, filtered to the ones that are smaller than the pivot. Similarly, the 'greater or equal to the pivot' context is fed the items that are greater or equal to the pivot"_.
+
+and finally:
+
+```isl
+pivot: integer => items[items.length / 2]
+```
+means: _"The pivot is the value in the middle of the list of items"_.
+
+(note that the rules are written in such a way that ensures `pivot`, as well as `smallerThanPivot.items` and `greaterOrEqualToPivot.items` would only be computed when `items` is nonempty)
+
+## Universal identifiers
+
+Each context and property represent a unique semantic entity, and is associated with a unique URI, similarly to how the semantic web enables various pieces of information to be uniquely identified and their meaning precisely disambiguated:
+
+For example, the `Quicksort` context can be represented by a URI such as:
+```html
+<publisher.com/lib/Quicksort.isl#Quicksort>
+```
+and its `sortedItems` property can subsequently be referenced as:
+```html
+<publisher.com/lib/Quicksort.isl#Quicksort.sortedItems>
+```
+
+## Semantic links
+
+With an approach analogous to the semantic web, we could also define identifiers for more "abstract" concepts. For example we could define an identifier for the abstract idea of a "sort":
+```isl
+context Sort
+	items: List<integer>
+	sortedItems: List<integer>
+```
+And it will similarly receive URIs like:
+```html
+<publisher.com/lib/Sort.isl#Sort>
+<publisher.com/lib/Sort.isl#Sort.items>
+<publisher.com/lib/Sort.isl#Sort.sortedItems>
+```
+
+Now, what if using this more abstract context, we could somehow annotate `Quicksort` as being a form of `Sort`, such that by only referencing properties of `Sort` the compiler could transparently make use of the mapping rules and auxiliary properties given in `Quicksort`?
+
+In object-oriented programming, what is usually done is setting `Quicksort` as a "subclass" of `Sort`. However, that's not really what we want to achieve. What we really want is for `Quicksort.items` and `Quicksort.sortedItems` to represent the **exact same semantics** as `Sort.items` and `Sort.sortedItems`, respectively. We don't want the properties of `Sort` to represent something more "vague" than the properties of `Quicksort`.
+
+This subtle change in mindset opens up some very interesting possibilities. So instead of going in the traditional line of thinking of `Quicksort extends Sort`. We'll do something else. We'll annotate individual properties of `Quicksort` to be semantically equivalent to the corresponding properties of `Sort`:
+
+```isl
+context Quicksort
+	items <=> <publisher.com/lib/Sort.isl#Sort.items>
+	sortedItems <=> <publisher.com/lib/Sort.isl#Sort.sortedItems>
+
+	....
+```
+These connections are called **semantic links**. What they mean is that every mapping rule that applies to `Quicksort.items`, would also apply to `Sort.items`, and vice-versa: every mapping rule that applies to `Sort.items` would apply back to `Quicksort.items`. Same for `Sort.sortedItems` and `Quicksort.sortedItems`.
+
+This means we can now write something like:
+```isl
+let sortContext = <publisher.com/lib/sort.isl#Sort> with items = [5, 2, 3, 4, 1]
+let result = sortContext.sortedItems // `result` gets the value [1, 2, 3, 4, 5]
+```
+
+Notice what happened here: we've created an instance of a supposedly "abstract" context, which only defined two properties: `items` and `sortedItems` and no mapping rules of its own, and yet the compiler was able to find a way to transform between these properties, without the code mentioning any reference to a concrete implementation.
+
+It is as if, in an object-oriented language, you'd create an instance of an abstract class and then "magically" expect its virtual methods to work when you call them directly. It might sound strange at first, but that's not a far fetched analogy.
+
+At this point you may start to realize just how powerful this idea is, and how much such a subtle alteration made it diverge from traditional object-oriented thinking.
+
+This type of association may also be characterized as a form of **knowledge augmentation** as it "augments" the breadth of knowledge associated with a semantic entity. Here we've augmented the compiler's knowledge about the `items` and `sortedItems` properties of both `Sort` and `Quicksort`.
+
+Let's try to take it even a step further. How about going back to our initial `BasicKinematics` example and generalizing it such that it could work for any unit of measurement for distance, speed and time? And this time we'll use semantic links instead of embeddings, to emulate a system of "commonsense knowledge":
+
+```isl
+context CommonsenseKinematics
+	distance <=> <publisher.com/lib/units.isl#Distance.meters>
+	speed <=> <publisher.com/lib/units.isl#Speed.metersPerSecond>
+	time <=> <publisher.com/lib/units.isl#Time.seconds>
+
+	distance <=> speed * time
+```
+(`distance <=> speed * time` is an example of a **bidirectional mapping rule**. It shares the same notation as a semantic link, but it isn't really the same thing. It is an abbreviated way to define multiple complementary mapping rules that are composed of simple, invertible, algebraic operations like addition, multiplication and division).
+
+The `Distance`, `Speed` and `Time` contexts are defined as:
+
+_(for brevity some property declarations have been combined with bidirectional mapping rules)_
+```isl
+context Distance
+	meters: decimal
+	kilometers <=> meters * 1000
+	feet <=> meters * 0.3048
+	yards <=> feet * 3
+	miles <=> yards * 1760
+
+context Speed
+	metersPerSecond: decimal
+	kilometersPerHour <=> metersPerSecond * 3.6
+	milesPerHour <=> metersPerSecond * 2.23694
+
+context Time
+	seconds: decimal
+	minutes <=> seconds * 60
+	hours <=> minutes * 60
+```
+
+Now we can write something like:
+```isl
+let speedMph = Speed.milesPerHour given
+	Distance.yards = 1500,
+	Time.minutes = 3
+
+let distanceMiles = Distance.miles given
+	Speed.kilometersPerHour = 33.5,
+	Time.hours = 7.5
+```
+
+We've used a form of notation we haven't seen before: `let x = .... given ....`.
+
+This notation effectively allows to pose an "abstract" **semantic query** that may mix semantic entities from multiple different contexts. Notice the code never mentioned any reference to `CommonsenseKinematics`. Instead, the rules `CommonsenseKinematics` exported, via semantic linking, became attached to `Speed`, `Distance` and `Time` and the compiler was able to figure out how to compose a series of computations, which included numerous unit conversions, to successfully compute the desired information.
+
+In fact, what this "query" notation actually does, behind the scenes, is to define an anonymous ad-hoc context where each property is associated with a particular semantic entity in a one-way fashion. The first query, when de-sugared, would look roughly like:
+
+```isl
+context AdHocContext
+	distanceYards: Distance.yards
+	speedMph: Speed.milesPerHour
+	timeMinutes: Time.minutes
+
+let speedMph = (AdHocContext with distanceYards = 1500, timeMinutes = 3).speedMph
+```
+
+This "one-way" kind of association is called a _semantic role_. It will be covered in the next section.
+
+## Semantic roles
+
+A **semantic role** provides a way to link a local property to a foreign property without fully embodying its semantics.
+
+A property may take up any number of distinct roles.
+
+A role, unlike a semantic link, does not cause mapping rules involving the _representing_ (i.e. local) property to apply back to the _represented_ (i.e. foreign) property.
+
+Therefore it cannot really be said to be a form of knowledge augmentation, but rather of **knowledge specialization**.
+
+Consider a very simple example. Say we wanted to define a context that would contain a name and also include a property containing its all-uppercase version, as well as an all-lowercase one.
+
+First we'll define two contexts that describe the uppercase and lowercase transforms:
+```isl
+context Uppercase
+	plain: string
+	uppercase: string
+	....
+
+context Lowercase
+	plain: string
+	lowercase: string
+	....
+```
+
+Next define the main context. We'll use some helper mappers to simplify the code:
+```isl
+mapper uppercase = (Uppercase.plain) ⇒ Uppercase.uppercase
+mapper lowercase = (Lowercase.plain) ⇒ Lowercase.lowercase
+
+context Name
+	name: string
+	nameUppercase: string => uppercase(name)
+	nameLowercase: string => lowercase(name)
+```
+
+That is okay, but there's a simpler way. We can use semantic roles to say that the `name` property "pretends" to be a plain (unprocessed) string, with respect to the semantics of `Uppercase` and `Lowercase`, and that `nameUppercase` and `nameLowercase` "pretend" to act like their respective processed properties (`Uppercase.uppercase` and `Lowercase.lowercase`):
+
+```isl
+context Name
+	name: Uppercase.plain, Lowercase.plain
+	nameUppercase: Uppercase.uppercase
+	nameLowercase: Lowercase.lowercase
+```
+This looks much simpler.
+
+The neat thing about it is that there's not even a need to introduce any mapping rules. The behaviors we wanted emerged naturally just by adding a few "tags" in strategic positions. There wasn't even a need to say that `name`, or any of the other properties, have the type `string`, since it also followed from the tagging.
+
+Now, it also turns out that roles can emulate some of the hierarchical relationships that we are used to in object-oriented programming, albeit in a more granular fashion.
+
+Consider this classic example used to demonstrate object-oriented hierarchical relationships:
+
+```isl
+context Shape
+	area: decimal
+
+context Circle
+    area: decimal => Pi * (radius ** 2)
+    radius: decimal
+
+context Square
+    area: decimal => side ** 2
+    side: decimal
+```
+
+We want to describe something called `Shape` that has an `area` property. And two other things called `Circle` and `Square` that also have an `area` property, as well as other properties we don't necessarily care about here (`radius` and `side`).
+
+The traditional way would be to say that `Circle extends Shape` and `Square extends Shape` but that's not what we're going for (in fact, contexts don't actually support the `extends` keyword at all).
+
+What we'll do instead is say that the `area` property of `Circle` and `Square` "represents" the area property of the `Shape` context:
+
+```isl
+context Shape
+	area: decimal
+
+context Circle
+    area: Shape.area => Pi * (radius ** 2)
+    radius: decimal
+
+context Square
+    area: Shape.area => side ** 2
+    side: decimal
+```
+
+Now let's pose a scenario that will help us understand the meaning of this relationship. Say we define another context that holds two Shapes, and contains a property, together with a mapping rule that computes their total area:
+
+```isl
+context TwoShapes
+	shape1: Shape
+	shape2: Shape
+	totalArea: decimal => shape1.area + shape2.area
+```
+
+Now say I wrote something like:
+```isl
+let twoShapes = TwoShapes with
+	shape1 = Circle with radius = 5.0
+	shape2 = Square with side = 7.5
+
+let totalArea = twoShapes.totalArea // Is this always computable?
+```
+
+How does the compiler determine these assignments are safe? and how does it know that `totalArea` is computable at all? We never initialized an explicit value to the `area` properties of `Circle` or `Square`. How can it be confident that `shape1.area + shape2.area` even means anything?
+
+The answer is that there is no general way for the compiler to immediately determine that a given property is knowable. Instead, the compiler performs a localized analysis of each property reference and tries to sort out, on a case by case basis, which referenced properties are knowable, and which aren't. This form of static analysis is achieved by employing _instance types_, which are the subject of the next section.
+
+## Instance types
+
+An **instance type** is a form of refinement type used by the compiler to contextually model the knowability of different properties, given the particular circumstances of the surrounding code.
+
+Let's look at the last code example from the previous section:
+```isl
+let twoShapes = TwoShapes with
+	shape1 = Circle with radius = 5.0
+	shape2 = Square with side = 7.5
+
+let totalArea = twoShapes.totalArea
+```
+I'll try to demonstrate how the compiler ensures the reference to `twoShapes.totalArea` is safe.
+
+First, say we wrote something simpler like:
+```isl
+let circle = Circle with radius = 5.0
+```
+The compiler would infer the type of `circle` as:
+```isl
+Circle with radius, area
+```
+
+It is clear why `radius` is included, since it was assigned an explicit value, but why is `area` there?
+
+The answer is that from a knowledge-driven perspective, there's no substantial distinction between an information entity that is "given" and one that's computed. They are both considered _knowable_.
+
+Now by using this method, the compiler can prove that `twoShapes.totalArea` is knowable:
+
+The expression `Circle with radius = 5.0` gets the type `Circle with radius, area`
+
+The expression `Square with side = 7.5` gets the type `Square with side, area`
+
+Now once assigned into the `shape1` and `shape2` properties of the `TwoShapes` context, these types are both cast to the type `Shape with area`.
+
+Now `twoShapes` consequently receives the type `TwoShapes with shape1.area, shape2.area, totalArea` and thus the `twoShapes.totalArea` property has been statically proven to be knowable:
+```isl
+let twoShapes = TwoShapes with // twoShapes gets the type `TwoShapes with shape1.area, shape2.area, totalArea`
+	shape1 = Circle with radius = 5.0 // shape1 gets the type `Shape with area`
+	shape2 = Square with side = 7.5 // shape2 gets the type `Shape with area`
+
+let totalArea = twoShapes.totalArea // totalArea has been proven to be computable
+```
+
+## Nested contexts
+
+**Nested contexts** provide a convenient way to associate similar roles for two or more distinct properties:
+
+```isl
+context Name
+	context FirstName
+		plain: Uppercase.plain, Lowercase.plain
+		uppercase: Uppercase.uppercase
+		lowercase: Lowercase.lowercase
+
+	context LastName
+		plain: Uppercase.plain, Abbreviated.plain
+		uppercase: Uppercase.uppercase
+		lowercase: Lowercase.lowercase
+
+	fullNameUpperCase => FirstName.uppercase + “ “ + LastName.upperCase
+```
+
+## Pseudo-functions
+
+In many cases, it becomes unwieldy to spell out bulky context declarations only to describe trivial operations. **Pseudo-functions** provide a handy syntactic sugar to enable simpler contexts to be written as compact function-like declarations:
+
+For example:
+```isl
+function context AddNumbers(num1: integer, num2: integer): (sum: integer)
+    sum = num1 + num2
+```
+
+Would be desugared to:
+```isl
+context AddNumbers
+	num1: integer
+	num2: integer
+	sum: integer => num1 + num2
+
+	mapper this = (num1, num2) => sum
+```
+
+Note that pseudo-functions must specify named return variables, since their return value (or values, if there are more than one) is directly translated into a property.
+
+Also, pseudo-functions can't include preconditions on their parameters, though they can annotate their parameters with semantic links and roles:
+
+```isl
+function context AddVectors(v1: Vector, v2: Vector): (sum: Vector)
+    sum = num1 + num2
+```
+
+## Precondition pattern matching
+
+Preconditions may match patterns as well as capture their component parts:
+
+This example defines a context which recognizes and parses a phone number pattern, specified by a regular expression, where the parsed `area` and `number` components are introduced as variables into the body of the rule:
+```isl
+let PhoneNumberPattern = /^{[0-9][0-9][0-9]}\-{[0-9]+}$/
+
+context PhoneNumber
+	str: string
+
+	isValid, areaCode, number given str matches PhoneNumberPattern of let (area, num) => true, area, num
+	isValid, areaCode, number => false, "", ""
+```
+
+A second example defines a context that extracts the first and last elements of a list using a pattern expression:
+```isl
+context MyList
+	items: List<integer>
+
+	first, last given items matches [let f, …, let l] => f, l
+	first, last given items => nothing, nothing
+```
+
+Notice how mapping rules can be shared by multiple properties simultaneously. This also implies that in order to compute any single property that’s included in the rule, all remaining properties would be computed as well.
+
+
+## Stream properties
+
+## Consistency checking
+
+## Unit testing
+
+Knowledge-driven programming enable unit tests to be described via an extremely simple and generic template:
+
+```isl
+expect .... == .... given ....
+expect .... > .... given ....
+expect isEmpty(....) given ....
+// etc.
+```
+
+For example:
+```isl
+expect Speed.milesPerHour == 4.47388 given Speed.metersPerSecond = 2.0
+```
+
 # Reactive programming
 
 _(This chapter is currently an early sketch)_
@@ -4344,7 +5033,7 @@ print(t2 == t3) // prints false
 
 ## Influences
 
-This work would not have been possible without ideas adapted from other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, Swift, F#, Quorum, Scala, Prolog, Java, Oz and Pascal.
+This work would not have been possible without ideas adapted or inspired by other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, Swift, F#, Oz, Scala, Quorum and Prolog.
 
 ## Who wrote this?
 
@@ -4353,6 +5042,8 @@ Hi, I'm a software developer who loves designing programming languages.
 ## Feedback for this document
 
 The repository is located at [github.com/island-lang/island-lang.github.io](https://github.com/island-lang/island-lang.github.io)
+
+Feel free to ask questions, point out errors or make constructive suggestions.
 
 ## Copyrights
 
