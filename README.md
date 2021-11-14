@@ -1,8 +1,8 @@
 <h1 class="main-header">The Island Programming Language</h1>
 
-**Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
+**Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming, as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
 
-It aspires to eventually serve as a pragmatic programming tool for real-world applications, and designed with a strong emphasis on clarity, ease-of-use and aesthetics.
+It aspires to eventually serve as a pragmatic programming tool for real-world applications, and designed with a strong emphasis on simplicity, ease-of-use and aesthetics.
 
 The core of the language is characterized by a sequential, statement-driven style. However, the language cannot be formally classified as imperative (it has **no mutable state**), nor as truly functional (it does not promote an idiomatically functional style), or traditionally object-oriented. Instead it may be said to represent a conceptually independent programming approach called **stateless-sequential programming**.
 
@@ -18,9 +18,9 @@ A new form of declarative programming called **knowledge-driven programming** is
 * **Programming should be made accessible for every person who wishes to learn it**. A language designer's role is to try to make the language as friendly and approachable as possible. This doesn't mean that abstractions like types, generics or more advanced features should be avoided. Instead, try to make the core of the language beginner-friendly, and more advanced features as transparent and unobtrusive as possible, such that users could learn more of them as they develop their skills.
 * **A programming language doesn't have to look like math or logic formulas**. The vast majority of real-world programming tasks have weak, if any, resemblance to abstract mathematics. Most programmers would benefit more from comprehensive, domain-specific language features that simplify common tasks, than minimalistic, math-like syntax that is possibly "mathematically beautiful" but either very difficult to understand or becomes unusably complicated even when confronted with mundane real-world problems.
 * **A programming language is a work of art!** It can be made aesthetically pleasing and enjoyable to use. That doesn't mean this objective is going to be easy to achieve. Beauty requires effort!
-* For the most part, **a programming language should be fully-designed** before it reaches a full implementation stage. Spend as much time as needed (even years, if that's what it takes). Try to cover all possible aspects, including advanced features, until the design matures into a coherent whole.
-* Many **common programming traps can be prevented right at the design stage**, either by stricter syntax and semantics, better tooling or documentation. It is a part of the designer's responsibility to ensure that their language doesn't invite trivial mistakes that frustrate programmers and waste their time.
+* Many **common programming traps can be prevented right at the design stage**, either by stricter syntax and semantics, or better tooling and documentation. It is a part of the designer's responsibility to ensure that their language doesn't invite trivial mistakes that frustrate programmers and waste their time.
 * Many **mundane programming tasks can already be made partially, or fully automated**, or for the very least, drastically simplified. Machine-learning based tools like [GitHub Copilot](https://copilot.github.com/) are extremely impressive. However, much of their contribution is to introduce boilerplate or cut-and-paste code that might be better avoided or replaced with unambiguous semantic annotations that would enable safe and convenient code reuse, of the kind proposed on the [chapter discussing knowledge-driven programming](http://localhost:5500/#universal-identifiers).
+* For the most part, **a programming language should be fully-designed** before it reaches a full implementation stage. Spend as much time as needed (even years, if that's what it takes). Try to cover all possible aspects, including advanced features, until the design matures into a coherent whole.
 
 ## Main innovations
 
@@ -4481,20 +4481,29 @@ means: _"The pivot is the value in the middle of the list of items"_.
 
 ## Universal identifiers
 
-Each context and property represent a unique semantic entity, and is associated with a unique URI, similarly to how the semantic web enables various pieces of information to be uniquely identified and their meaning precisely disambiguated:
+Each context and property is associated with a unique **semantic identity**, which may be referenced via a local identifier (e.g. `Quicksort.items`) or a global URI. This is similar to how the semantic web enables various pieces of information to be uniquely identified and their meaning precisely disambiguated.
 
-For example, the `Quicksort` context can be represented by a URI such as:
+For example, the `Quicksort` context may be referenced by a URI such as:
 ```html
 <publisher.com/lib/Quicksort.isl#Quicksort>
 ```
-and its `sortedItems` property can subsequently be referenced as:
+and its `sortedItems` property as:
 ```html
 <publisher.com/lib/Quicksort.isl#Quicksort.sortedItems>
 ```
 
+Unlike the semantic web, however, the URI is also expected to be a true, functioning URL, pointing to the correct source file where the identity is defined. In this way, there is no need for libraries or modules. References to individual contexts and properties can be made via the exact location of the source file.
+
+In terms of versioning, ideally, there shouldn't be a real need for version numbers, since semantic identities are expected to have precise and unchanging meanings.
+
+Nonetheless, It is technically possible to publish two or more distinct semantic identities sharing the same name by including a version number in the URI path.
+```html
+<publisher.com/lib/2.0.0/Quicksort.isl#Quicksort.sortedItems>
+```
+
 ## Semantic links
 
-With an approach analogous to the semantic web, we could also define identifiers for more "abstract" concepts. For example we could define an identifier for the abstract idea of a "sort":
+With an approach analogous to the semantic web, we could also define identities for more "abstract" concepts. For example we could define an identity for the abstract idea of a "sort":
 ```isl
 context Sort
 	items: List<integer>
@@ -4534,7 +4543,7 @@ It is as if, in an object-oriented language, you'd create an instance of an abst
 
 At this point you may start to realize just how powerful this idea is, and how much such a subtle alteration made it diverge from traditional object-oriented thinking.
 
-This type of association may also be characterized as a form of **knowledge augmentation** as it "augments" the breadth of knowledge associated with a semantic entity. Here we've augmented the compiler's knowledge about the `items` and `sortedItems` properties of both `Sort` and `Quicksort`.
+This type of association may also be characterized as a form of **knowledge augmentation** as it "augments" the breadth of knowledge associated with a semantic identity. Here we've augmented the compiler's knowledge about the `items` and `sortedItems` properties of both `Sort` and `Quicksort`.
 
 Let's try to take it even a step further. How about going back to our initial `BasicKinematics` example and generalizing it such that it could work for any unit of measurement for distance, speed and time? And this time we'll use semantic links instead of embeddings, to emulate a system of "commonsense knowledge":
 
@@ -4583,9 +4592,9 @@ let distanceMiles = Distance.miles given
 
 We've used a form of notation we haven't seen before: `let x = .... given ....`.
 
-This notation effectively allows to pose an "abstract" **semantic query** that may mix semantic entities from multiple different contexts. Notice the code never mentioned any reference to `CommonsenseKinematics`. Instead, the rules `CommonsenseKinematics` exported, via semantic linking, became attached to `Speed`, `Distance` and `Time` and the compiler was able to figure out how to compose a series of computations, which included numerous unit conversions, to successfully compute the desired information.
+This notation effectively allows to pose an "abstract" **semantic query** that may mix semantic identities from multiple different contexts. Notice the code never mentioned any reference to `CommonsenseKinematics`. Instead, the rules `CommonsenseKinematics` exported, via semantic linking, became attached to `Speed`, `Distance` and `Time` and the compiler was able to figure out how to compose a series of computations, which included numerous unit conversions, to successfully derive the desired information.
 
-In fact, what this "query" notation actually does, behind the scenes, is to define an anonymous ad-hoc context where each property is associated with a particular semantic entity in a one-way fashion. The first query, when de-sugared, would look roughly like:
+In fact, what this "query" notation actually does, behind the scenes, is to define an anonymous ad-hoc context where each property is associated with a particular semantic identity in a one-way fashion. The first query, when de-sugared, would look roughly like:
 
 ```isl
 context AdHocContext
@@ -4644,7 +4653,7 @@ context Name
 ```
 This looks much simpler.
 
-The neat thing about it is that there's not even a need to introduce any mapping rules. The behaviors we wanted emerged naturally just by adding a few "tags" in strategic positions. There wasn't even a need to say that `name`, or any of the other properties, have the type `string`, since it also followed from the tagging.
+The neat thing about it is that there's not even a need to introduce any mapping rules. The behaviors we wanted emerged naturally just by annotating a few "tags" in strategic positions. There wasn't even a need to say that `name`, or any of the other properties, have the type `string`, since it also followed from the tagging.
 
 Now, it also turns out that roles can emulate some of the hierarchical relationships that we are used to in object-oriented programming, albeit in a more granular fashion.
 
@@ -4835,7 +4844,9 @@ Knowledge-driven programming enable unit tests to be described via an extremely 
 expect .... == .... given ....
 expect .... > .... given ....
 expect isEmpty(....) given ....
-// etc.
+
+// In general:
+expect <predicate experssion involving a semantic identifier> given ....
 ```
 
 For example:
