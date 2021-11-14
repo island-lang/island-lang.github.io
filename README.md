@@ -2,9 +2,9 @@
 
 **Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming, as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
 
-It aspires to eventually serve as a pragmatic programming tool for real-world applications, and designed with a strong emphasis on simplicity, ease-of-use and aesthetics.
+It aspires to eventually serve as a practical programming tool for real-world applications, and designed with a strong emphasis on simplicity, clarity and aesthetics.
 
-The core of the language is characterized by a sequential, statement-driven style. However, the language cannot be formally classified as imperative (it has **no mutable state**), nor as truly functional (it does not promote an idiomatically functional style), or traditionally object-oriented. Instead it may be said to represent a conceptually independent programming approach called **stateless-sequential programming**.
+The core of the language is characterized by a sequential, statement-driven style. However, the language cannot be formally classified as imperative (it has **no mutable state**), nor as truly functional (it does not promote an idiomatically functional style), or traditionally object-oriented. Instead it may be said to represent a conceptually independent programming approach named **stateless-sequential programming**.
 
 The language also embeds a statically-typed **logic programming subsystem**, that significantly deviates from the Prolog tradition - which mostly concentrates on the centrality of relations - and instead encourages tight interconnections between relations, functions and objects as complementary entities.
 
@@ -15,12 +15,12 @@ A new form of declarative programming called **knowledge-driven programming** is
 
 ## Design philosophy
 
-* **Programming should be made accessible for every person who wishes to learn it**. A language designer's role is to try to make the language as friendly and approachable as possible. This doesn't mean that abstractions like types, generics or more advanced features should be avoided. Instead, try to make the core of the language beginner-friendly, and more advanced features as transparent and unobtrusive as possible, such that users could learn more of them as they develop their skills.
-* **A programming language doesn't have to look like math or logic formulas**. The vast majority of real-world programming tasks have weak, if any, resemblance to abstract mathematics. Most programmers would benefit more from comprehensive, domain-specific language features that simplify common tasks, than minimalistic, math-like syntax that is possibly "mathematically beautiful" but either very difficult to understand or becomes unusably complicated even when confronted with mundane real-world problems.
-* **A programming language is a work of art!** It can be made aesthetically pleasing and enjoyable to use. That doesn't mean this objective is going to be easy to achieve. Beauty requires effort!
+* **Programming should be made accessible for every person who wishes to learn it**. A language designer's role is to try to make the language as friendly and approachable as possible. This doesn't mean that abstractions like types, generics or more advanced features should be avoided. Instead, try to make the core of the language beginner-friendly, and more advanced features as transparent and unobtrusive as possible, such that users could gradually become familiar with more and more of them as they develop their skills.
+* **A programming language doesn't have to look like math or logic formulas**. The vast majority of real-world programming tasks have weak, if any, resemblance to abstract mathematics. Most programmers would benefit more from comprehensive, domain-specific language features that simplify common tasks, than minimalistic, math-like syntax that is possibly "mathematically beautiful" but either very difficult to understand or becomes unusably complicated even when confronted with routine real-world problems.
 * Many **common programming traps can be prevented right at the design stage**, either by stricter syntax and semantics, or better tooling and documentation. It is a part of the designer's responsibility to ensure that their language doesn't invite trivial mistakes that frustrate programmers and waste their time.
 * Many **mundane programming tasks can already be made partially, or fully automated**, or for the very least, drastically simplified. Machine-learning based tools like [GitHub Copilot](https://copilot.github.com/) are extremely impressive. However, much of their contribution is to introduce boilerplate or cut-and-paste code that might be better avoided or replaced with unambiguous semantic annotations that would enable safe and convenient code reuse, of the kind proposed on the [chapter discussing knowledge-driven programming](http://localhost:5500/#universal-identifiers).
-* For the most part, **a programming language should be fully-designed** before it reaches a full implementation stage. Spend as much time as needed (even years, if that's what it takes). Try to cover all possible aspects, including advanced features, until the design matures into a coherent whole.
+* For the most part, **a programming language should be fully-designed** before it reaches a full implementation stage. Spend as much time as needed at the design stage (even years, if that's what it takes). Try to cover all possible aspects, including advanced features, until the design matures into a coherent whole.
+* **A programming language is a work of art!** It can be made aesthetically pleasing and enjoyable to use. That doesn't mean this objective is going to be easy to achieve. Beauty requires effort!
 
 ## Main innovations
 
@@ -4318,7 +4318,7 @@ context AbsoluteValue
 ```
 `inputIsNegative` will receive `true` if `input` is greater or equal to 0 and `false` otherwise. Consequently, `result` will receive `input * -1` if `inputIsNegative` is true, and `input` otherwise.
 
-You may now realize that given the ability to define simple preconditions on the truth-value of Boolean properties opens up the possibility for arbitrarily complex preconditions, since the Boolean property's mapping rules may possibly involve highly sophisticated computations.
+You may now realize that given the ability to define simple preconditions on the truth-value of Boolean properties opens up the possibility for arbitrarily complex preconditions, since the Boolean property's mapping rules may potentially involve highly sophisticated computations.
 
 However, introducing a new Boolean property for every precondition is not very convenient or elegant. It would be nicer to be able to use more compact syntax. This is made possible by **ad-hoc preconditions**:
 
@@ -4341,7 +4341,7 @@ context AbsoluteValue
 	result: decimal
 
 	result given input < 0 => input * -1
-	result given input => input // This will take effect if input is known and the other precondition fails
+	result given input => input
 ```
 
 ## Mappers
@@ -4539,7 +4539,7 @@ let result = sortContext.sortedItems // `result` gets the value [1, 2, 3, 4, 5]
 
 Notice what happened here: we've created an instance of a supposedly "abstract" context, which only defined two properties: `items` and `sortedItems` and no mapping rules of its own, and yet the compiler was able to find a way to transform between these properties, without the code mentioning any reference to a concrete implementation.
 
-It is as if, in an object-oriented language, you'd create an instance of an abstract class and then "magically" expect its virtual methods to work when you call them directly. It might sound strange at first, but that's not a far fetched analogy.
+It is as if, in an object-oriented language, you'd create an instance of an abstract class and then "magically" expect its virtual methods to work when you call them directly. It might sound strange at first, but that's not a far-fetched analogy.
 
 At this point you may start to realize just how powerful this idea is, and how much such a subtle alteration made it diverge from traditional object-oriented thinking.
 
@@ -4549,9 +4549,9 @@ Let's try to take it even a step further. How about going back to our initial `B
 
 ```isl
 context CommonsenseKinematics
-	distance <=> <publisher.com/lib/units.isl#Distance.meters>
-	speed <=> <publisher.com/lib/units.isl#Speed.metersPerSecond>
-	time <=> <publisher.com/lib/units.isl#Time.seconds>
+	distance <=> <publisher.com/lib/Units.isl#Distance.meters>
+	speed <=> <publisher.com/lib/Units.isl#Speed.metersPerSecond>
+	time <=> <publisher.com/lib/Units.isl#Time.seconds>
 
 	distance <=> speed * time
 ```
@@ -4581,11 +4581,11 @@ context Time
 
 Now we can write something like:
 ```isl
-let speedMph = Speed.milesPerHour given
+let speedMph = Speed.milesPerHour given // speedMph gets the value 17.04545
 	Distance.yards = 1500,
 	Time.minutes = 3
 
-let distanceMiles = Distance.miles given
+let distanceMiles = Distance.miles given // distanceMiles gets the value 156.11951
 	Speed.kilometersPerHour = 33.5,
 	Time.hours = 7.5
 ```
@@ -4611,7 +4611,7 @@ This "one-way" kind of association is called a _semantic role_. It will be cover
 
 A **semantic role** provides a way to link a local property to a foreign property without fully embodying its semantics.
 
-A property may take up any number of distinct roles.
+A property may take up any number of distinct roles. Each role can only be taken once. A role cannot be shared between two or more properties within the same context.
 
 A role, unlike a semantic link, does not cause mapping rules involving the _representing_ (i.e. local) property to apply back to the _represented_ (i.e. foreign) property.
 
@@ -4653,7 +4653,9 @@ context Name
 ```
 This looks much simpler.
 
-The neat thing about it is that there's not even a need to introduce any mapping rules. The behaviors we wanted emerged naturally just by annotating a few "tags" in strategic positions. There wasn't even a need to say that `name`, or any of the other properties, have the type `string`, since it also followed from the tagging.
+The neat thing about it is that there's not even a need to introduce any mapping rules. The behaviors we wanted emerged naturally just by annotating a few "tags" in strategic positions. There wasn't even a need to say that `name`, or any of the other properties, have the type `string`, since it also followed from the annotations.
+
+On a more technical note, what is actually happening here is that the `Uppercase` and `Lowercase` contexts are effectively being "superimposed" over the `Name` context. This also means that any other properties they may have had could have been inferred with values, but would be totally "invisible" unless they were exposed in the form of roles within `Name`. This kind of "layering" could be described as a form of **information hiding** that's quite different than how it's expressed in traditional object-oriented programming.
 
 Now, it also turns out that roles can emulate some of the hierarchical relationships that we are used to in object-oriented programming, albeit in a more granular fashion.
 
@@ -4709,7 +4711,7 @@ let twoShapes = TwoShapes with
 let totalArea = twoShapes.totalArea // Is this always computable?
 ```
 
-How does the compiler determine these assignments are safe? and how does it know that `totalArea` is computable at all? We never initialized an explicit value to the `area` properties of `Circle` or `Square`. How can it be confident that `shape1.area + shape2.area` even means anything?
+How does the compiler determine these assignments are safe? and how does it know if `totalArea` is computable at all? We never initialized an explicit value to the `area` properties of `Circle` or `Square`. How can it be confident that `shape1.area + shape2.area` even means anything?
 
 The answer is that there is no general way for the compiler to immediately determine that a given property is knowable. Instead, the compiler performs a localized analysis of each property reference and tries to sort out, on a case by case basis, which referenced properties are knowable, and which aren't. This form of static analysis is achieved by employing _instance types_, which are the subject of the next section.
 
@@ -4759,7 +4761,7 @@ let totalArea = twoShapes.totalArea // totalArea has been proven to be computabl
 
 ## Nested contexts
 
-**Nested contexts** provide a convenient way to associate similar roles for two or more distinct properties:
+**Nested contexts** provide a convenient way to assign similar roles for two or more distinct properties:
 
 ```isl
 context Name
@@ -4798,12 +4800,7 @@ context AddNumbers
 
 Note that pseudo-functions must specify named return variables, since their return value (or values, if there are more than one) is directly translated into a property.
 
-Also, pseudo-functions can't include preconditions on their parameters, though they can annotate their parameters with semantic links and roles:
-
-```isl
-function context AddVectors(v1: Vector, v2: Vector): (sum: Vector)
-    sum = num1 + num2
-```
+Also, pseudo-functions can't include preconditions on their parameters, though they can annotate their parameters and return values with semantic links and roles.
 
 ## Precondition pattern matching
 
@@ -4829,30 +4826,55 @@ context MyList
 	first, last given items => nothing, nothing
 ```
 
-Notice how mapping rules can be shared by multiple properties simultaneously. This also implies that in order to compute any single property that’s included in the rule, all remaining properties would be computed as well.
+Notice how **mapping rules can be shared by multiple properties** simultaneously. This also implies that in order to compute any single property that’s included in the rule, all remaining properties would be computed as well.
 
 
 ## Stream properties
 
 ## Consistency checking
 
+One potential issue has to do with the way mapping rules allow multiple, possibly inconsistent, computations to be defined for the same set of properties.
+
+Trivially inconsistent:
+```isl
+context TriviallyInconsistent
+	inconsistentProperty: integer
+
+	inconsistentProperty => 0
+	inconsistentProperty => 1 // This is technically legal code, but it is obviously bogus.
+```
+
+Inconsistency may also happen between mapping rules going in different directions:
+```isl
+context BidirectionallyInconsistent
+	propertyA: decimal
+	propertyB: decimal
+
+	propertyA given propertyB => propertyA / 2
+	propertyB given propertyA => propertyB * 3 // Should this be allowed?
+```
+
 ## Unit testing
 
-Knowledge-driven programming enable unit tests to be described via an extremely simple and generic template:
+Knowledge-driven programming enable unit tests to be described via an extremely simple and generic template based on a single semantic query:
 
 ```isl
 expect .... == .... given ....
 expect .... > .... given ....
 expect isEmpty(....) given ....
-
-// In general:
-expect <predicate experssion involving a semantic identifier> given ....
+```
+In general:
+```isl
+expect <boolean experssion involving a semantic identifier> given <semantic identifer assignments>
 ```
 
 For example:
 ```isl
 expect Speed.milesPerHour == 4.47388 given Speed.metersPerSecond = 2.0
+expect DistanceMiles == 156.11951 given Speed.kilometersPerHour = 33.5, Time.hours = 7.5
 ```
+
+## Reactive contexts
 
 # Reactive programming
 
