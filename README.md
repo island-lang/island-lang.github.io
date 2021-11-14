@@ -4841,7 +4841,7 @@ context TriviallyInconsistent
 	inconsistentProperty: integer
 
 	inconsistentProperty => 0
-	inconsistentProperty => 1 // This is technically legal code, but it is obviously bogus.
+	inconsistentProperty => 1 // This is technically legal code, but is obviously bogus.
 ```
 
 Inconsistency may also happen between mapping rules going in different directions:
@@ -4850,8 +4850,8 @@ context BidirectionallyInconsistent
 	propertyA: decimal
 	propertyB: decimal
 
-	propertyA given propertyB => propertyA / 2
-	propertyB given propertyA => propertyB * 3 // Should this be allowed?
+	propertyA given propertyB => propertyB / 2
+	propertyB given propertyA => propertyA * 3 // Should this be allowed?
 ```
 
 ## Unit testing
