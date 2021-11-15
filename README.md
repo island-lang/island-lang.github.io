@@ -4170,9 +4170,9 @@ Unlike logic programs, knowledge-driven programs don't involve any runtime searc
 
 A knowledge-driven program consists of contexts, properties and mappings.
 
-A **context** is a knowledge domain in which information entities (properties) and inference rules (mappings) can be defined.
+A **context** is a knowledge and reasoning space in which information entities (properties) and inference rules (mappings) can be defined.
 
-A **property** is a semantically meaningful piece of information.
+A **property** is an entity of information.
 
 A **mapping rule** is an unnamed inference rule specifying a method for deriving one or more unknown properties from one or more known properties, within a given context.
 
@@ -4189,7 +4189,7 @@ context BasicKinematics
 	speed given distance, time => distance / time
 ```
 
-`.... given ....` defines a mapping rule that specifies a method for a property to be computed given the knowledge of the value of other properties.
+`.... given ....` defines a mapping rule that specifies a method for a property to be computed given the knowledge of the values of other properties.
 
 If the set of required properties can be automatically inferred from the body of the rule, the `given` clause may be omitted:
 
@@ -4204,18 +4204,18 @@ context BasicKinematics
 	speed => distance / time
 ```
 
-A context may be instantiated similarly to a class, though unlike a class, it has no predefined set of required information. All of its properties are effectively 'optional', in a sense, as they may be either provided or inferred using a composition of one or more mapping rules (or alternatively, they may not be computable at all - yet the instantiation would still be perfectly valid).
+A context may be instantiated similarly to a class, though unlike a class, it has no minimal set of required members. All of its properties are effectively 'optional', in a sense, as they may be either provided or inferred using one ore more of its mapping rules (or alternatively, they may not be knowable at all - yet the instantiation would still be perfectly valid).
 
 We'll instantiate the `BasicKinematics` context with values for `distance` and `time`:
 ```isl
 let kinematics = BasicKinematics with distance = 10.0, time = 5.0,
 ```
 
-Once instantiated, its properties may be queried directly, as if they were values. We'll query for the `speed` property:
+Once instantiated, its properties may be referenced directly, as if they were values. We'll query for the `speed` property:
 ```isl
 let speed = kinematics.speed // `speed` gets the value 2.0
 ```
-Despite the fact no value was provided for `speed`, the compiler was able to compose a chain of mapping rules that computed its value, given the known information (here `distance` and `time`). The details of the particular rules the compiler selects are not a part of the program itself. The compiler may choose any rules it decides on, including rules the programmer is not aware of.
+Despite the fact no value was provided for `speed`, the compiler was able to find a set of mapping rules that computed its value, given the information we provided (here `distance` and `time`). The details of the particular rules the compiler selects are not a part of the program itself. The compiler may choose any rules it decides on, including rules the programmer is not aware of.
 
 In this case, only one simple rule was needed:
 ```isl
@@ -4244,13 +4244,14 @@ Now querying for `speedInMph`
 let kinematics = BasicKinematics with distance = 10.0, time = 5.0,
 let speed = kinematics.speedInMph // `speed` gets the value 4.47388
 ```
+
 requires two rules:
 ```isl
 speed => distance / time // speed = 2.0
 speedInMph => speed * 2.23694 // speedInMph = 4.47388
 ```
 
-Thus far, this may not look very different from computed fields, albeit with the ability to define distinct computations for different combinations of known and unknown properties. In the next sections we'll introduce the concepts of embeddings, preconditions and semantic associations, which should demonstrate how its capabilities go well beyond being just a form of "computed fields on steroids".
+So far, this may not look very different from computed fields, albeit with the ability to define distinct computations for different combinations of known and unknown properties. In the next sections we'll introduce the concepts of embeddings, preconditions and semantic associations, which should demonstrate how its capabilities go well beyond being just a form of "computed fields on steroids".
 
 ## Context embedding
 
@@ -4300,7 +4301,7 @@ let kinematics = BasicKinematics with time = 5.0, speed.milesPerHour = 15.0
 let distance = kinematics.distance
 ```
 
-The ability to set a value to a nested property like `speed.milesPerHour` may seem a bit strange at first since it isn't something we're used to do with classes and objects, but remember that the embedded context really does become an integral part of the parent context, and that contexts, unlike classes, don't have a predefined set of required members, so a notation like `speed.milesPerHour = 15.0` may make more sense, as there's no need to think of `Speed` as needing to be 'constructed' as an independent entity.
+The ability to provide a value to a nested property like `speed.milesPerHour` may seem a bit strange at first since it isn't something we're used to do with classes and objects, but remember that the embedded context really does become an integral part of the parent context, and that contexts, unlike classes, don't have a predefined set of required members, so a notation like `speed.milesPerHour = 15.0` may make more sense, as there's no need to think of `Speed` as needing to be 'constructed' as an independent entity.
 
 ## Mapping rule preconditions
 
@@ -4415,7 +4416,7 @@ context Factorial
 	result given input > 1 => input * previousFactorial.result
 ```
 
-But how? Why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become usable. A context instance primarily represents a scope (or a "sandbox") _possibly_ containing units of information bound by a particular schema (which is specified by the context declaration). It is not a data structure or an assortment of functions.
+But how? Why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become usable. A context instance primarily represents a scope (or a "sandbox") _possibly_ containing units of information bound by a particular schema (which is specified by the context declaration). It is not a data structure or an assortment of methods.
 
 If `Factorial` is embedded inside of `Factorial` itself, all that means is that an instance of `Factorial` would also include a secondary scope that happens to share its own knowledge schema, and which can be initialized with a different set of known and unknown properties than itself.
 
