@@ -4162,19 +4162,19 @@ Determinism (which is related to the property of referential transparency), mean
 
 **Knowledge-driven programming** is a form of declarative programming where programs are structured around semantically meaningful information entities, rather than computations. It does not involve conventional subroutines (i.e. named functions or relations). Instead, knowledge-driven programs specify general inference rules describing methods for generating new knowledge from existing knowledge.
 
-Knowledge-driven programs (or program subsets, if within a hybrid language) are **synthesized at compile-time** by composing a computational graph mapping an initial set of known information entities to a target set of unknown information entities.
+Knowledge-driven programs (or program subsets, if within a hybrid language) are synthesized by composing a computational graph mapping an initial set of known information entities to a target set of unknown information entities.
 
-Unlike logic programs, knowledge-driven programs don't involve any runtime search. All planning and synthesis is done at compile-time, such that the resulting runtime code can be optimized to run at a performance closer to the machine's native capabilities.
+Unlike logic programs, knowledge-driven programs don't involve any runtime search. All **planning and synthesis is done at compile-time**, such that the resulting runtime code can be optimized to run at a performance closer to the machine's native capabilities.
 
 ## Contexts, properties and mappings
 
 A knowledge-driven program consists of contexts, properties and mappings.
 
-A **context** is a knowledge and reasoning space in which information entities (properties) and inference rules (mappings) can be defined.
+A **context** is a knowledge domain in which information entities (properties) and inference rules (mappings) can be defined.
 
 A **property** is a semantically meaningful piece of information.
 
-A **mapping** is an unnamed inference rule specifying a method for deriving one or more unknown properties from a set of one or more known properties, within a given context.
+A **mapping rule** is an unnamed inference rule specifying a method for deriving one or more unknown properties from one or more known properties, within a given context.
 
 For example, this context describes the basic kinematic relations between distance, time and speed.
 
@@ -4204,7 +4204,7 @@ context BasicKinematics
 	speed => distance / time
 ```
 
-A context may be instantiated similarly to a class, though unlike a class, it has no predefined set of required fields. All of its properties are effectively optional, in a sense, as they may be either given or computed using a composition of one or more mapping rules.
+A context may be instantiated similarly to a class, though unlike a class, it has no predefined set of required information. All of its properties are effectively 'optional', in a sense, as they may be either provided or inferred using a composition of one or more mapping rules (or alternatively, they may not be computable at all - yet the instantiation would still be perfectly valid).
 
 We'll instantiate the `BasicKinematics` context with values for `distance` and `time`:
 ```isl
@@ -4215,7 +4215,7 @@ Once instantiated, its properties may be queried directly, as if they were value
 ```isl
 let speed = kinematics.speed // `speed` gets the value 2.0
 ```
-Despite the fact no value was provided for `speed`, the compiler was able to compose a sequence of mapping rules that computed its value, given the known information (here `distance` and `time`). The details of the particular rules the compiler selects are not a part of the program itself. The compiler may choose any rules it decides on, including rules the programmer is not aware of.
+Despite the fact no value was provided for `speed`, the compiler was able to compose a chain of mapping rules that computed its value, given the known information (here `distance` and `time`). The details of the particular rules the compiler selects are not a part of the program itself. The compiler may choose any rules it decides on, including rules the programmer is not aware of.
 
 In this case, only one simple rule was needed:
 ```isl
@@ -4250,7 +4250,7 @@ speed => distance / time // speed = 2.0
 speedInMph => speed * 2.23694 // speedInMph = 4.47388
 ```
 
-Up until now this may not look very different from computed fields, albeit with the ability to define distinct computations for different combinations of known and unknown properties. In the next sections we'll introduce the concepts of embeddings, preconditions and semantic associations, which should demonstrate how its capabilities go well beyond being just a form of "computed fields on steroids".
+Thus far, this may not look very different from computed fields, albeit with the ability to define distinct computations for different combinations of known and unknown properties. In the next sections we'll introduce the concepts of embeddings, preconditions and semantic associations, which should demonstrate how its capabilities go well beyond being just a form of "computed fields on steroids".
 
 ## Context embedding
 
@@ -4270,7 +4270,9 @@ context Speed
 	kilometersPerHour => metersPerSecond * 3.6
 ```
 
-But now we need some way to "combine" the knowledge we've expressed in this secondary context with the one in `BasicKinematics`. We can do that by embedding `Speed` inside of `BasicKinematics`:
+But now we need some way to "combine" the knowledge we've expressed in this secondary context with the one in `BasicKinematics`.
+
+We can do that by embedding `Speed` inside of `BasicKinematics`:
 
 ```isl
 context BasicKinematics
@@ -4298,13 +4300,13 @@ let kinematics = BasicKinematics with time = 5.0, speed.milesPerHour = 15.0
 let distance = kinematics.distance
 ```
 
-The ability to set a value to a nested property like `speed.milesPerHour` may seem a bit strange at first since it isn't something we're used to do with classes and objects, but remember that the embedded context really does become an integral part of the parent context, and that contexts, unlike classes, don't have a predefined set of required members, so a notation like `speed.milesPerHour = 15.0` may make more sense, as there's no need to think of `Speed` as needing to be initialized as an independent entity.
+The ability to set a value to a nested property like `speed.milesPerHour` may seem a bit strange at first since it isn't something we're used to do with classes and objects, but remember that the embedded context really does become an integral part of the parent context, and that contexts, unlike classes, don't have a predefined set of required members, so a notation like `speed.milesPerHour = 15.0` may make more sense, as there's no need to think of `Speed` as needing to be 'constructed' as an independent entity.
 
 ## Mapping rule preconditions
 
 A mapping rule precondition is a predicate that must be satisfied in order for the mapping rule to be available for use.
 
-The simplest form of a precondition is conditioned on the truth-value of a secondary Boolean property like in this example:
+The simplest form of a precondition is a predicate dependent on the truth-value of a Boolean property, like in this example:
 ```isl
 context AbsoluteValue
 	input: decimal
@@ -4318,7 +4320,7 @@ context AbsoluteValue
 ```
 `inputIsNegative` will receive `true` if `input` is greater or equal to 0 and `false` otherwise. Consequently, `result` will receive `input * -1` if `inputIsNegative` is true, and `input` otherwise.
 
-You may now realize that given the ability to define simple preconditions on the truth-value of Boolean properties opens up the possibility for arbitrarily complex preconditions, since the Boolean property's mapping rules may potentially involve highly sophisticated computations.
+You may now realize that the ability to define simple preconditions on the truth-value of Boolean properties opens up the possibility for arbitrarily complex preconditions, since the Boolean property's mapping rules may potentially involve highly sophisticated computations.
 
 However, introducing a new Boolean property for every precondition is not very convenient or elegant. It would be nicer to be able to use more compact syntax. This is made possible by **ad-hoc preconditions**:
 
@@ -4331,7 +4333,7 @@ context AbsoluteValue
 	result given input >= 0 => input
 ```
 
-An ad-hoc precondition like `input < 0` implicitly introduces a Boolean property and an associated mapping rule.
+An ad-hoc precondition like `input < 0` implicitly introduces a Boolean property and an associated mapping rule that computes its truth-value.
 
 Note that the second mapping rule can be shortened further. Instead of explicitly describing a precondition for the case where `input >= 0` it can just describe a fallback case that would take effect whenever the others fails:
 
@@ -4353,7 +4355,7 @@ let absoluteValue = AbsoluteValue with input = -11
 let result = absoluteValue.result // result gets the value 11
 ```
 
-This may become too cumbersome in many cases. An alternative would be using a **mapper** to define a simple function-like method which accepts a set of known properties as parameters, and returns one or more unknown ones as return values:
+This syntax may become too cumbersome in many cases. An alternative would be using a **mapper** to define a simple function-like method which accepts a set of known properties as parameters, and returns one or more unknown ones as return values:
 ```isl
 mapper abs = (AbsoluteValue.input) => (AbsoluteValue.result)
 
@@ -4413,11 +4415,13 @@ context Factorial
 	result given input > 1 => input * previousFactorial.result
 ```
 
-But how? Why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become usable. Context instances represent scopes of knowledge and reasoning, not data or functions. If `Factorial` is embedded inside of `Factorial` itself, all that means is that an instance of  `Factorial` would also include a secondary scope that happens to share its own knowledge schema, and which can be initialized with a different set of known and unknown properties than itself.
+But how? Why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become usable. A context instance primarily represents a scope (or a "sandbox") _possibly_ containing units of information bound by a particular schema (which is specified by the context declaration). It is not a data structure or an assortment of functions.
+
+If `Factorial` is embedded inside of `Factorial` itself, all that means is that an instance of `Factorial` would also include a secondary scope that happens to share its own knowledge schema, and which can be initialized with a different set of known and unknown properties than itself.
 
 This kind of "nesting" is called **recursive embedding**.
 
-The way it operates in `Factorial` is that there's one mapping rule that infers into the recursively embedded context:
+The way it's utilized in `Factorial` is that there's one mapping rule that infers into the recursively embedded context:
 
 ```isl
 previousFactorial.input given input > 1 => input - 1
@@ -4529,7 +4533,7 @@ context Quicksort
 
 	....
 ```
-These connections are called **semantic links**. What they mean is that every mapping rule that applies to `Quicksort.items`, would also apply to `Sort.items`, and vice-versa: every mapping rule that applies to `Sort.items` would apply back to `Quicksort.items`. Same for `Sort.sortedItems` and `Quicksort.sortedItems`.
+These connections are called **semantic links**. What they mean is that every mapping rule that applies to `Quicksort.items`, would also apply to `Sort.items`, and vice-versa: every mapping rule that applies to `Sort.items` would apply back to `Quicksort.items`. Same between `Sort.sortedItems` and `Quicksort.sortedItems`.
 
 This means we can now write something like:
 ```isl
