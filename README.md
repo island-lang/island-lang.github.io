@@ -4160,7 +4160,7 @@ Determinism (which is related to the property of referential transparency), mean
 
 ## Introduction
 
-**Knowledge-driven programming** is a form of declarative programming where programs are structured around semantically meaningful information entities, rather than computations. It does not involve conventional subroutines (i.e. named functions or relations). Instead, knowledge-driven programs specify general inference rules describing methods for generating new knowledge from existing knowledge.
+**Knowledge-driven programming** is a form of declarative programming where programs are structured around semantically encoded information entities, rather than computations. It does not involve conventional subroutines (i.e. named functions or relations). Instead, knowledge-driven programs specify general inference rules describing methods for generating new knowledge from existing knowledge.
 
 Knowledge-driven programs (or program subsets, if within a hybrid language) are synthesized by composing a computational graph mapping an initial set of known information entities to a target set of unknown information entities.
 
@@ -4172,7 +4172,7 @@ A knowledge-driven program consists of contexts, properties and mappings.
 
 A **context** is a knowledge and reasoning space in which information entities (properties) and inference rules (mappings) can be defined.
 
-A **property** is an entity of information.
+A **property** is an information entity representing a unique semantic identity.
 
 A **mapping rule** is an unnamed inference rule specifying a method for deriving one or more unknown properties from one or more known properties, within a given context.
 
@@ -4204,7 +4204,7 @@ context BasicKinematics
 	speed => distance / time
 ```
 
-A context may be instantiated similarly to a class, though unlike a class, it has no minimal set of required members. All of its properties are effectively 'optional', in a sense, as they may be either provided or inferred using one ore more of its mapping rules (or alternatively, they may not be knowable at all - yet the instantiation would still be perfectly valid).
+A context may be instantiated similarly to a class, though unlike a class, it has no minimal set of required members. All of its properties are effectively 'optional', in a sense, as they may be either provided or inferred using one or more of its mapping rules (or alternatively, they may not be knowable at all - yet the instantiation would still be perfectly valid).
 
 We'll instantiate the `BasicKinematics` context with values for `distance` and `time`:
 ```isl
@@ -4215,7 +4215,7 @@ Once instantiated, its properties may be referenced directly, as if they were va
 ```isl
 let speed = kinematics.speed // `speed` gets the value 2.0
 ```
-Despite the fact no value was provided for `speed`, the compiler was able to find a set of mapping rules that computed its value, given the information we provided (here `distance` and `time`). The details of the particular rules the compiler selects are not a part of the program itself. The compiler may choose any rules it decides on, including rules the programmer is not aware of.
+Despite the fact that no value was provided for `speed`, the compiler was able to locate a set of mapping rules that enabled it to be computed, given the information we provided (here `distance` and `time`). The details of the particular rules the compiler selects are not a part of the program itself. The compiler may choose any rules it decides on, including rules the programmer is not aware of.
 
 In this case, only one simple rule was needed:
 ```isl
@@ -4251,7 +4251,7 @@ speed => distance / time // speed = 2.0
 speedInMph => speed * 2.23694 // speedInMph = 4.47388
 ```
 
-So far, this may not look very different from computed fields, albeit with the ability to define distinct computations for different combinations of known and unknown properties. In the next sections we'll introduce the concepts of embeddings, preconditions and semantic associations, which should demonstrate how its capabilities go well beyond being just a form of "computed fields on steroids".
+So far, this may not look that different from computed fields, albeit with the ability to define distinct computations for different combinations of known and unknown properties. In the next sections we'll introduce the concepts of embeddings, preconditions and semantic associations, which should demonstrate how its capabilities go well beyond being just a form of "computed fields on steroids".
 
 ## Context embedding
 
@@ -4416,9 +4416,9 @@ context Factorial
 	result given input > 1 => input * previousFactorial.result
 ```
 
-But how? Why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become usable. A context instance primarily represents a scope (or a "sandbox") _possibly_ containing units of information bound by a particular schema (which is specified by the context declaration). It is not a data structure or an assortment of methods.
+But how? why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become realized. A context instance primarily represents a scope (or a "sandbox") _possibly_ accommodating artifacts of information of various semantic identities (some of which may actually lie outside the realm of the context's own schema, as you'll see on future sections). It is not intended as a data structure or as an assortment of value-bound methods.
 
-If `Factorial` is embedded inside of `Factorial` itself, all that means is that an instance of `Factorial` would also include a secondary scope that happens to share its own knowledge schema, and which can be initialized with a different set of known and unknown properties than itself.
+If `Factorial` is embedded inside of `Factorial` itself, all that means is that an instance of `Factorial` would also incorporate a secondary inner scope that happens to share its own knowledge schema, and which can be initialized with a different set of known and unknown properties than itself.
 
 This kind of "nesting" is called **recursive embedding**.
 
