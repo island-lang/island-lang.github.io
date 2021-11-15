@@ -4,7 +4,7 @@
 
 It aspires to eventually serve as a practical programming tool for real-world applications, and designed with a strong emphasis on simplicity, clarity and aesthetics.
 
-The core of the language is characterized by a sequential, statement-driven style. However, the language cannot be formally classified as imperative (it has **no mutable state**), nor as truly functional (it does not promote an idiomatically functional style), or traditionally object-oriented. Instead it may be said to represent a conceptually independent programming approach named **stateless-sequential programming**.
+The core of the language is characterized by a sequential, statement-oriented style. However, the language cannot be formally classified as imperative (it has **no mutable state**), nor as truly functional (it does not promote an idiomatically functional style), or traditionally object-oriented. Instead it may be said to represent a conceptually independent programming approach named **stateless-sequential programming**.
 
 The language also embeds a statically-typed **logic programming subsystem**, that significantly deviates from the Prolog tradition - which mostly concentrates on the centrality of relations - and instead encourages tight interconnections between relations, functions and objects as complementary entities.
 
@@ -18,7 +18,7 @@ A new form of declarative programming called **knowledge-driven programming** is
 * **Programming should be made accessible for every person who wishes to learn it**. A language designer's role is to try to make the language as friendly and approachable as possible. This doesn't mean that abstractions like types, generics or more advanced features should be avoided. Instead, try to make the core of the language beginner-friendly, and more advanced features as transparent and unobtrusive as possible, such that users could gradually become familiar with more and more of them as they develop their skills.
 * **A programming language doesn't have to look like math or logic formulas**. The vast majority of real-world programming tasks have weak, if any, resemblance to abstract mathematics. Most programmers would benefit more from comprehensive, domain-specific language features that simplify common tasks, than minimalistic, math-like syntax that is possibly "mathematically beautiful" but either very difficult to understand or becomes unusably complicated even when confronted with routine real-world problems.
 * Many **common programming traps can be prevented right at the design stage**, either by stricter syntax and semantics, or better tooling and documentation. It is a part of the designer's responsibility to ensure that their language doesn't invite trivial mistakes that frustrate programmers and waste their time.
-* Many **mundane programming tasks can already be made partially, or fully automated**, or for the very least, drastically simplified. Machine-learning based tools like [GitHub Copilot](https://copilot.github.com/) are extremely impressive. However, much of their contribution is to introduce boilerplate or cut-and-paste code that might be better avoided or replaced with unambiguous semantic annotations that would enable safe and convenient code reuse, of the kind proposed on the [chapter discussing knowledge-driven programming](http://localhost:5500/#universal-identifiers).
+* Many **mundane programming tasks can already be made partially, or fully automated**, or for the very least, drastically simplified. Machine-learning based tools like [GitHub Copilot](https://copilot.github.com/) are extremely impressive. However, much of their contribution is to introduce boilerplate or cut-and-paste code that might be better avoided or replaced with unambiguous semantic references that would enable safe and convenient code reuse, of the kind proposed on the [chapter discussing knowledge-driven programming](http://localhost:5500/#universal-identifiers).
 * For the most part, **a programming language should be fully-designed** before it reaches a full implementation stage. Spend as much time as needed at the design stage (even years, if that's what it takes). Try to cover all possible aspects, including advanced features, until the design matures into a coherent whole.
 * **A programming language is a work of art!** It can be made aesthetically pleasing and enjoyable to use. That doesn't mean this objective is going to be easy to achieve. Beauty requires effort!
 
@@ -4416,7 +4416,7 @@ context Factorial
 	result given input > 1 => input * previousFactorial.result
 ```
 
-But how? why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become realized. A context instance primarily represents a scope (or a "sandbox") _possibly_ accommodating artifacts of information of various semantic identities (some of which may actually lie outside the realm of the context's own schema, as you'll see on future sections). It is not intended as a data structure or as an assortment of value-bound methods.
+But how? why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become realized. A context instance primarily represents a scope (or a "sandbox") _possibly_ accommodating information artifacts of various semantic identities (some of which may actually lie outside the realm of the context's own schema, as you'll see on future sections). It is not intended as a data structure or as an assortment of value-bound methods.
 
 If `Factorial` is embedded inside of `Factorial` itself, all that means is that an instance of `Factorial` would also incorporate a secondary inner scope that happens to share its own knowledge schema, and which can be initialized with a different set of known and unknown properties than itself.
 
@@ -4876,7 +4876,7 @@ expect <boolean experssion involving a semantic identifier> given <semantic iden
 For example:
 ```isl
 expect Speed.milesPerHour == 4.47388 given Speed.metersPerSecond = 2.0
-expect DistanceMiles == 156.11951 given Speed.kilometersPerHour = 33.5, Time.hours = 7.5
+expect Distance.miles == 156.11951 given Speed.kilometersPerHour = 33.5, Time.hours = 7.5
 ```
 
 ## Reactive contexts
