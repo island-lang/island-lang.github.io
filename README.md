@@ -1106,6 +1106,24 @@ function findFirstInSquareMatrix(matrix: List<List<integer>>, value: integer): (
 	return iterateX()
 ```
 
+A **local method may capture a variable declared within a loop body**, however, such a function cannot be passed outside of the loop scope:
+```isl
+function invalidReturnedFunction()
+	for i = 1 advance i += 1
+		let localFunction() => i * 2 // This is okay
+
+		return localFunction // But this is invalid
+```
+_(Note that `localFunction` is referentially transparent within the scope of each loop iteration)_
+
+Similarly for deferred initialization:
+```isl
+let x
+
+for i = 1 advance i += 1
+	x = i * 2 // This is invalid
+```
+
 ## Shorthand `with` expressions in `continue` and `break` statements
 
 It is common in `continue` and `break` statements to use `with` to alter one or more of the iteration variables, for example:
@@ -4208,7 +4226,7 @@ A context may be instantiated similarly to a class, though unlike a class, it ha
 
 We'll instantiate the `BasicKinematics` context with values for `distance` and `time`:
 ```isl
-let kinematics = BasicKinematics with distance = 10.0, time = 5.0,
+let kinematics = BasicKinematics with distance = 10.0, time = 5.0
 ```
 
 Once instantiated, its properties may be referenced directly, as if they were values. We'll query for the `speed` property:
@@ -4660,7 +4678,7 @@ This looks much simpler.
 
 The neat thing about it is that there's not even a need to introduce any mapping rules. The behaviors we wanted emerged naturally just by annotating a few "tags" in strategic positions. There wasn't even a need to say that `name`, or any of the other properties, have the type `string`, since it also followed from the annotations.
 
-On a more technical note, what is actually happening here is that the `Uppercase` and `Lowercase` contexts are effectively being "superimposed" over the `Name` context. This also means that any other properties they may have had could have been inferred with values, but would be totally "invisible" unless they were exposed in the form of roles within `Name`. This kind of "layering" could be described as a form of **information hiding** that's quite different than how it's expressed in traditional object-oriented programming.
+On a more technical note, what is actually happening here is that the `Uppercase` and `Lowercase` contexts are effectively being "superimposed" over the `Name` context. This also means that any other properties they may have had could have been inferred with values, but would be totally "invisible" unless they were exposed in the form of roles within `Name`. This kind of "layering" could be described as a weak form of **information hiding** that's quite different than how it's expressed in traditional object-oriented programming.
 
 Now, it also turns out that roles can emulate some of the hierarchical relationships that we are used to in object-oriented programming, albeit in a more granular fashion.
 
@@ -4762,6 +4780,44 @@ let twoShapes = TwoShapes with // twoShapes gets the type `TwoShapes with shape1
 	shape2 = Square with side = 7.5 // shape2 gets the type `Shape with area`
 
 let totalArea = twoShapes.totalArea // totalArea has been proven to be computable
+```
+
+## Context expansion
+
+Let's go back to our initial `BasicKinematics` example:
+```isl
+context BasicKinematics
+	distance: decimal
+	time: decimal
+	speed: decimal
+
+	distance <=> time * speed
+```
+
+We would like to add a second speed property that measures in miles per hour. However, this time, say, we can't directly edit the context declaration, as it was published by an foreign publisher.
+
+There's no simple way to 'extend' `BasicKinematics` via a subtype, since it is not a class.
+
+However, contexts do support expansion, so we will add a new property and bidirectional mapping rule that will only be visible in our own code. We'll use a semantic query for the body of the rule this time:
+
+```isl
+context expansion BasicKinematics
+	speedInMph <=> Speed.milesPerHour given Speed.metersPerSecond = speed
+```
+
+Or alternatively use roles instead:
+```isl
+context expansion BasicKinematics
+	speedInMetersPerSecond: Speed.metersPerSecond => speed
+	speedInMph: Speed.milesPerHour
+	speedInKmPerhour: Speed.kilometersPerHour
+```
+
+Or add `Speed` as a nested context:
+```isl
+context expansion BasicKinematics
+	speedInOtherUnits: Speed
+	speedInOtherUnits.metersPerSecond => speed
 ```
 
 ## Nested contexts
@@ -4880,6 +4936,92 @@ expect Distance.miles == 156.11951 given Speed.kilometersPerHour = 33.5, Time.ho
 ```
 
 ## Reactive contexts
+
+## ELI5: "magic room" metaphors
+
+Think of a context like a _blueprint_ for a "magic" room.
+
+Properties are like boxes in the room.
+
+A box may contain items of different types, e.g. a ball, a pen, a doll etc. The kind of things the box may contain is analogous to the _type_ of a property (`string`, `integer` etc.).
+
+The box is also characterized by a secondary quality, which is completely unique to it. This quality describes what purpose the box receives in relation to the room as a whole, as well as to other boxes in the room. This quality is called its _semantic identity_.
+
+### Semantic roles metaphor
+
+I create a new blueprint for a room. The room starts out completely empty.
+
+I put two boxes in the room. I decide that both may only contain balls (i.e. I give both of them the same type, namely `Ball`).
+
+Now, I define a rule that says that whenever there's a ball in box 1, box 2 "magically" gets a ball as well, but with a complementary color. For example, if I put a blue ball in box 1, an orange ball magically appears in box 2. I define a second rule so that the opposite will happen as well, e.g., if I put an orange ball in box 2, a blue ball will appear in box 1.
+
+I create a secondary room blueprint. The second room also starts out completely empty.
+
+I put two boxes in the second room.
+
+I would like these boxes to imitate how the boxes in the first room relate to one another, so I set box 1 in the second room to take the "role" of box 1 in the first room, and box 2 in the second room to respectively take the role of box 2 in the second room.
+
+I generate a room from the first blueprint I made (the first room).
+
+I put a red ball in the first box, and I magically get a green ball in the second box.
+
+Now I generate a room from the second blueprint I've made (the second room).
+
+I test to see if the same thing happens. I put a red ball in the first box, and I verify that I get a green ball in the second box.
+
+Now I can add more boxes to the second room's blueprint, and set up other rules, which may involve the two initial boxes, but these rules will have no impact on the behavior of the boxes in the first room.
+
+### Semantic links metaphor
+
+I create a blueprint for a room. It starts out completely empty.
+
+I put two boxes in the room. I constrain them with types, for example, I say the first box can contain only a doll, and the second can only contain a picture.
+
+Now I create a secondary room. The secondary room starts out empty as well.
+
+I put two new boxes in the second room.
+
+I declare that the first box is _semantically equivalent_ to the first box in the first room. Same for the second box and and second box in the first room.
+
+In the second room, I introduce a rule that says that if box 1 gets a doll, box 2 would automatically receive a picture of that doll. I don't set up any other rules (that is, if box 2 receives a picture, nothing special necessarily happens in box 1).
+
+I use the second room blueprint the generate a new virtual room from it. I put a doll in the first box. A picture of that doll appears in the second box.
+
+I use the first room blueprint and generate a new virtual room from it. I put a doll in the first box. A picture of that doll appears in the second box as well!
+
+### Context embedding metaphor
+
+I create a room blueprint. I add all sorts of boxes to it.
+
+I create a secondary room blueprint and add all sorts of boxes to it.
+
+Now I also add another, very special kind of box to the second room. This special box is actually a container for an entire room! I set the blueprint for the room in the box to be the first room's blueprint.
+
+Now I can freely set rules that involve boxes inside of the room that's nested within the box, as if these boxes were a part of the outer room.
+
+### Recursive context embedding metaphor
+
+Same as previous, only the blueprint I use for the room inside the special box, is the blueprint of the outer room itself!
+
+This means that there is an "infinite" nesting of rooms and special boxes: If I look inside the special box I find a room, and inside that room a special box, containing another room, containing a special box, containing a room, repeating endlessly..
+
+I notice there's a risk that I might get caught in an infinite loop of looking deeper and deeper into the contents of these nested rooms, so I design the rules such that they never look into these inner rooms to more than a finite depth.
+
+### Semantic query metaphor
+
+I set up a new room blueprint with a number of boxes.
+
+I set the boxes to take the roles of many other boxes, from many different rooms.
+
+For example, I set box 1 to pretend like it's box 5 from room 11, box 2 to pretend like it's box 4 from room 3, and box 3 to pretend like it's box 15 from room 5.
+
+Now I add a forth box, and I set it up to pretend like it's box 6 from room 9.
+
+I generate a new room from the blueprint I've made.
+
+I put items in boxes 1, 2, 3, but leave 4 empty.
+
+I wait and see what item appears in box 4.
 
 # Reactive programming
 
