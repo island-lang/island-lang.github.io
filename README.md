@@ -4794,18 +4794,19 @@ context BasicKinematics
 	distance <=> time * speed
 ```
 
-We would like to add a second speed property that measures in miles per hour. However, this time, say, we can't directly edit the context declaration, as it was published by an foreign publisher.
+We would like to add a second speed property that measures in miles per hour. However, this time, let's say we can't directly edit the context declaration, as it was defined by an external publisher.
 
-There's no simple way to 'extend' `BasicKinematics` via a subtype, since it is not a class.
+There's no trivial way to 'extend' `BasicKinematics` via OO-like "subtyping", since it is not a class.
 
-However, contexts do support expansion, so we will add a new property and bidirectional mapping rule that will only be visible in our own code. We'll use a semantic query for the body of the rule this time:
+However, contexts do support expansion, so we can add the property we want by using an expansion declaration that will only be visible from within our own code. Here are a number of solutions based on different approaches:
 
+A property paired with a bidirectional mapping rule containing a semantic query:
 ```isl
 context expansion BasicKinematics
 	speedInMph <=> Speed.milesPerHour given Speed.metersPerSecond = speed
 ```
 
-Or alternatively use roles instead:
+Roles:
 ```isl
 context expansion BasicKinematics
 	speedInMetersPerSecond: Speed.metersPerSecond => speed
@@ -4813,7 +4814,7 @@ context expansion BasicKinematics
 	speedInKmPerhour: Speed.kilometersPerHour
 ```
 
-Or add `Speed` as a nested context:
+Embed `Speed` context directly and map its `metersPerSecond` property to the value of `speed`:
 ```isl
 context expansion BasicKinematics
 	speedInOtherUnits: Speed
@@ -4892,6 +4893,10 @@ Notice how **mapping rules can be shared by multiple properties** simultaneously
 
 ## Stream properties
 
+Properties can also generate a stream of values.
+
+...TODO...
+
 ## Consistency checking
 
 One potential issue has to do with the way mapping rules allow multiple, possibly inconsistent, computations to be defined for the same set of properties.
@@ -4915,6 +4920,8 @@ context BidirectionallyInconsistent
 	propertyB given propertyA => propertyA * 3 // Should this be allowed?
 ```
 
+...TODO...
+
 ## Unit testing
 
 Knowledge-driven programming enable unit tests to be described via an extremely simple and generic template based on a single semantic query:
@@ -4937,15 +4944,17 @@ expect Distance.miles == 156.11951 given Speed.kilometersPerHour = 33.5, Time.ho
 
 ## Reactive contexts
 
-## ELI5: "magic room" metaphors
+...TODO...
 
-Think of a context like a _blueprint_ for a "magic" room.
+## ELI5: Illustrative "magic room" metaphors
+
+Think of a context like a _blueprint_ for an imaginary "magic" room.
 
 Properties are like boxes in the room.
 
-A box may contain items of different types, e.g. a ball, a pen, a doll etc. The kind of things the box may contain is analogous to the _type_ of a property (`string`, `integer` etc.).
+Each box may contain an item of a particular type, e.g. a ball, a pen, a doll etc. The kind of thing the box may contain is analogous to the _type_ of a property (`string`, `integer` etc.).
 
-The box is also characterized by a secondary quality, which is completely unique to it. This quality describes what purpose the box receives in relation to the room as a whole, as well as to other boxes in the room. This quality is called its _semantic identity_.
+The box is also characterized by a secondary quality, which is completely unique to it. This quality describes what purpose the box represents in relation to the room as a whole, as well as to other boxes in the room. This quality is called its _semantic identity_.
 
 ### Semantic roles metaphor
 
@@ -4953,7 +4962,7 @@ I create a new blueprint for a room. The room starts out completely empty.
 
 I put two boxes in the room. I decide that both may only contain balls (i.e. I give both of them the same type, namely `Ball`).
 
-Now, I define a rule that says that whenever there's a ball in box 1, box 2 "magically" gets a ball as well, but with a complementary color. For example, if I put a blue ball in box 1, an orange ball magically appears in box 2. I define a second rule so that the opposite will happen as well, e.g., if I put an orange ball in box 2, a blue ball will appear in box 1.
+Now, I define a rule that says that whenever there's a ball in box 1, box 2 "magically" gets a ball as well, but with a complementary color. For example, if I put a blue ball in box 1, an orange ball magically appears in box 2. I define a second rule so that the reverse would happen as well, i.e., if I put an orange ball in box 2, a blue ball will appear in box 1.
 
 I create a secondary room blueprint. The second room also starts out completely empty.
 
@@ -4975,29 +4984,29 @@ Now I can add more boxes to the second room's blueprint, and set up other rules,
 
 I create a blueprint for a room. It starts out completely empty.
 
-I put two boxes in the room. I constrain them with types, for example, I say the first box can contain only a doll, and the second can only contain a picture.
+I put two boxes in the room. I constrain them with types, for example, I say the first box can only contain a doll, and the second can only contain a picture.
 
 Now I create a secondary room. The secondary room starts out empty as well.
 
-I put two new boxes in the second room.
+I put two boxes in the second room.
 
-I declare that the first box is _semantically equivalent_ to the first box in the first room. Same for the second box and and second box in the first room.
+I declare that the first box is _semantically equivalent_ to the first box in the first room. Same for the second box and the second box in the first room.
 
 In the second room, I introduce a rule that says that if box 1 gets a doll, box 2 would automatically receive a picture of that doll. I don't set up any other rules (that is, if box 2 receives a picture, nothing special necessarily happens in box 1).
 
-I use the second room blueprint the generate a new virtual room from it. I put a doll in the first box. A picture of that doll appears in the second box.
+I use the second room blueprint to generate a new virtual room. I put a doll in the first box. A picture of that doll appears in the second box.
 
-I use the first room blueprint and generate a new virtual room from it. I put a doll in the first box. A picture of that doll appears in the second box as well!
+I use the first room blueprint and generate a new virtual room. I put a doll in the first box. A picture of that doll appears in the second box as well!
 
 ### Context embedding metaphor
 
-I create a room blueprint. I add all sorts of boxes to it.
+I create a blueprint for a room. I add all sorts of boxes to it.
 
 I create a secondary room blueprint and add all sorts of boxes to it.
 
 Now I also add another, very special kind of box to the second room. This special box is actually a container for an entire room! I set the blueprint for the room in the box to be the first room's blueprint.
 
-Now I can freely set rules that involve boxes inside of the room that's nested within the box, as if these boxes were a part of the outer room.
+Now I can freely set rules that involve the boxes that reside inside of the room that's nested within the box, as if these boxes were a part of the outer room.
 
 ### Recursive context embedding metaphor
 
