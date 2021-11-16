@@ -4948,27 +4948,29 @@ expect Distance.miles == 156.11951 given Speed.kilometersPerHour = 33.5, Time.ho
 
 ## ELI5: Illustrative "magic room" metaphors
 
-Think of a context like a _blueprint_ for an imaginary "magic" room.
+Think of a context as if it was a _blueprint_ for an imaginary "magic" room.
 
-Properties are like boxes in the room.
+The room may contain one or more boxes, which act as a metaphor for _properties_.
 
-Each box may contain an item of a particular type, e.g. a ball, a pen, a doll etc. The kind of thing the box may contain is analogous to the _type_ of a property (`string`, `integer` etc.).
+Each box may contain an item of a particular type, e.g. a ball, a pen, a doll etc. The kind of thing the box may contain is a metaphor to the _type_ of a property (`string`, `integer` etc.).
 
-The box is also characterized by a secondary quality, which is completely unique to it. This quality describes what purpose the box represents in relation to the room as a whole, as well as to other boxes in the room. This quality is called its _semantic identity_.
+The box is also characterized by a secondary quality, which is completely unique to it. This quality describes what purpose the box represents in relation to the room as a whole, as well as to other boxes in the room. This quality is a metaphor for its _semantic identity_.
 
-### Semantic roles metaphor
+The room can be provided with a set of magic spells that cause items to appear inside of empty boxes. These spells may depend on the content of nonempty boxes, including boxes that received their content due to magic. These spells are metaphors for _mapping rules_.
+
+### Semantic roles
 
 I create a new blueprint for a room. The room starts out completely empty.
 
-I put two boxes in the room. I decide that both may only contain balls (i.e. I give both of them the same type, namely `Ball`).
+I put two boxes in the room. I decide that both may only contain balls (i.e. I give both of them the same type, `Ball`).
 
-Now, I define a rule that says that whenever there's a ball in box 1, box 2 "magically" gets a ball as well, but with a complementary color. For example, if I put a blue ball in box 1, an orange ball magically appears in box 2. I define a second rule so that the reverse would happen as well, i.e., if I put an orange ball in box 2, a blue ball will appear in box 1.
+Now, I cast a spell that says that whenever there's a ball in box 1, box 2 gets a ball as well, but with a complementary color. For example, if I put a blue ball in box 1, an orange ball magically appears in box 2. I cast a second spell so that the reverse would happen as well, i.e., if I put an orange ball in box 2, a blue ball will appear in box 1.
 
 I create a secondary room blueprint. The second room also starts out completely empty.
 
 I put two boxes in the second room.
 
-I would like these boxes to imitate how the boxes in the first room relate to one another, so I set box 1 in the second room to take the "role" of box 1 in the first room, and box 2 in the second room to respectively take the role of box 2 in the second room.
+I would like these boxes to imitate how the boxes in the first room relate to one another, so I set box 1 in the second room to take the "role" of box 1 in the first room, and box 2 in the second room to take the role of box 2 in the second room.
 
 I generate a room from the first blueprint I made (the first room).
 
@@ -4978,45 +4980,45 @@ Now I generate a room from the second blueprint I've made (the second room).
 
 I test to see if the same thing happens. I put a red ball in the first box, and I verify that I get a green ball in the second box.
 
-Now I can add more boxes to the second room's blueprint, and set up other rules, which may involve the two initial boxes, but these rules will have no impact on the behavior of the boxes in the first room.
+Now I can add more boxes to the second room's blueprint, and cast more spells, which may involve the two initial boxes, but these spells will have no impact on the behavior of the boxes in the first room.
 
-### Semantic links metaphor
+### Semantic links
 
 I create a blueprint for a room. It starts out completely empty.
 
-I put two boxes in the room. I constrain them with types, for example, I say the first box can only contain a doll, and the second can only contain a picture.
+I put two boxes in the room. I set the first box so it can only contain a doll, and the second to only contain a picture.
 
 Now I create a secondary room. The secondary room starts out empty as well.
 
 I put two boxes in the second room.
 
-I declare that the first box is _semantically equivalent_ to the first box in the first room. Same for the second box and the second box in the first room.
+I declare that the first box is a "magic twin" of the first box in the first room. Same for the second box and the second box in the first room. The twin relationship between the boxes means that any spell I cast that involves one, becomes effective over its twin as well (it doesn't mean they must contain the same item, though, the pairing is only made over the spells, not the materialized box contents).
 
-In the second room, I introduce a rule that says that if box 1 gets a doll, box 2 would automatically receive a picture of that doll. I don't set up any other rules (that is, if box 2 receives a picture, nothing special necessarily happens in box 1).
+In the second room, I cast a spell that says that if box 1 gets a doll, box 2 would receive a picture of that doll. I don't cast any further spells (that is, if box 2 receives a picture, nothing special necessarily happens in box 1).
 
 I use the second room blueprint to generate a new virtual room. I put a doll in the first box. A picture of that doll appears in the second box.
 
 I use the first room blueprint and generate a new virtual room. I put a doll in the first box. A picture of that doll appears in the second box as well!
 
-### Context embedding metaphor
+### Embedded context
 
 I create a blueprint for a room. I add all sorts of boxes to it.
 
-I create a secondary room blueprint and add all sorts of boxes to it.
+I create a secondary room blueprint and add some other boxes to it.
 
 Now I also add another, very special kind of box to the second room. This special box is actually a container for an entire room! I set the blueprint for the room in the box to be the first room's blueprint.
 
-Now I can freely set rules that involve the boxes that reside inside of the room that's nested within the box, as if these boxes were a part of the outer room.
+Now I can freely cast spells that involve the boxes that reside inside of the room that's inside the box, as if these boxes were a part of the outer room.
 
-### Recursive context embedding metaphor
+### Recursively embedded context
 
 Same as previous, only the blueprint I use for the room inside the special box, is the blueprint of the outer room itself!
 
 This means that there is an "infinite" nesting of rooms and special boxes: If I look inside the special box I find a room, and inside that room a special box, containing another room, containing a special box, containing a room, repeating endlessly..
 
-I notice there's a risk that I might get caught in an infinite loop of looking deeper and deeper into the contents of these nested rooms, so I design the rules such that they never look into these inner rooms to more than a finite depth.
+I notice there's a risk that I might get caught in an infinite loop of looking deeper and deeper into the contents of these nested rooms, so I design the spells such that they never look into these inner rooms to more than a finite depth.
 
-### Semantic query metaphor
+### Semantic query
 
 I set up a new room blueprint with a number of boxes.
 
@@ -5031,6 +5033,16 @@ I generate a new room from the blueprint I've made.
 I put items in boxes 1, 2, 3, but leave 4 empty.
 
 I wait and see what item appears in box 4.
+
+### Nested context
+
+There's a room inside of the room. The inner room is not contained within a box, but it is a part of the structure of the outer room itself.
+
+### Context expansion
+
+I'm relying on a room blueprint that was provided by an external source.
+
+I'm not interested in modifying the original, but I can add a bunch of boxes and cast additional spells that would only apply to my own view of it.
 
 # Reactive programming
 
