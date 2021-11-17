@@ -4939,7 +4939,9 @@ context BidirectionallyInconsistent
 	propertyB given propertyA => propertyA * 3 // Should this be allowed?
 ```
 
-...TODO...
+One approach to automate the detection of these types of inconsistencies is by having a special debug mode where the compiler would automatically inject consistency tests whenever a mapping rule is being used.
+
+For example, if `propertyA` is given a value `x`, and consequently `propertyB` is inferred with the value `x * 3`, the program would also include an assertion for the complementary rule where `propertyB` is given the resulting value (`x * 3`) and `propertyA` is the one that's inferred (its expected value would be `x`). A similar approach can also be used to ensure consistency in scenarios where there are multiple rules to infer the value of a particular property.
 
 ## Unit testing
 
@@ -4957,8 +4959,15 @@ expect <boolean experssion involving a semantic identifier> given <semantic iden
 
 For example:
 ```isl
-expect Speed.milesPerHour == 4.47388 given Speed.metersPerSecond = 2.0
-expect Distance.miles == 156.11951 given Speed.kilometersPerHour = 33.5, Time.hours = 7.5
+expect Speed.milesPerHour ~= 4.47388 given Speed.metersPerSecond = 2.0
+expect Distance.miles ~= 156.11951 given Speed.kilometersPerHour = 33.5, Time.hours = 7.5
+```
+
+The way that programs are broken down to assortments of independently addressable values enables a higher level of granularity for white-box testing. It is possible to "peek" deeper into the inner workings of the algorithm by querying for its intermediate values. If a context involves recursive embedding, it is also possible to assert over the values of properties "nested" within one or more levels of recursion. For example:
+
+```isl
+expect Factorial.previousFactorial.input == 5 given Factorial.input == 6
+expect Factorial.previousFactorial.previousFactorial.input == 4 given Factorial.input == 6
 ```
 
 ## Reactive contexts
