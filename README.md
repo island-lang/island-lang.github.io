@@ -4186,13 +4186,15 @@ Unlike logic programs, knowledge-driven programs don't involve any runtime searc
 
 ## Contexts, properties and mappings
 
-A knowledge-driven program consists of contexts, properties and mappings.
+A knowledge-driven program consists of contexts, properties and mapping rules.
 
-A **context** is a knowledge and reasoning space in which information entities (properties) and inference rules (mappings) can be defined.
+A **context** is a knowledge schema in which information entities (properties) and inference rules (mappings) can be defined.
 
 A **property** is an information entity representing a unique semantic identity.
 
 A **mapping rule** is an unnamed inference rule specifying a method for deriving one or more unknown properties from one or more known properties, within a given context.
+
+A **context instance** is a materialized form of a context, analogous to how an object is a materialized form of a class. A context instance can be viewed as a simple knowledge base where information can be stored and queried via semantic identities used as keys.
 
 For example, this context describes the basic kinematic relations between distance, time and speed.
 
@@ -4794,7 +4796,7 @@ context BasicKinematics
 	distance <=> time * speed
 ```
 
-We would like to add a second speed property that measures in miles per hour. However, this time, let's say we can't directly edit the context declaration, as it was defined by an external publisher.
+We would like to add a second speed property that measures in miles per hour. However, this time, let's say we can't directly edit the context declaration, as it was provided by an external source.
 
 There's no trivial way to 'extend' `BasicKinematics` via OO-like "subtyping", since it is not a class.
 
@@ -4862,7 +4864,7 @@ context AddNumbers
 
 Note that pseudo-functions must specify named return variables, since their return value (or values, if there are more than one) is directly translated into a property.
 
-Also, pseudo-functions can't include preconditions on their parameters, though they can annotate their parameters and return values with semantic links and roles.
+Also, pseudo-functions can't include preconditions on their parameters, though they can annotate their parameters and return values with semantic links or roles.
 
 ## Precondition pattern matching
 
@@ -4888,12 +4890,12 @@ context MyList
 	first, last given items => nothing, nothing
 ```
 
-Notice how **mapping rules can be shared by multiple properties** simultaneously. This also implies that in order to compute any single property that’s included in the rule, all remaining properties would be computed as well.
+Notice how **mapping rules can be shared by multiple properties** simultaneously. This also implies that in order to compute any single property that’s included in the rule, all remaining properties have to be computed as well.
 
 
 ## Stream properties
 
-Properties can also generate a stream of values.
+A property may also generate a stream of values.
 
 ...TODO...
 
@@ -5042,7 +5044,7 @@ There's a room inside of the room. The inner room is not contained within a box,
 
 I'm relying on a room blueprint that was provided by an external source.
 
-I'm not interested in modifying the original, but I can add a bunch of boxes and cast additional spells that would only apply to my own view of it.
+I'm not interested in modifying the original, but I can add a bunch of boxes and cast additional spells that would only apply to my own experience of it.
 
 # Reactive programming
 

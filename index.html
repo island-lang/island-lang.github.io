@@ -2946,10 +2946,11 @@
 <p>Knowledge-driven programs (or program subsets, if within a hybrid language) are synthesized by composing a computational graph mapping an initial set of known information entities to a target set of unknown information entities.</p>
 <p>Unlike logic programs, knowledge-driven programs don't involve any runtime search. All <strong>planning and synthesis is done at compile-time</strong>, such that the resulting runtime code can be optimized to run at a performance closer to the machine's native capabilities.</p>
 <h2 id="contexts%2C-properties-and-mappings"><a class="header-anchor" href="#contexts%2C-properties-and-mappings">§</a>Contexts, properties and mappings</h2>
-<p>A knowledge-driven program consists of contexts, properties and mappings.</p>
-<p>A <strong>context</strong> is a knowledge and reasoning space in which information entities (properties) and inference rules (mappings) can be defined.</p>
+<p>A knowledge-driven program consists of contexts, properties and mapping rules.</p>
+<p>A <strong>context</strong> is a knowledge schema in which information entities (properties) and inference rules (mappings) can be defined.</p>
 <p>A <strong>property</strong> is an information entity representing a unique semantic identity.</p>
 <p>A <strong>mapping rule</strong> is an unnamed inference rule specifying a method for deriving one or more unknown properties from one or more known properties, within a given context.</p>
+<p>A <strong>context instance</strong> is a materialized form of a context, analogous to how an object is a materialized form of a class. A context instance can be viewed as a simple knowledge base where information can be stored and queried via semantic identities used as keys.</p>
 <p>For example, this context describes the basic kinematic relations between distance, time and speed.</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0057E6">context</span><span style="color: #5B5B5B"> BasicKinematics</span>
 <span style="color: #5B5B5B">	distance: </span><span style="color: #0057E6">decimal</span>
@@ -3321,7 +3322,7 @@
 <span style="color: #5B5B5B">	speed: </span><span style="color: #0057E6">decimal</span>
 
 <span style="color: #5B5B5B">	distance </span><span style="color: #000000">&lt;=&gt;</span><span style="color: #5B5B5B"> time </span><span style="color: #000000">*</span><span style="color: #5B5B5B"> speed</span></code></pre>
-<p>We would like to add a second speed property that measures in miles per hour. However, this time, let's say we can't directly edit the context declaration, as it was defined by an external publisher.</p>
+<p>We would like to add a second speed property that measures in miles per hour. However, this time, let's say we can't directly edit the context declaration, as it was provided by an external source.</p>
 <p>There's no trivial way to 'extend' <code>BasicKinematics</code> via OO-like &quot;subtyping&quot;, since it is not a class.</p>
 <p>However, contexts do support expansion, so we can add the property we want by using an expansion declaration that will only be visible from within our own code. Here are a number of solutions based on different approaches:</p>
 <p>A property paired with a bidirectional mapping rule containing a semantic query:</p>
@@ -3363,7 +3364,7 @@
 
 <span style="color: #5B5B5B">	</span><span style="color: #0057E6">mapper</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">this</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #B338FF">(</span><span style="color: #5B5B5B">num1, num2</span><span style="color: #B338FF">)</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> sum</span></code></pre>
 <p>Note that pseudo-functions must specify named return variables, since their return value (or values, if there are more than one) is directly translated into a property.</p>
-<p>Also, pseudo-functions can't include preconditions on their parameters, though they can annotate their parameters and return values with semantic links and roles.</p>
+<p>Also, pseudo-functions can't include preconditions on their parameters, though they can annotate their parameters and return values with semantic links or roles.</p>
 <h2 id="precondition-pattern-matching"><a class="header-anchor" href="#precondition-pattern-matching">§</a>Precondition pattern matching</h2>
 <p>Preconditions may match patterns as well as capture their component parts:</p>
 <p>This example defines a context which recognizes and parses a phone number pattern, specified by a regular expression, where the parsed <code>area</code> and <code>number</code> components are introduced as variables into the body of the rule:</p>
@@ -3380,9 +3381,9 @@
 
 <span style="color: #5B5B5B">	first, last </span><span style="color: #0057E6">given</span><span style="color: #5B5B5B"> items </span><span style="color: #0057E6">matches</span><span style="color: #5B5B5B"> [</span><span style="color: #0057E6">let</span><span style="color: #5B5B5B"> f, …, </span><span style="color: #0057E6">let</span><span style="color: #5B5B5B"> l] </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> f, l</span>
 <span style="color: #5B5B5B">	first, last </span><span style="color: #0057E6">given</span><span style="color: #5B5B5B"> items </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> </span><span style="color: #0057E6">nothing</span><span style="color: #5B5B5B">, </span><span style="color: #0057E6">nothing</span></code></pre>
-<p>Notice how <strong>mapping rules can be shared by multiple properties</strong> simultaneously. This also implies that in order to compute any single property that’s included in the rule, all remaining properties would be computed as well.</p>
+<p>Notice how <strong>mapping rules can be shared by multiple properties</strong> simultaneously. This also implies that in order to compute any single property that’s included in the rule, all remaining properties have to be computed as well.</p>
 <h2 id="stream-properties"><a class="header-anchor" href="#stream-properties">§</a>Stream properties</h2>
-<p>Properties can also generate a stream of values.</p>
+<p>A property may also generate a stream of values.</p>
 <p>...TODO...</p>
 <h2 id="consistency-checking"><a class="header-anchor" href="#consistency-checking">§</a>Consistency checking</h2>
 <p>One potential issue has to do with the way mapping rules allow multiple, possibly inconsistent, computations to be defined for the same set of properties.</p>
@@ -3460,7 +3461,7 @@
 <p>There's a room inside of the room. The inner room is not contained within a box, but it is a part of the structure of the outer room itself.</p>
 <h3 id="context-expansion-2"><a class="header-anchor" href="#context-expansion-2">§</a>Context expansion</h3>
 <p>I'm relying on a room blueprint that was provided by an external source.</p>
-<p>I'm not interested in modifying the original, but I can add a bunch of boxes and cast additional spells that would only apply to my own view of it.</p>
+<p>I'm not interested in modifying the original, but I can add a bunch of boxes and cast additional spells that would only apply to my own experience of it.</p>
 <h1 id="reactive-programming"><a class="header-anchor" href="#reactive-programming">§</a>Reactive programming</h1>
 <p><em>(This chapter is currently an early sketch)</em></p>
 <h2 id="reactive-values"><a class="header-anchor" href="#reactive-values">§</a>Reactive values</h2>
