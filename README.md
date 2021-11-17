@@ -15,7 +15,7 @@ A new form of declarative programming called **knowledge-driven programming** is
 
 ## Design philosophy
 
-* **Programming should be made accessible for every person who wishes to learn it**. A language designer's role is to try to make the language as friendly and approachable as possible. This doesn't mean that abstractions like types, generics or more advanced features should be avoided. Instead, try to make the core of the language beginner-friendly, and more advanced features as transparent and unobtrusive as possible, such that users could gradually become familiar with more and more of them as they develop their skills.
+* **Programming should be made accessible for every person who wishes to learn it**. A language designer's role is to try to make the language as friendly and approachable as possible. This doesn't mean that abstractions like generics, higher order methods, or other advanced features should be avoided. Instead, try to make the core of the language beginner-friendly, and more advanced features as transparent and unobtrusive as possible, such that users could gradually become familiar with more and more of them as they develop their skills.
 * **A programming language doesn't have to look like math or logic formulas**. The vast majority of real-world programming tasks have weak, if any, resemblance to abstract mathematics. Most programmers would benefit more from comprehensive, domain-specific language features that simplify common tasks, than minimalistic, math-like syntax that is possibly "mathematically beautiful" but either very difficult to understand or becomes unusably complicated even when confronted with routine real-world problems.
 * Many **common programming traps can be prevented right at the design stage**, either by stricter syntax and semantics, or better tooling and documentation. It is a part of the designer's responsibility to ensure that their language doesn't invite trivial mistakes that frustrate programmers and waste their time.
 * Many **mundane programming tasks can already be made partially, or fully automated**, or for the very least, drastically simplified. Machine-learning based tools like [GitHub Copilot](https://copilot.github.com/) are extremely impressive. However, much of their contribution is to introduce boilerplate or cut-and-paste code that might be better avoided or replaced with unambiguous semantic references that would enable safe and convenient code reuse, of the kind proposed on the [chapter discussing knowledge-driven programming](http://localhost:5500/#universal-identifiers).
@@ -3486,7 +3486,7 @@ Alternatively, the **Failure type** is a special type designated to represent fa
 Island has two approaches to using the failure type:
 
 1. Returned directly from a method, as a part of a choice type, and then optionally assert on through the returned value. This is the only approach permittable for a function.
-2. Use the `fail` statement to raise an error, together with a `check`..`detect` block to capture the error in a caller scope. This is only possible in action scopes.
+2. Use the `fail` statement to raise an error, together with a `try`..`detect` block to capture the error in a caller scope. This is only possible in action scopes.
 
 ## Returning the failure type from a method
 
@@ -3519,9 +3519,9 @@ if age is Failure
 	print("Couldn't find 'James' in the dictionary!")
 ```
 
-## Using `check`..`detect` (action scopes only)
+## Using `try`..`detect` (action scopes only)
 
-The second approach, available only in action scopes (due to its use of side-effects), uses a `check`..`detect` block and behaves very similarly to `try`, `catch` in mainstream imperative languages:
+The second approach, available only in action scopes (due to its use of side-effects), uses a `try`..`detect` block and behaves very similarly to `try`, `catch` in mainstream imperative languages:
 
 ```isl
 action readLineFromFile(f: File)
@@ -3531,7 +3531,7 @@ action readLineFromFile(f: File)
 	return f.ReadLine()
 
 action example(f: File)
-	check
+	try
 		let line = readLineFromFile(f)
 		print(line)
 	detect failure: IOFailure
@@ -4194,7 +4194,7 @@ A **property** is an information entity representing a unique semantic identity.
 
 A **mapping rule** is an unnamed inference rule specifying a method for deriving one or more unknown properties from one or more known properties, within a given context.
 
-A **context instance** is a materialized form of a context, analogous to how an object is a materialized form of a class. A context instance can be viewed as a simple knowledge base where information can be stored and queried via semantic identities used as keys.
+A **context instance** is a materialized form of a context, analogous to how an object is a materialized form of a class. A context instance can be viewed as a simple immutable knowledge base. It can be initialized with a set of known property values, and then queried for unknown ones.
 
 For example, this context describes the basic kinematic relations between distance, time and speed.
 
@@ -4271,13 +4271,13 @@ speed => distance / time // speed = 2.0
 speedInMph => speed * 2.23694 // speedInMph = 4.47388
 ```
 
-So far, this may not look that different from computed fields, albeit with the ability to define distinct computations for different combinations of known and unknown properties. In the next sections we'll introduce the concepts of embeddings, preconditions and semantic associations, which should demonstrate how its capabilities go well beyond being just a form of "computed fields on steroids".
+So far, this may not look much different than computed fields, albeit with the ability to define distinct computations for different combinations of known and unknown properties. In the next sections we'll introduce the concepts of embeddings, preconditions and semantic associations, which should demonstrate how its capabilities go well beyond being just a form of "computed fields on steroids".
 
 ## Context embedding
 
 At the end of the last section we've mentioned the notion of describing speed in a unit other than the default (say, in miles per hour instead of meters per second).
 
-If we wanted to include additional measurement units, we could add more properties and mapping rules to `BasicKinematics`, but that wouldn't be a good style.  Instead, it would be better to define a new context dedicated only for speed units, such as:
+If we wanted to include additional measurement units, we could add more properties and mapping rules to `BasicKinematics`, but that wouldn't be a good style.  Instead, it would be better to define a new context dedicated only for speed units, for example:
 
 ```isl
 context Speed
@@ -4321,7 +4321,7 @@ let kinematics = BasicKinematics with time = 5.0, speed.milesPerHour = 15.0
 let distance = kinematics.distance
 ```
 
-The ability to provide a value to a nested property like `speed.milesPerHour` may seem a bit strange at first since it isn't something we're used to do with classes and objects, but remember that the embedded context really does become an integral part of the parent context, and that contexts, unlike classes, don't have a predefined set of required members, so a notation like `speed.milesPerHour = 15.0` may make more sense, as there's no need to think of `Speed` as needing to be 'constructed' as an independent entity.
+The notion of providing a value to a nested property like `speed.milesPerHour` may seem a bit strange at first since it isn't something we're used to do with classes and objects, but remember that the embedded context really does become an integral part of the parent context, and that contexts, unlike classes, don't have a predefined set of required members, so a notation like `speed.milesPerHour = 15.0` may make more sense, as there's no need to think of `Speed` as needing to be 'constructed' as an independent entity.
 
 ## Mapping rule preconditions
 
@@ -4343,7 +4343,7 @@ context AbsoluteValue
 
 You may now realize that the ability to define simple preconditions on the truth-value of Boolean properties opens up the possibility for arbitrarily complex preconditions, since the Boolean property's mapping rules may potentially involve highly sophisticated computations.
 
-However, introducing a new Boolean property for every precondition is not very convenient or elegant. It would be nicer to be able to use more compact syntax. This is made possible by **ad-hoc preconditions**:
+However, introducing a new Boolean property for every precondition is not very convenient or elegant. It would be nicer to be able to use a more compact syntax. This is made possible by **ad-hoc preconditions**:
 
 ```isl
 context AbsoluteValue
@@ -4436,7 +4436,7 @@ context Factorial
 	result given input > 1 => input * previousFactorial.result
 ```
 
-But how? why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become realized. A context instance primarily represents a scope (or a "sandbox") _possibly_ accommodating information artifacts of various semantic identities (some of which may actually lie outside the realm of the context's own schema, as you'll see on future sections). It is not intended as a data structure or as an assortment of value-bound methods.
+But how? why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become materialized. A context instance represents a knowledge scope _possibly_ accommodating information artifacts of various semantic identities (some of which may actually lie outside the realm of the context's own schema, as you'll see on future sections). It is not primarily intended as a data structure or as an assortment of value-bound methods.
 
 If `Factorial` is embedded inside of `Factorial` itself, all that means is that an instance of `Factorial` would also incorporate a secondary inner scope that happens to share its own knowledge schema, and which can be initialized with a different set of known and unknown properties than itself.
 
@@ -4500,9 +4500,9 @@ and finally:
 ```isl
 pivot: integer => items[items.length / 2]
 ```
-means: _"The pivot is the value in the middle of the list of items"_.
+means: _"The pivot is the value in the middle of the item list"_.
 
-(note that the rules are written in such a way that ensures `pivot`, as well as `smallerThanPivot.items` and `greaterOrEqualToPivot.items` would only be computed when `items` is nonempty)
+(note that the rules are written in such a way that ensures `pivot`, `smallerThanPivot.items` and `greaterOrEqualToPivot.items` would only be computed when `items` is nonempty)
 
 ## Universal identifiers
 
@@ -4784,6 +4784,23 @@ let twoShapes = TwoShapes with // twoShapes gets the type `TwoShapes with shape1
 let totalArea = twoShapes.totalArea // totalArea has been proven to be computable
 ```
 
+Instance types can be stated explicitly as an ad-hoc way to specify a set of required members for a context instance. This enables the context instance to emulate some of the characteristics of a traditional object structure:
+
+```isl
+context Person
+	firstName: string
+	lastName: string
+	age: integer
+
+context Example
+	personInfo: Person with firstName, age
+
+let validInstance = Example with personInfo = (Person with firstName = "Miguel", age = 57) // Okay
+let invalidInstance = Example with personInfo = (Person with age = 34) // Fails to compile
+```
+
+
+
 ## Context expansion
 
 Let's go back to our initial `BasicKinematics` example:
@@ -4823,23 +4840,23 @@ context expansion BasicKinematics
 	speedInOtherUnits.metersPerSecond => speed
 ```
 
-## Nested contexts
+## Anonymous contexts
 
-**Nested contexts** provide a convenient way to assign similar roles for two or more distinct properties:
+**Anonymous contexts** provide a convenient way to assign similar roles for two or more distinct properties:
 
 ```isl
 context Name
-	context FirstName
+	firstName: context
 		plain: Uppercase.plain, Lowercase.plain
 		uppercase: Uppercase.uppercase
 		lowercase: Lowercase.lowercase
 
-	context LastName
+	lastName: context
 		plain: Uppercase.plain, Abbreviated.plain
 		uppercase: Uppercase.uppercase
 		lowercase: Lowercase.lowercase
 
-	fullNameUpperCase => FirstName.uppercase + “ “ + LastName.upperCase
+	fullNameUpperCase => firstName.uppercase + “ “ + lastName.upperCase
 ```
 
 ## Pseudo-functions
@@ -5036,9 +5053,9 @@ I put items in boxes 1, 2, 3, but leave 4 empty.
 
 I wait and see what item appears in box 4.
 
-### Nested context
+### Anonymous context
 
-There's a room inside of the room. The inner room is not contained within a box, but it is a part of the structure of the outer room itself.
+The room contains a special box, containing a room. The inner room is not based on a external blueprint, but is an integral component of the blueprint of the outer room itself.
 
 ### Context expansion
 
