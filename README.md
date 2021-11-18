@@ -520,8 +520,8 @@ The `with` operator can be used to partially apply any subset of parameters, reg
 let partiallyAppliedAction = printThreeNumbers with b = 11
 // partiallyAppliedAction has the signature partiallyAppliedAction(a: integer, c: integer)
 
-partiallyAppliedAction(a: 4, c: 8) // Prints 4, 11, 8
-partiallyAppliedAction(c: 6) // Error: an argument for `a` must be specified
+partiallyAppliedAction(a = 4, c = 8) // Prints 4, 11, 8
+partiallyAppliedAction(c = 6) // Error: an argument for `a` must be specified
 ```
 
 Methods may be partially applied any number of times:
@@ -765,7 +765,7 @@ A third, terser matching syntax uses constructor-like notation, based on the ord
 ```isl
 function matchAnimal(animal: Animal)
 	match animal
-		case Dog("Lucky", Person("Andy",...), ...) => "Good dog, Andy!"
+		case Dog("Lucky", Person("Andy", ...), ...) => "Good dog, Andy!"
 		case Cat(_, _ > 10, ...) => "Old cat!"
 		case Horse(_, _, _ > 180) => "Tall horse!"
 		otherwise => "Nothing interesting here"
@@ -808,6 +808,7 @@ function matchAnimal(animal: Animal)
 			otherwise => "A cat who doesn't like milk! Who knew?"
 
 		case Horse where height > 180 => "Tall horse!"
+
 		otherwise => "Nothing interesting here"
 ```
 
@@ -1927,7 +1928,7 @@ giveMeSomeStructure(instanceOfSomeClass)
 
 ```isl
 let s1 = { a: 1, b: false } // type of s1 is { a: integer, b: boolean }
-let s2 = s1 with c: string = "Hi" // type of s2 is { a: integer, b: boolean, c: string }
+let s2 = s1 with new c = "Hi" // type of s2 is { a: integer, b: boolean, c: string }
 let s3 = s2 with no b // type of s3 is { a: integer, c: string }
 
 // Note that if the assigned values are constants, like in the above example,
@@ -1943,7 +1944,7 @@ This behavior doesn't imply dynamic typing. Whenever a value is altered in this 
 let s1 = { a: 1, b: { c: "Hello", d: false } }
 // Type of s1 is { a: integer, b: { c: string, d: boolean } }
 
-let s2 = s1 with b.e: decimal = 3.14
+let s2 = s1 with new b.e = 3.14
 // Type of s2 is { a: integer, b: { c: string, d: boolean, e: decimal } }
 
 let s3 = s2 with no b.c
@@ -2812,9 +2813,21 @@ More complex assertions can be included in a type by referencing a **predicate f
 Assertion types, for the most part, cannot be checked during compile-time and would require a run-time call each time a variable of the type is initialized. The predicate's parameter type (which can be any type, including a refinement type) would be used to determine the base underlying type used at compile-time:
 
 ```isl
-predicate MultipleOf10(x: integer) => x mod 10 == 0
+predicate MultipleOf10(num: integer) => num mod 10 == 0
 
 function something(x: MultipleOf10)
+	....
+```
+
+Since `MultipleOf10` represents both a method identifier and a type, it naturally lends for the `is` operator to be used as an alternative syntax to assert over its truth-value:
+```isl
+let val: integer = ....
+
+// Note that `val` has been declared with the type `integer`, not `MultipleOf10`
+// The following type assertion depends on the runtime value of `val`:
+if val is MultipleOf10 // practical alternative to writing MultipleOf10(val)
+	....
+else
 	....
 ```
 
@@ -3306,7 +3319,6 @@ let person = Person with name = "Jimmy Jones", address = nothing, petNames = not
 let houseNumber = person.address?.houseNumber // houseNumber = nothing
 let firstPetName = person.petNames?[1] // firstPetName = nothing
 ```
-
 
 _Some notes on possible confusion with terminology used by other languages: In Island the unit type is called `nothing` and the bottom type is called `never` (introduced in a following chapter). In Scala the unit type is called `Unit` and the bottom type `Nothing`. However Haskell uses the term `Nothing` in its option type to represent the option of having "No value", which is closer to the semantics intended here._
 
@@ -4472,7 +4484,7 @@ context Quicksort
 	smallerThanPivot.items => [(i in items where i < pivot) => i]
 	greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
 	sortedItems given items == [] => []
-	sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
+	sortedItems given items => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
 ```
 
 Here are natural language translations of the mapping rules included in `Quicksort`, written in a slightly altered order:
@@ -4483,7 +4495,7 @@ means: _"When the input is an empty list, the sorted items list is empty as well
 
 and
 ```isl
-sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
+sortedItems given items => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
 ```
 means: _"When the input items are nonempty, the sorted items list is a concatenation of the sorted versions of the items that are smaller than the pivot and greater or equal to the pivot"_.
 
@@ -4777,9 +4789,11 @@ Now once assigned into the `shape1` and `shape2` properties of the `TwoShapes` c
 
 Now `twoShapes` consequently receives the type `TwoShapes with shape1.area, shape2.area, totalArea` and thus the `twoShapes.totalArea` property has been statically proven to be knowable:
 ```isl
-let twoShapes = TwoShapes with // twoShapes gets the type `TwoShapes with shape1.area, shape2.area, totalArea`
+let twoShapes = TwoShapes with
 	shape1 = Circle with radius = 5.0 // shape1 gets the type `Shape with area`
 	shape2 = Square with side = 7.5 // shape2 gets the type `Shape with area`
+
+// twoShapes gets the type `TwoShapes with shape1.area, shape2.area, totalArea`
 
 let totalArea = twoShapes.totalArea // totalArea has been proven to be computable
 ```
@@ -4916,22 +4930,22 @@ A property may also generate a stream of values.
 
 ...TODO...
 
-## Consistency checking
+## Consistency and contradiction checking
 
-One potential issue has to do with the way mapping rules allow multiple, possibly inconsistent, computations to be defined for the same set of properties.
+One potential issue has to do with the way mapping rules allow multiple, possibly contradictory, computations to be defined for the same set of properties.
 
-Trivially inconsistent:
+Trivially contradictory:
 ```isl
-context TriviallyInconsistent
-	inconsistentProperty: integer
+context TriviallyContradictorry
+	num: integer
 
-	inconsistentProperty => 0
-	inconsistentProperty => 1 // This is technically legal code, but is obviously bogus.
+	num => 0
+	num => 1 // This is technically legal code, but is obviously bogus.
 ```
 
-Inconsistency may also happen between mapping rules going in different directions:
+Contradictions may also happen between mapping rules going in different directions:
 ```isl
-context BidirectionallyInconsistent
+context BidirectionallyContradictory
 	propertyA: decimal
 	propertyB: decimal
 
@@ -4939,9 +4953,11 @@ context BidirectionallyInconsistent
 	propertyB given propertyA => propertyA * 3 // Should this be allowed?
 ```
 
-One approach to automate the detection of these types of inconsistencies is by having a special debug mode where the compiler would automatically inject consistency tests whenever a mapping rule is being used.
+In the case that both mapping rules only contain trivial algebraic operations, contradictions can be detected at compile time.
 
-For example, if `propertyA` is given a value `x`, and consequently `propertyB` is inferred with the value `x * 3`, the program would also include an assertion for the complementary rule where `propertyB` is given the resulting value (`x * 3`) and `propertyA` is the one that's inferred (its expected value would be `x`). A similar approach can also be used to ensure consistency in scenarios where there are multiple rules to infer the value of a particular property.
+For more complex cases, one approach to automate the detection of these types of inconsistencies is by having a special debug mode where the compiler would automatically inject consistency tests whenever a mapping rule is being used.
+
+For example, if `propertyA` is given a value `x`, and consequently `propertyB` is inferred with the value `f(x)`, the program would also include an assertion for the complementary rule where `propertyB` is given the resulting value (`f(x)`) and `propertyA` is the one that's inferred (its expected value would be `x`). A similar approach can also be used to ensure consistency in scenarios where there are multiple rules to infer the value of a particular property.
 
 ## Unit testing
 
@@ -4976,15 +4992,54 @@ expect Factorial.previousFactorial.previousFactorial.input == 4 given Factorial.
 
 ## ELI5: Illustrative "magic room" metaphors
 
+### Contexts, properties and mapping rules
+
 Think of a context as if it was a _blueprint_ for an imaginary "magic" room.
 
 The room may contain one or more boxes, which act as a metaphor for _properties_.
 
-Each box may contain an item of a particular type, e.g. a ball, a pen, a doll etc. The kind of thing the box may contain is a metaphor to the _type_ of a property (`string`, `integer` etc.).
+Each box may contain an item of a particular type, e.g. a ball, a pen, a doll etc. The kind of thing the box may contain is a metaphor for the _type_ of a property (`string`, `integer` etc.).
 
-The box is also characterized by a secondary quality, which is completely unique to it. This quality describes what purpose the box represents in relation to the room as a whole, as well as to other boxes in the room. This quality is a metaphor for its _semantic identity_.
+The box is also characterized by a secondary quality, which is completely unique to it. This quality describes what purpose the box represents in relation to other boxes in the room, as well as to the room as a whole. This quality is a metaphor for its _semantic identity_.
 
-The room can be provided with a set of magic spells that cause items to appear inside of empty boxes. These spells may depend on the content of nonempty boxes, including boxes that received their content due to magic. These spells are metaphors for _mapping rules_.
+The room can be cast with a one or more magic spells that cause items to appear inside of empty boxes. These spells may depend on the content of nonempty boxes, including boxes that received their content due to magic. These spells are metaphors for _mapping rules_.
+
+
+### Embedded context
+
+I create a blueprint for a room. I add all sorts of boxes to it.
+
+I create a secondary room blueprint and add some other boxes to it.
+
+Now I also add another, very special kind of box to the second room. This special box is actually a container for an entire room! I set the blueprint for the room in the box to be the first room's blueprint.
+
+Now I can freely cast spells that involve the boxes that reside inside of the room that's inside the special box, as if these boxes were a part of the outer room.
+
+### Recursively embedded context
+
+Same as previous, only the blueprint I use for the room inside the special box, is the blueprint of the outer room itself!
+
+This means that there is an "infinite" nesting of rooms and special boxes: If I look inside the special box I find a room, and inside that room a special box, containing another room, containing a special box, containing a room, repeating endlessly..
+
+I notice there's a risk that I might get caught in an infinite loop of looking deeper and deeper into the contents of these nested rooms, so I design the spells such that they never look into these inner rooms to more than a finite depth.
+
+### Semantic links
+
+I create a blueprint for a room. It starts out completely empty.
+
+I put two boxes in the room. I set the first box so it can only contain a doll, and the second to only contain a picture.
+
+Now I create a secondary room. The secondary room starts out empty as well.
+
+I put two boxes in the second room.
+
+I declare that the first box is a "magic twin" of the first box in the first room. Same for the second box and the second box in the first room. The twin relationship between the boxes means that any spell I cast that involves one, becomes effective over its twin as well (it doesn't mean both must contain the same exact item, though, the pairing is only made over the spells, not the materialized box contents).
+
+In the second room, I cast a spell that says that if box 1 gets a doll, box 2 would receive a picture of that doll. I don't cast any further spells (that is, if box 2 receives a picture, nothing special necessarily happens to box 1).
+
+I use the second room blueprint to generate a new virtual room. I put a doll in the first box. A picture of that doll appears in the second box.
+
+I use the first room blueprint and generate a new virtual room. I put a doll in the first box. A picture of that doll appears in the second box as well!
 
 ### Semantic roles
 
@@ -5010,42 +5065,6 @@ I test to see if the same thing happens. I put a red ball in the first box, and 
 
 Now I can add more boxes to the second room's blueprint, and cast more spells, which may involve the two initial boxes, but these spells will have no impact on the behavior of the boxes in the first room.
 
-### Semantic links
-
-I create a blueprint for a room. It starts out completely empty.
-
-I put two boxes in the room. I set the first box so it can only contain a doll, and the second to only contain a picture.
-
-Now I create a secondary room. The secondary room starts out empty as well.
-
-I put two boxes in the second room.
-
-I declare that the first box is a "magic twin" of the first box in the first room. Same for the second box and the second box in the first room. The twin relationship between the boxes means that any spell I cast that involves one, becomes effective over its twin as well (it doesn't mean they must contain the same item, though, the pairing is only made over the spells, not the materialized box contents).
-
-In the second room, I cast a spell that says that if box 1 gets a doll, box 2 would receive a picture of that doll. I don't cast any further spells (that is, if box 2 receives a picture, nothing special necessarily happens in box 1).
-
-I use the second room blueprint to generate a new virtual room. I put a doll in the first box. A picture of that doll appears in the second box.
-
-I use the first room blueprint and generate a new virtual room. I put a doll in the first box. A picture of that doll appears in the second box as well!
-
-### Embedded context
-
-I create a blueprint for a room. I add all sorts of boxes to it.
-
-I create a secondary room blueprint and add some other boxes to it.
-
-Now I also add another, very special kind of box to the second room. This special box is actually a container for an entire room! I set the blueprint for the room in the box to be the first room's blueprint.
-
-Now I can freely cast spells that involve the boxes that reside inside of the room that's inside the box, as if these boxes were a part of the outer room.
-
-### Recursively embedded context
-
-Same as previous, only the blueprint I use for the room inside the special box, is the blueprint of the outer room itself!
-
-This means that there is an "infinite" nesting of rooms and special boxes: If I look inside the special box I find a room, and inside that room a special box, containing another room, containing a special box, containing a room, repeating endlessly..
-
-I notice there's a risk that I might get caught in an infinite loop of looking deeper and deeper into the contents of these nested rooms, so I design the spells such that they never look into these inner rooms to more than a finite depth.
-
 ### Semantic query
 
 I set up a new room blueprint with a number of boxes.
@@ -5064,13 +5083,33 @@ I wait and see what item appears in box 4.
 
 ### Anonymous context
 
-The room contains a special box, containing a room. The inner room is not based on a external blueprint, but is an integral component of the blueprint of the outer room itself.
+The room contains a special box, containing a room. The inner room is not based on a secondary blueprint, but is an integral component of the blueprint of the outer room itself.
 
 ### Context expansion
 
-I'm relying on a room blueprint that was provided by an external source.
+I'm relying on a room blueprint that was provided to me by an external source.
 
-I'm not interested in modifying the original, but I can add a bunch of boxes and cast additional spells that would only apply to my own experience of it.
+Instead of directly modifying the original blueprint (which I can't), I can add a bunch of additional boxes and spells that would only effect my own experience of it.
+
+### Invalid context instantiation
+
+I have two boxes in the room blueprint, which are set to only contain pens.
+
+I cast a spell such that if the first has a pen of some color, the other will receive a pen of the same color.
+
+I create a new room from the blueprint and put pens in _both_ boxes. One blue, but the other red.
+
+The room explodes.
+
+### Contradictory mapping rules
+
+I have two boxes in the room blueprint, which are set to only contain pens.
+
+I cast a spell such that if the first box has a red pen, the second will receive a blue pen.
+
+Now I cast second spell that if the second box has a blue pen, the first will receive a green pen.
+
+I can't use this blueprint, since it is invalid.
 
 # Reactive programming
 
