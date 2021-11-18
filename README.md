@@ -4813,7 +4813,11 @@ let validInstance = Example with personInfo = (Person with firstName = "Miguel",
 let invalidInstance = Example with personInfo = (Person with age = 34) // Fails to compile
 ```
 
-
+Instance type may also explicitly state members that must _not_ be given, e.g.
+```isl
+context Example
+	personInfo: Person with firstName, lastName, no age
+```
 
 ## Context expansion
 
