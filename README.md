@@ -1,4 +1,4 @@
-<h1 class="main-header">The Island Programming Language</h1>
+<h1 id="main-header">The Island Programming Language</h1>
 
 **Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming, as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
 
@@ -4582,6 +4582,8 @@ At this point you may start to realize just how powerful this idea is, and how m
 
 This type of association may also be characterized as a form of **knowledge augmentation** as it "augments" the breadth of knowledge associated with a semantic identity. Here we've augmented the compiler's knowledge about the `items` and `sortedItems` properties of both `Sort` and `Quicksort`.
 
+## Bidirectional mapping rules and semantic queries
+
 Let's try to take it even a step further. How about going back to our initial `BasicKinematics` example and generalizing it such that it could work for any unit of measurement for distance, speed and time? And this time we'll use semantic links instead of embeddings, to emulate a system of "commonsense knowledge":
 
 ```isl
@@ -4592,7 +4594,7 @@ context CommonsenseKinematics
 
 	distance <=> speed * time
 ```
-(`distance <=> speed * time` is an example of a **bidirectional mapping rule**. It shares the same notation as a semantic link, but it isn't really the same thing. It is an abbreviated way to define multiple complementary mapping rules that are composed of simple, invertible, algebraic operations like addition, multiplication and division).
+`distance <=> speed * time` is an example of a **bidirectional mapping rule**. It shares the same notation as a semantic link, but it isn't really the same thing. It is an abbreviated way to define multiple complementary mapping rules that are composed of simple, invertible, algebraic operations like addition, multiplication and division.
 
 The `Distance`, `Speed` and `Time` contexts are defined as:
 
@@ -4627,9 +4629,9 @@ let distanceMiles = Distance.miles given // distanceMiles gets the value 156.119
 	Time.hours = 7.5
 ```
 
-We've used a form of notation we haven't seen before: `let x = .... given ....`.
+We've used a form of syntax we haven't seen before: `let x = .... given ....`.
 
-This notation effectively allows to pose an "abstract" **semantic query** that may mix semantic identities from multiple different contexts. Notice the code never mentioned any reference to `CommonsenseKinematics`. Instead, the rules `CommonsenseKinematics` exported, via semantic linking, became attached to `Speed`, `Distance` and `Time` and the compiler was able to figure out how to compose a series of computations, which included numerous unit conversions, to successfully derive the desired information.
+This form of expression poses an "abstract" **semantic query** that may mix semantic identities from multiple different contexts. Notice the code never mentioned any reference to `CommonsenseKinematics`. Instead, the rules `CommonsenseKinematics` exported, via semantic linking, became attached to `Speed`, `Distance` and `Time` and the compiler was able to figure out how to compose a series of computations, which included numerous unit conversions, to successfully derive the desired information.
 
 In fact, what this "query" notation actually does, behind the scenes, is to define an anonymous ad-hoc context where each property is associated with a particular semantic identity in a one-way fashion. The first query, when de-sugared, would look roughly like:
 
@@ -4694,6 +4696,8 @@ The neat thing about it is that there's not even a need to introduce any mapping
 
 On a more technical note, what is actually happening here is that the `Uppercase` and `Lowercase` contexts are effectively being "superimposed" over the `Name` context. This also means that any other properties they may have had could have been inferred with values, but would be totally "invisible" unless they were exposed in the form of roles within `Name`. This kind of "layering" could be described as a weak form of **information hiding** that's quite different than how it's expressed in traditional object-oriented programming.
 
+## Roles and context substitution
+
 Now, it also turns out that roles can emulate some of the hierarchical relationships that we are used to in object-oriented programming, albeit in a more granular fashion.
 
 Consider this classic example used to demonstrate object-oriented hierarchical relationships:
@@ -4739,7 +4743,7 @@ context TwoShapes
 	totalArea: decimal => shape1.area + shape2.area
 ```
 
-Now say I wrote something like:
+Now I write something like this:
 ```isl
 let twoShapes = TwoShapes with
 	shape1 = Circle with radius = 5.0
@@ -4748,7 +4752,13 @@ let twoShapes = TwoShapes with
 let totalArea = twoShapes.totalArea // Is this always computable?
 ```
 
-How does the compiler determine these assignments are safe? and how does it know if `totalArea` is computable at all? We never initialized an explicit value to the `area` properties of `Circle` or `Square`. How can it be confident that `shape1.area + shape2.area` even means anything?
+I assigned a placeholder for a `Shape` with instances of `Circle` and `Square`, despite the fact there are no formal relationship between these types!
+
+Both `Circle` and `Square` have `area` properties that embrace the semantics of the `area` property of `Shape`, so it makes sense that they can substitute for it. However, it might sound surprising but this relationship wasn't strictly necessary to enable the substitution. Fundamentally, there are no fixed hierarchies, **any context type can be assigned to any other context type**.
+
+More formally, this kind of type relationship may be described as a form of **ad-hoc behavioral subtyping**.
+
+But how does the compiler determine these assignments are safe? and how does it know if `totalArea` is computable at all? We never initialized an explicit value to the `area` properties of `Circle` or `Square`. How can it be confident that `shape1.area + shape2.area` even means anything?
 
 The answer is that there is no general way for the compiler to immediately determine that a given property is knowable. Instead, the compiler performs a localized analysis of each property reference and tries to sort out, on a case by case basis, which referenced properties are knowable, and which aren't. This form of static analysis is achieved by employing _instance types_, which are the subject of the next section.
 
@@ -5037,7 +5047,7 @@ Now I create a secondary room. The secondary room starts out empty as well.
 
 I put two boxes in the second room.
 
-I declare that the first box is a "magic twin" of the first box in the first room. Same for the second box and the second box in the first room. The twin relationship between the boxes means that any spell I cast that involves one, becomes effective over its twin as well (it doesn't mean both must contain the same exact item, though, the pairing is only made over the spells, not the materialized box contents).
+I declare that the first box is a "magic twin" of the first box in the first room. Same for the second box and the second box in the first room. The twin relationship between the boxes means that any spell I cast that involves one, becomes effective over its twin as well (it doesn't mean both must contain the same exact item, though. The pairing is only made over the spells, not the materialized box contents).
 
 In the second room, I cast a spell that says that if box 1 gets a doll, box 2 would receive a picture of that doll. I don't cast any further spells (that is, if box 2 receives a picture, nothing special necessarily happens to box 1).
 
@@ -5317,7 +5327,7 @@ This work would not have been possible without ideas adapted or inspired by othe
 
 ## Who wrote this?
 
-Hi, I'm a software developer who loves designing programming languages.
+Hi, I'm a software developer who loves designing programming languages!
 
 ## Feedback for this document
 
