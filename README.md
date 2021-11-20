@@ -2653,8 +2653,8 @@ for wait any result in spawn (heavyCalculations1(), heavyCalculations2())
 
 A similar approach can be used to simultaneously listen to multiple event sources:
 ```isl
-// Note that modifying 'event' with the `match` keyword here would automatically wait until a result arrives.
-// No need to specify `wait match`:
+// Note that modifying 'event' with the `match` keyword here would automatically
+// wait until a result arrives. No need to specify `wait match`:
 for match any event in spawn (keyboardEvents(), mouseEvents())
 	case KeyboardEvent
 		print("Keyboard event!")
@@ -4054,8 +4054,9 @@ for (number, abs) in Abs(_, _)
 
 	// prints "(0, 0)", "(-1, 1)", "(1, -1)", "(-2, 2)", ....
 
-	// (As a heuristic, the inference engine alternates between the unresolvable conditional branches to
-	//  avoid getting "trapped" in case one of them produces an infinite amount of results)
+	// (As a heuristic, the inference engine alternates between the unresolvable conditional
+	// branches to avoid getting "trapped" in case one of them produces an infinite
+	// amount of results)
 ```
 
 Sometimes we would like to iterate over **all** the possible results of a relation. A common case would be when asserting over a property of a list:
@@ -4477,7 +4478,7 @@ This same approach can be used to describe more complex computations. For exampl
 context Quicksort
 	items: List<integer>
 	sortedItems: List<integer>
-	pivot: integer => items[items.length / 2] // `pivot` declaration is integerated into a mapping rule
+	pivot: integer => items[items.length / 2] // declaration is integerated into a mapping rule
 	smallerThanPivot: Quicksort
 	greaterOrEqualToPivot: Quicksort
 
@@ -4922,8 +4923,11 @@ let PhoneNumberPattern = /^{[0-9][0-9][0-9]}\-{[0-9]+}$/
 context PhoneNumber
 	str: string
 
-	isValid, areaCode, number given str matches PhoneNumberPattern of let (area, num) => true, area, num
-	isValid, areaCode, number => false, "", ""
+	isValid, areaCode, number given str matches PhoneNumberPattern of let (area, num) =>
+		true, area, num
+
+	isValid, areaCode, number =>
+		false, "", ""
 ```
 
 A second example defines a context that extracts the first and last elements of a list using a pattern expression:
@@ -4950,7 +4954,7 @@ One potential issue has to do with the way mapping rules allow multiple, possibl
 
 Trivially contradictory:
 ```isl
-context TriviallyContradictorry
+context TriviallyContradictory
 	num: integer
 
 	num => 0
