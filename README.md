@@ -4830,6 +4830,103 @@ context Example
 	personInfo: Person with firstName, lastName, no age
 ```
 
+## Role coupling and semantic indexing
+
+Say we wanted to use roles to describe a simple computation that accepts a string-encoded decimal number and outputs the square of that number.
+
+First we'll define contexts for the auxiliary computations:
+```isl
+context StringifiedNumber
+	source: decimal
+	stringified: string
+
+	....
+
+context NumberSquare
+	number: decimal
+	squared: decimal
+
+	....
+```
+
+For the context that describes the main computation we'll define three properties, taking up four different roles:
+
+1. Represents the stringified number.
+2. Represents both the un-stringified number and the input to the square computation.
+3. Represents the the squared number.
+
+For example:
+```isl
+context StringifiedNumberSquared
+	stringified: StringifiedNumber.stringified
+	unstringified: StringifiedNumber.number, NumberSquare.number
+	squared: NumberSquare.squared
+```
+
+We had to explicitly introduce the intermediate property `unstringified` in order to "pipe" the two computations together. Hadn't we done that, there was no way for the compiler to know for certain if that was what we wanted to do. It is true that both `StringifiedNumber.number` and `NumberSquare.number` share the same type - `decimal`, but that fact is not sufficient to deductively infer that these two must be bound together.
+
+So, in a sense, if we didn't care about exposing `unstringified` as a property, all we really needed to state is that `StringifiedNumber.number` and `NumberSquare.number` are "coupled" together. This can be expressed by the special **role coupling operator `=:=`**:
+
+```isl
+context StringifiedNumberSquared
+	stringified: StringifiedNumber.stringified
+	squared: NumberSquare.squared
+
+	StringifiedNumber.number =:= NumberSquare.number // This is called a "coupling rule"
+```
+So how and why this works?
+
+Remember that for every context instance, each semantic identity may only receive a single, unique value. So in effect, stating that the two semantic identities always get the same value is equivalent to introducing an intermediate property that takes both roles. The only difference is that here, this intermediate property becomes "anonymous", so it isn't possible to access its value via the conventional `.` notation.
+
+However, it is still possible to query its value via any of the roles it represents. For example:
+
+```isl
+let valueOfAnonymousProperty = StringifiedNumberSquared[StringifiedNumber.number] given
+	StringifiedNumberSquared.stringified = "5.32"
+
+// valueOfAnonymousProperty gets the value 5.32 of type 'double'
+```
+`StringifiedNumberSquared[StringifiedNumber.number]` references a property value via its semantic identity, instead of an explicit identifier. This syntax is called **semantic indexing**. Any semantic identity can be used as an index, including ones that are not explicitly mentioned within the schema itself, such as intermediate properties indirectly employed by mapping rules imported via semantic roles or links.
+
+For comparison, if we had instead queried for `StringifiedNumber.number` directly, e.g.:
+
+```isl
+let valueOfAnonymousProperty = StringifiedNumber.number given
+	StringifiedNumberSquared.stringified = "5.32"
+
+// Error: no mapping rules were found to compute the desired information
+```
+
+We'll get a compilation failure since the reference to `StringifiedNumber.number` signifies the general value of the identity, not the one that's specialized to the `StringifiedNumberSquared` context. A general value could only have been derived if we explicitly supplied values for members of `StringifiedNumber` itself, or indirectly via any of their semantic links (refer back to `CommonsenseKinematics` for an illustration of that kind of scenario).
+
+Alternatively, semantic indexing can also be applied on the instance directly:
+
+```isl
+let instance = StringifiedNumberSquared with stringified = "5.32"
+let valueOfAnonymousProperty = instance[StringifiedNumber.number]
+
+// valueOfAnonymousProperty gets the value 5.32
+```
+
+## Anonymous contexts
+
+**Anonymous contexts** provide a convenient way to assign similar roles for two or more distinct properties:
+
+```isl
+context Name
+	firstName: context
+		plain: Uppercase.plain, Lowercase.plain
+		uppercase: Uppercase.uppercase
+		lowercase: Lowercase.lowercase
+
+	lastName: context
+		plain: Uppercase.plain, Abbreviated.plain
+		uppercase: Uppercase.uppercase
+		lowercase: Lowercase.lowercase
+
+	fullNameUpperCase => firstName.uppercase + “ “ + lastName.upperCase
+```
+
 ## Context expansion
 
 Let's go back to our initial `BasicKinematics` example:
@@ -4867,25 +4964,6 @@ Embed `Speed` context directly and map its `metersPerSecond` property to the val
 context expansion BasicKinematics
 	speedInOtherUnits: Speed
 	speedInOtherUnits.metersPerSecond => speed
-```
-
-## Anonymous contexts
-
-**Anonymous contexts** provide a convenient way to assign similar roles for two or more distinct properties:
-
-```isl
-context Name
-	firstName: context
-		plain: Uppercase.plain, Lowercase.plain
-		uppercase: Uppercase.uppercase
-		lowercase: Lowercase.lowercase
-
-	lastName: context
-		plain: Uppercase.plain, Abbreviated.plain
-		uppercase: Uppercase.uppercase
-		lowercase: Lowercase.lowercase
-
-	fullNameUpperCase => firstName.uppercase + “ “ + lastName.upperCase
 ```
 
 ## Pseudo-functions
@@ -5099,6 +5177,30 @@ I put items in boxes 1, 2, 3, but leave 4 empty.
 
 I wait and see what item appears in box 4.
 
+### Role coupling and semantic indexing
+
+Room blueprint 1: I have two boxes, both accept only hats. I cast a spell such that the second box receives a hat that's twice larger than the one placed in the first.
+
+Room blueprint 2: I have two boxes, both accept only hats. I cast a spell such that the second box receives a hat that's the complementary color relative to the one given on the first.
+
+Room blueprint 3: I have two boxes, both accept only hats. I assign the first box the role of the first box in room 1, and the second of the second box in room 2.
+
+I generate a room from the third blueprint.
+
+I put a blue hat in the first box. Nothing happens!
+
+I go back to the drawing board and realize that I forgot to connect the outcome of the spell from room 1 to the source to the spell from room 2.
+
+I consider adding a third, intermediate box, that will contain the enlarged hat. However, I decide to instead cast a special spell that "binds" the roles of box 2 in room 1 and box 1 in room 2. This means that the room will also include a third, invisible box that would contain the enlarged hat, but I wouldn't be able to see it.
+
+I try again. I generate a room from the third blueprint.
+
+I put a blue hat in the first box. A twice-larger, red version of that hat appears in the second box.
+
+I ask the room: _"Can you please show me the content of the invisible box containing the enlarged hat"_?
+
+An enlarged, blue hat appears right in front of me, floating in the air.
+
 ### Anonymous context
 
 The room contains a special box, containing a room. The inner room is not based on a secondary blueprint, but is an integral component of the blueprint of the outer room itself.
@@ -5284,7 +5386,7 @@ Note that by modifying the returned tuple members with the `param` keyword, they
 let (r1, r2) = repeatAandB(4, r1 = "Hello ", r2 = "World ") // r1 = "Hello aaaa", r2 = "World bbbb"
 ```
 
-With these features, combined with named return values, we can further simplify the recursive binary search code from a previous chapter:
+With these features, combined with named return variables, we can further simplify the recursive binary search code from a previous chapter:
 
 ```isl
 function binarySearch(values: List<integer>, target: integer)

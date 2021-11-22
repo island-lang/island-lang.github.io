@@ -1,11 +1,12 @@
 html {
 	scroll-behavior: smooth;
-}
-
-body {
 	font-size: 18px;
 	font-family: "Segoe UI", Selawik, sans-serif;
 	overflow-wrap: break-word;
+}
+
+body {
+
 	line-height: 1.6em;
 
 	margin: 0em auto;
@@ -32,8 +33,8 @@ body {
 
 @media (min-width: 62em) {
 	#main-content {
-		padding-left: 2.5em;
-		padding-right: 2.5em;
+		padding-left: 2.0em;
+		padding-right: 2.0em;
 		padding-top: 3em;
 		padding-bottom: 1em;
 
@@ -122,8 +123,18 @@ nav.table-of-contents {
 	line-height: 1.6em;
 }
 
+nav.table-of-contents ol {
+	counter-reset: toc;
+	list-style-type: none;
+}
+
 nav.table-of-contents li {
+	counter-increment: toc;
 	margin-bottom: 0.15em;
+}
+
+nav.table-of-contents li::before {
+	content: counters(toc, ".") "  ";
 }
 
 a {
@@ -175,7 +186,7 @@ footer {
 	padding-bottom: 0.5em;
 }
 
-p#last-modified {
+footer p#last-modified {
 	color: rgb(161, 161, 161);
 	font-size: 0.8em;
 	text-align: right;
