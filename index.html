@@ -3406,7 +3406,7 @@
 <span style="color: #5B5B5B">	Speed.kilometersPerHour </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">33</span><span style="color: #5B5B5B">.</span><span style="color: #E65C00">5</span><span style="color: #5B5B5B">,</span>
 <span style="color: #5B5B5B">	Time.hours </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">7</span><span style="color: #5B5B5B">.</span><span style="color: #E65C00">5</span></code></pre>
 <p>We've used a form of syntax we haven't seen before: <code>let x = .... given ....</code>.</p>
-<p>This form of expression poses an &quot;abstract&quot; <strong>semantic query</strong> that may mix semantic identities from multiple different contexts. Notice the code never mentioned any reference to <code>CommonsenseKinematics</code>. Instead, the rules <code>CommonsenseKinematics</code> exported, via semantic linking, became attached to <code>Speed</code>, <code>Distance</code> and <code>Time</code> and the compiler was able to figure out how to compose a series of computations, which included numerous unit conversions, to successfully derive the desired information.</p>
+<p>This form of expression poses an &quot;abstract&quot; <strong>semantic query</strong> that may mix semantic identities from various different contexts. Notice the code never mentioned any reference to <code>CommonsenseKinematics</code>. Instead, the rules <code>CommonsenseKinematics</code> exported, via semantic linking, became attached to <code>Speed</code>, <code>Distance</code> and <code>Time</code> and the compiler was able to figure out how to compose a series of computations, which included numerous unit conversions, to successfully derive the desired information.</p>
 <p>In fact, what this &quot;query&quot; notation actually does, behind the scenes, is to define an anonymous ad-hoc context where each property is associated with a particular semantic identity in a one-way fashion. The first query, when de-sugared, would look roughly like:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0059E8">context</span><span style="color: #5B5B5B"> AdHocContext</span>
 <span style="color: #5B5B5B">	distanceYards: Distance.yards</span>
@@ -3564,7 +3564,7 @@
 <span style="color: #5B5B5B">	unstringified: StringifiedNumber.number, NumberSquare.number</span>
 <span style="color: #5B5B5B">	squared: NumberSquare.squared</span></code></pre>
 <p>We had to explicitly introduce the intermediate property <code>unstringified</code> in order to &quot;pipe&quot; the two computations together. Hadn't we done that, there was no way for the compiler to know for certain if that was what we wanted to do. It is true that both <code>StringifiedNumber.number</code> and <code>NumberSquare.number</code> share the same type - <code>decimal</code>, but that fact is not sufficient to deductively infer that these two must be bound together.</p>
-<p>So, in a sense, if we didn't care about exposing <code>unstringified</code> as a property, all we really needed to state is that <code>StringifiedNumber.number</code> and <code>NumberSquare.number</code> are &quot;coupled&quot; together. This can be expressed by the special <strong>role coupling operator <code>=:=</code></strong>:</p>
+<p>So, in a sense, if we didn't care about exposing <code>unstringified</code> as a property, all we really needed to state is that <code>StringifiedNumber.number</code> and <code>NumberSquare.number</code> are somehow &quot;glued&quot; together. This can be expressed by the special <strong>role coupling operator <code>=:=</code></strong>:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0059E8">context</span><span style="color: #5B5B5B"> StringifiedNumberSquared</span>
 <span style="color: #5B5B5B">	stringified: StringifiedNumber.stringified</span>
 <span style="color: #5B5B5B">	squared: NumberSquare.squared</span>
@@ -3583,7 +3583,7 @@
 <span style="color: #5B5B5B">	StringifiedNumberSquared.stringified </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #5B5B5B">"</span><span style="color: #AA6631">5.32</span><span style="color: #5B5B5B">"</span>
 
 <span style="color: #A1A1A1">// Error: no mapping rules were found to compute the desired information</span></code></pre>
-<p>We'll get a compilation failure since the reference to <code>StringifiedNumber.number</code> signifies the general value of the identity, not the one that's specialized to the <code>StringifiedNumberSquared</code> context. A general value could only have been derived if we explicitly supplied values for members of <code>StringifiedNumber</code> itself, or indirectly via any of their semantic links (refer back to <code>CommonsenseKinematics</code> for an illustration of that kind of scenario).</p>
+<p>We'll get a compilation failure since the reference to <code>StringifiedNumber.number</code> signifies the general value of the identity, not the one that's specialized to the <code>StringifiedNumberSquared</code> context. A non-specialized value could only have been derived if we explicitly supplied values for members of <code>StringifiedNumber</code> itself, or indirectly via any of their semantic links (refer back to <code>CommonsenseKinematics</code> for an illustration of that kind of scenario).</p>
 <p>Alternatively, semantic indexing can also be applied on the instance directly:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0059E8">let</span><span style="color: #5B5B5B"> instance </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> StringifiedNumberSquared </span><span style="color: #0059E8">with</span><span style="color: #5B5B5B"> stringified </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #5B5B5B">"</span><span style="color: #AA6631">5.32</span><span style="color: #5B5B5B">"</span>
 <span style="color: #0059E8">let</span><span style="color: #5B5B5B"> valueOfAnonymousProperty </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> instance[StringifiedNumber.number]</span>
@@ -3600,7 +3600,7 @@
 <span style="color: #5B5B5B">		lowercase: Lowercase.lowercase</span>
 
 <span style="color: #5B5B5B">	lastName: </span><span style="color: #0059E8">context</span>
-<span style="color: #5B5B5B">		plain: Uppercase.plain, Abbreviated.plain</span>
+<span style="color: #5B5B5B">		plain: Uppercase.plain, Lowercase.plain</span>
 <span style="color: #5B5B5B">		uppercase: Uppercase.uppercase</span>
 <span style="color: #5B5B5B">		lowercase: Lowercase.lowercase</span>
 
@@ -4014,7 +4014,7 @@
 
 <footer>
 	<p id="last-modified">
-		<i>Last edited: November 22, 2021</i>
+		<i>Last edited: November 23, 2021</i>
 	</p>
 </footer>
 </body>

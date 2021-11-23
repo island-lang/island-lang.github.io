@@ -4632,7 +4632,7 @@ let distanceMiles = Distance.miles given // distanceMiles gets the value 156.119
 
 We've used a form of syntax we haven't seen before: `let x = .... given ....`.
 
-This form of expression poses an "abstract" **semantic query** that may mix semantic identities from multiple different contexts. Notice the code never mentioned any reference to `CommonsenseKinematics`. Instead, the rules `CommonsenseKinematics` exported, via semantic linking, became attached to `Speed`, `Distance` and `Time` and the compiler was able to figure out how to compose a series of computations, which included numerous unit conversions, to successfully derive the desired information.
+This form of expression poses an "abstract" **semantic query** that may mix semantic identities from various different contexts. Notice the code never mentioned any reference to `CommonsenseKinematics`. Instead, the rules `CommonsenseKinematics` exported, via semantic linking, became attached to `Speed`, `Distance` and `Time` and the compiler was able to figure out how to compose a series of computations, which included numerous unit conversions, to successfully derive the desired information.
 
 In fact, what this "query" notation actually does, behind the scenes, is to define an anonymous ad-hoc context where each property is associated with a particular semantic identity in a one-way fashion. The first query, when de-sugared, would look roughly like:
 
@@ -4865,7 +4865,7 @@ context StringifiedNumberSquared
 
 We had to explicitly introduce the intermediate property `unstringified` in order to "pipe" the two computations together. Hadn't we done that, there was no way for the compiler to know for certain if that was what we wanted to do. It is true that both `StringifiedNumber.number` and `NumberSquare.number` share the same type - `decimal`, but that fact is not sufficient to deductively infer that these two must be bound together.
 
-So, in a sense, if we didn't care about exposing `unstringified` as a property, all we really needed to state is that `StringifiedNumber.number` and `NumberSquare.number` are "coupled" together. This can be expressed by the special **role coupling operator `=:=`**:
+So, in a sense, if we didn't care about exposing `unstringified` as a property, all we really needed to state is that `StringifiedNumber.number` and `NumberSquare.number` are somehow "glued" together. This can be expressed by the special **role coupling operator `=:=`**:
 
 ```isl
 context StringifiedNumberSquared
@@ -4897,7 +4897,7 @@ let valueOfAnonymousProperty = StringifiedNumber.number given
 // Error: no mapping rules were found to compute the desired information
 ```
 
-We'll get a compilation failure since the reference to `StringifiedNumber.number` signifies the general value of the identity, not the one that's specialized to the `StringifiedNumberSquared` context. A general value could only have been derived if we explicitly supplied values for members of `StringifiedNumber` itself, or indirectly via any of their semantic links (refer back to `CommonsenseKinematics` for an illustration of that kind of scenario).
+We'll get a compilation failure since the reference to `StringifiedNumber.number` signifies the general value of the identity, not the one that's specialized to the `StringifiedNumberSquared` context. A non-specialized value could only have been derived if we explicitly supplied values for members of `StringifiedNumber` itself, or indirectly via any of their semantic links (refer back to `CommonsenseKinematics` for an illustration of that kind of scenario).
 
 Alternatively, semantic indexing can also be applied on the instance directly:
 
@@ -4920,7 +4920,7 @@ context Name
 		lowercase: Lowercase.lowercase
 
 	lastName: context
-		plain: Uppercase.plain, Abbreviated.plain
+		plain: Uppercase.plain, Lowercase.plain
 		uppercase: Uppercase.uppercase
 		lowercase: Lowercase.lowercase
 

@@ -1,76 +1,80 @@
 html {
-	scroll-behavior: smooth;
-	font-size: 18px;
-	font-family: "Segoe UI", Selawik, sans-serif;
-	overflow-wrap: break-word;
+  scroll-behavior: smooth;
+  font-size: 18px;
+  font-family: "Segoe UI", Selawik, sans-serif;
+  overflow-wrap: break-word;
+  line-height: 1.6em;
 }
 
 body {
-
-	line-height: 1.6em;
-
-	margin: 0em auto;
-	padding: 0em;
-
-	background-color: rgb(250, 250, 250);
+  margin: 0em auto;
+  padding: 0em;
+  background-color: #fafafa;
 }
 
 #main-content {
-	max-width: 52em;
-	margin: 0em auto;
-
-	margin-top: 1em;
-	margin-bottom: 0.5em;
-	background-color: rgb(255, 255, 255);
+  max-width: 52em;
+  margin: 0em auto;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  background-color: white;
 }
-/*
-#main-content > nav {
-	position: sticky;
-	top: 2rem;
-	align-self: start;
+@media (max-width: 55em) {
+  #main-content {
+    padding-left: 1.5em;
+    padding-right: 1.5em;
+    padding-top: 2em;
+    padding-bottom: 1em;
+  }
 }
-*/
-
-@media (min-width: 62em) {
-	#main-content {
-		padding-left: 2.0em;
-		padding-right: 2.0em;
-		padding-top: 3em;
-		padding-bottom: 1em;
-
-		border-radius: 1.5em;
-		border-style: solid;
-		border-width: 1px;
-		border-color: rgb(235, 235, 235);
-	}
+@media (min-width: 55em) {
+  #main-content {
+    padding-left: 2em;
+    padding-right: 2em;
+    padding-top: 3em;
+    padding-bottom: 1em;
+    border-radius: 1.5em;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ebebeb;
+  }
 }
 
-@media (max-width: 62em) {
-	#main-content {
-		padding-left: 1.5em;
-		padding-right: 1.5em;
-		padding-top: 2em;
-		padding-bottom: 1em;
-	}
+a {
+  color: #0059e8;
+  text-decoration: none;
 }
-
-h1#main-header {
-	font-size: 2em;
-	margin-top: 0em;
-	text-align: center;
-	line-height: 1.4em;
+a:hover {
+  text-decoration: underline;
 }
 
 h1 {
-	font-size: 2em;
+  font-size: 2em;
+}
+h1#main-header {
+  font-size: 2em;
+  margin-top: 0em;
+  text-align: center;
+  line-height: 1.4em;
+}
+
+h2 {
+  font-size: 1.5em;
 }
 
 h1,
 h2 {
-	margin-top: 1.25em;
-	padding-bottom: 0.16em;
-	border-bottom: 1px solid rgb(236, 236, 236);
-	line-height: 1.2em;
+  margin-top: 1.25em;
+  padding-bottom: 0.16em;
+  border-bottom: 1px solid #ebebeb;
+  line-height: 1.2em;
+}
+
+h3 {
+  font-size: 1.16em;
+  padding: 0em;
+  margin-bottom: 0em;
+  margin-top: 1.25em;
 }
 
 h1,
@@ -79,173 +83,157 @@ h3,
 h4,
 h5,
 h6 {
-	position: relative;
+  position: relative;
+  color: #1a1a1a;
 }
-
+h1 .header-anchor,
+h2 .header-anchor,
+h3 .header-anchor,
+h4 .header-anchor,
+h5 .header-anchor,
+h6 .header-anchor {
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.5s, visibility 0.5s;
+  position: absolute;
+  left: -1.25ch;
+  margin-right: 1em;
+}
 h1:hover .header-anchor,
 h2:hover .header-anchor,
 h3:hover .header-anchor,
 h4:hover .header-anchor,
 h5:hover .header-anchor,
 h6:hover .header-anchor {
-	opacity: 1;
+  opacity: 0.5;
 }
-
-.header-anchor {
-	text-decoration: none;
-	/*color: #666;*/
-	opacity: 0;
-	position: absolute;
-	left: -1.5ch;
-	margin-right: 1em;
+h1:hover .header-anchor:hover,
+h2:hover .header-anchor:hover,
+h3:hover .header-anchor:hover,
+h4:hover .header-anchor:hover,
+h5:hover .header-anchor:hover,
+h6:hover .header-anchor:hover {
+  opacity: 1;
 }
 
 p,
 li {
-	color: rgb(44, 44, 44);
+  color: #2c2c2c;
 }
-
-/*
-#main-content p:first-of-type {
-	text-indent: 4em;
-}
-*/
 
 li {
-	margin-bottom: 0.4em;
+  margin-bottom: 0.4em;
 }
 
 nav.table-of-contents {
-	font-size: 0.97em;
-	background-color: rgb(248, 248, 248);
-	padding: 0.5em;
-	border-radius: 0.5em;
-	line-height: 1.6em;
+  font-size: 0.97em;
+  background-color: #f8f8f8;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  line-height: 1.6em;
 }
-
 nav.table-of-contents ol {
-	counter-reset: toc;
-	list-style-type: none;
+  counter-reset: toc;
+  list-style-type: none;
 }
-
 nav.table-of-contents li {
-	counter-increment: toc;
-	margin-bottom: 0.15em;
+  counter-increment: toc;
+  margin-bottom: 0.15em;
 }
-
 nav.table-of-contents li::before {
-	content: counters(toc, ".") "  ";
-}
-
-a {
-	/*color: rgb(2, 121, 219);*/
-	color: rgb(0, 89, 232);
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
+  content: counters(toc, ".") "  ";
 }
 
 pre,
 code {
-	font-family: "Fira Code", monospace;
-	font-variant-ligatures: none;
-	line-height: 1.7em;
-	tab-size: 4;
-	-moz-tab-size: 4;
-	background-color: rgb(248, 248, 248) !important;
+  background-color: #f8f8f8 !important;
 }
 
-p code,
-li code {
-	font-size: 0.88em;
+code {
+  font-size: 0.88em;
+  font-family: "Fira Code", monospace;
+  font-variant-ligatures: none;
+  line-height: 1.7em;
+  -o-tab-size: 4;
+     tab-size: 4;
+  -moz-tab-size: 4;
 }
 
-pre.shiki {
-	font-size: 0.82em;
+pre.shiki code {
+  font-size: 0.82em;
 }
 
 pre.shiki,
 nav.table-of-contents {
-	white-space: pre-wrap;
-	padding: 1em;
-	border-radius: 0.5em;
-	border-color: rgb(226, 226, 226);
-	border-style: solid;
-	border-width: 1px;
+  white-space: pre-wrap;
+  padding: 1em;
+  border-radius: 0.5em;
+  border-color: #e2e2e2;
+  border-style: solid;
+  border-width: 1px;
 }
 
 footer {
-	max-width: 56em;
-	margin: 0em auto;
-
-	padding: 0em;
-	padding-left: 1em;
-	padding-right: 1em;
-	padding-bottom: 0.5em;
+  max-width: 56em;
+  margin: 0em auto;
+  padding: 0em;
+  padding-left: 1em;
+  padding-right: 1em;
+  padding-bottom: 0.5em;
 }
-
-footer p#last-modified {
-	color: rgb(161, 161, 161);
-	font-size: 0.8em;
-	text-align: right;
-	margin: 0;
-}
-
-@font-face {
-	font-family: "Fira Code";
-	src: url("../fonts/FiraCode/FiraCode-Light.woff2") format("woff2");
-	font-weight: 300;
-	font-style: normal;
+footer #last-modified {
+  color: #a1a1a1;
+  font-size: 0.8em;
+  text-align: right;
+  margin: 0;
 }
 
 @font-face {
-	font-family: "Fira Code";
-	src: url("../fonts/FiraCode/FiraCode-Regular.woff2") format("woff2");
-	font-weight: 400;
-	font-style: normal;
+  font-family: "Fira Code";
+  src: url("../fonts/FiraCode/FiraCode-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
 }
-
 @font-face {
-	font-family: "Fira Code";
-	src: url("../fonts/FiraCode/FiraCode-Medium.woff2") format("woff2");
-	font-weight: 500;
-	font-style: normal;
+  font-family: "Fira Code";
+  src: url("../fonts/FiraCode/FiraCode-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
 }
-
 @font-face {
-	font-family: "Fira Code";
-	src: url("../fonts/FiraCode/FiraCode-SemiBold.woff2") format("woff2");
-	font-weight: 600;
-	font-style: normal;
+  font-family: "Fira Code";
+  src: url("../fonts/FiraCode/FiraCode-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
 }
-
 @font-face {
-	font-family: "Fira Code";
-	src: url("../fonts/FiraCode/FiraCode-Bold.woff2") format("woff2");
-	font-weight: 700;
-	font-style: normal;
+  font-family: "Fira Code";
+  src: url("../fonts/FiraCode/FiraCode-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
 }
-
 @font-face {
-	font-family: "Fira Code VF";
-	src: url("../fonts/FiraCode/FiraCode-VF.woff2") format("woff2-variations");
-	/* font-weight requires a range: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts/Variable_Fonts_Guide#Using_a_variable_font_font-face_changes */
-	font-weight: 300 700;
-	font-style: normal;
+  font-family: "Fira Code";
+  src: url("../fonts/FiraCode/FiraCode-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
 }
-
 @font-face {
-	font-family: "Selawik";
-	src: url("../fonts/Selawik/selawk.ttf");
-	font-weight: 400;
-	font-style: normal;
+  font-family: "Fira Code VF";
+  src: url("../fonts/FiraCode/FiraCode-VF.woff2") format("woff2-variations");
+  /* font-weight requires a range: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts/Variable_Fonts_Guide#Using_a_variable_font_font-face_changes */
+  font-weight: 300 700;
+  font-style: normal;
 }
-
 @font-face {
-	font-family: "Selawik";
-	src: url("../fonts/Selawik/selawkb.ttf");
-	font-weight: 700;
-	font-style: normal;
+  font-family: "Selawik";
+  src: url("../fonts/Selawik/selawk.ttf");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Selawik";
+  src: url("../fonts/Selawik/selawkb.ttf");
+  font-weight: 700;
+  font-style: normal;
 }
