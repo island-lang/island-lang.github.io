@@ -4442,7 +4442,8 @@ context Factorial
 	input: integer
 	result: integer
 
-	previousFactorial: Factorial // Notice how the type of `previousFactorial` is Factorial itself!
+	// Notice how the type of `previousFactorial` is Factorial itself!
+	previousFactorial: Factorial
 
 	result given input == 0 or input == 1 => 1
 	previousFactorial.input given input > 1 => input - 1
@@ -4956,7 +4957,7 @@ Roles:
 context expansion BasicKinematics
 	speedInMetersPerSecond: Speed.metersPerSecond => speed
 	speedInMph: Speed.milesPerHour
-	speedInKmPerhour: Speed.kilometersPerHour
+	speedInKmPerHour: Speed.kilometersPerHour
 ```
 
 Embed `Speed` context directly and map its `metersPerSecond` property to the value of `speed`:

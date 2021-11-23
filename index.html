@@ -3288,7 +3288,8 @@
 <span style="color: #5B5B5B">	input: </span><span style="color: #0059E8">integer</span>
 <span style="color: #5B5B5B">	result: </span><span style="color: #0059E8">integer</span>
 
-<span style="color: #5B5B5B">	previousFactorial: Factorial </span><span style="color: #A1A1A1">// Notice how the type of `previousFactorial` is Factorial itself!</span>
+<span style="color: #5B5B5B">	</span><span style="color: #A1A1A1">// Notice how the type of `previousFactorial` is Factorial itself!</span>
+<span style="color: #5B5B5B">	previousFactorial: Factorial</span>
 
 <span style="color: #5B5B5B">	result </span><span style="color: #0059E8">given</span><span style="color: #5B5B5B"> input </span><span style="color: #000000">==</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">0</span><span style="color: #5B5B5B"> </span><span style="color: #000000">or</span><span style="color: #5B5B5B"> input </span><span style="color: #000000">==</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">1</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">1</span>
 <span style="color: #5B5B5B">	previousFactorial.input </span><span style="color: #0059E8">given</span><span style="color: #5B5B5B"> input </span><span style="color: #000000">&gt;</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">1</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> input </span><span style="color: #000000">-</span><span style="color: #5B5B5B"> </span><span style="color: #E65C00">1</span>
@@ -3625,7 +3626,7 @@
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0059E8">context</span><span style="color: #5B5B5B"> </span><span style="color: #0059E8">expansion</span><span style="color: #5B5B5B"> BasicKinematics</span>
 <span style="color: #5B5B5B">	speedInMetersPerSecond: Speed.metersPerSecond </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> speed</span>
 <span style="color: #5B5B5B">	speedInMph: Speed.milesPerHour</span>
-<span style="color: #5B5B5B">	speedInKmPerhour: Speed.kilometersPerHour</span></code></pre>
+<span style="color: #5B5B5B">	speedInKmPerHour: Speed.kilometersPerHour</span></code></pre>
 <p>Embed <code>Speed</code> context directly and map its <code>metersPerSecond</code> property to the value of <code>speed</code>:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0059E8">context</span><span style="color: #5B5B5B"> </span><span style="color: #0059E8">expansion</span><span style="color: #5B5B5B"> BasicKinematics</span>
 <span style="color: #5B5B5B">	speedInOtherUnits: Speed</span>

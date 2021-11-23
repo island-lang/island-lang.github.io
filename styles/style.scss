@@ -1,5 +1,16 @@
-$flickrBlueColor: rgb(0, 89, 232);
-$veryLightGrayColor: rgb(235, 235, 235);
+$textColor: rgb(44, 44, 44);
+$headerTextColor: rgb(31, 31, 31);
+$linkColor: rgb(0, 89, 232);
+
+$bodyBackgroundColor: rgb(248, 248, 248);
+$contentBackgroundColor: rgb(255, 255, 255);
+$tocBackgroundColor: rgb(248, 248, 248);
+
+$boxBorderColor: rgb(228, 228, 228);
+$contentBorderRadius: 1.5em;
+$boxBorderRadius: 0.6em;
+
+$contentMaxWidth: 52em;
 
 html {
 	scroll-behavior: smooth;
@@ -14,18 +25,18 @@ body {
 	margin: 0em auto;
 	padding: 0em;
 
-	background-color: rgb(250, 250, 250);
+	background-color: $bodyBackgroundColor;
 }
 
 #main-content {
-	max-width: 52em;
+	max-width: $contentMaxWidth;
 	margin: 0em auto;
 
 	margin-top: 1em;
 	margin-bottom: 0.5em;
-	background-color: rgb(255, 255, 255);
+	background-color: $contentBackgroundColor;
 
-	$widthBoundary: 55em;
+	$widthBoundary: $contentMaxWidth + 3em;
 
 	@media (max-width: $widthBoundary) {
 		padding-left: 1.5em;
@@ -40,15 +51,15 @@ body {
 		padding-top: 3em;
 		padding-bottom: 1em;
 
-		border-radius: 1.5em;
+		border-radius: $contentBorderRadius;
 		border-style: solid;
 		border-width: 1px;
-		border-color: $veryLightGrayColor;
+		border-color: $boxBorderColor;
 	}
 }
 
 a {
-	color: $flickrBlueColor;
+	color: $linkColor;
 	text-decoration: none;
 
 	&:hover {
@@ -58,32 +69,39 @@ a {
 
 h1 {
 	font-size: 2em;
+	font-weight: 700;
 
 	&#main-header {
 		font-size: 2em;
-		margin-top: 0em;
-		text-align: center;
+		font-weight: 800;
+
 		line-height: 1.4em;
+		text-align: center;
+
+		margin-top: 1em;
+		margin-bottom: 2em;
+		border: none;
 	}
 }
 
 h2 {
 	font-size: 1.5em;
+	font-weight: 700;
 }
 
 h1,
 h2 {
+	line-height: 1.2em;
+
 	margin-top: 1.25em;
 	padding-bottom: 0.16em;
-	border-bottom: 1px solid $veryLightGrayColor;
-	line-height: 1.2em;
+	border-bottom: 1px solid $boxBorderColor;
 }
 
 h3 {
 	font-size: 1.16em;
-	//text-decoration: underline;
-	//text-decoration-color: rgb(70, 70, 70);
-	//text-decoration-thickness: 2px;
+	font-weight: 700;
+	line-height: 1.2em;
 
 	padding: 0em;
 	margin-bottom: 0em;
@@ -97,7 +115,7 @@ h4,
 h5,
 h6 {
 	position: relative;
-	color:rgb(26, 26, 26);
+	color: $headerTextColor;
 
 	.header-anchor {
 		text-decoration: none;
@@ -113,14 +131,14 @@ h6 {
 		opacity: 0.5;
 
 		&:hover {
-			opacity: 1.0;
+			opacity: 1;
 		}
 	}
 }
 
 p,
 li {
-	color: rgb(44, 44, 44);
+	color: $textColor;
 }
 
 li {
@@ -129,29 +147,31 @@ li {
 
 nav.table-of-contents {
 	font-size: 0.97em;
-	background-color: rgb(248, 248, 248);
+	font-weight: normal;
+
+	background-color: $tocBackgroundColor;
 	padding: 0.5em;
 	border-radius: 0.5em;
 	line-height: 1.6em;
 
 	ol {
-		counter-reset: toc;
+		counter-reset: tocCounter;
 		list-style-type: none;
 	}
 
 	li {
-		counter-increment: toc;
+		counter-increment: tocCounter;
 		margin-bottom: 0.15em;
 
 		&::before {
-			content: counters(toc, ".") "  ";
+			content: counters(tocCounter, ".") "  ";
 		}
 	}
 }
 
 pre,
 code {
-	background-color: rgb(248, 248, 248) !important;
+	background-color: $bodyBackgroundColor !important;
 }
 
 code {
@@ -166,20 +186,21 @@ code {
 
 pre.shiki code {
 	font-size: 0.82em;
+	white-space: pre-wrap;
 }
 
 pre.shiki,
 nav.table-of-contents {
-	white-space: pre-wrap;
 	padding: 1em;
-	border-radius: 0.5em;
-	border-color: rgb(226, 226, 226);
+
+	border-radius: $boxBorderRadius;
+	border-color: $boxBorderColor;
 	border-style: solid;
 	border-width: 1px;
 }
 
 footer {
-	max-width: 56em;
+	max-width: $contentMaxWidth + 3.5em;
 	margin: 0em auto;
 
 	padding: 0em;
@@ -188,10 +209,12 @@ footer {
 	padding-bottom: 0.5em;
 
 	#last-modified {
-		color: rgb(161, 161, 161);
 		font-size: 0.8em;
+		font-weight: 350;
+
 		text-align: right;
-		margin: 0;
+		color: rgb(122, 122, 122);
+		margin: 0em;
 	}
 }
 
