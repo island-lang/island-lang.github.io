@@ -1,16 +1,29 @@
 $textColor: rgb(44, 44, 44);
 $headerTextColor: rgb(31, 31, 31);
+$lastModifiedTextColor: rgb(122, 122, 122);
+
 $linkColor: rgb(0, 89, 232);
+$headerAnchorLinkColor: rgb(0, 89, 232); //rgb(180, 58, 255);
 
 $bodyBackgroundColor: rgb(248, 248, 248);
 $contentBackgroundColor: rgb(255, 255, 255);
 $tocBackgroundColor: rgb(248, 248, 248);
 
+$boxBorderStyle: solid;
+$boxBorderWidth: 1px;
 $boxBorderColor: rgb(228, 228, 228);
-$contentBorderRadius: 1.5em;
 $boxBorderRadius: 0.6em;
 
+$contentBorderRadius: 1.35em;
+
 $contentMaxWidth: 52em;
+
+@mixin boxBorder {
+	border-style: $boxBorderStyle;
+	border-width: $boxBorderWidth;
+	border-color: $boxBorderColor;
+	border-radius: $boxBorderRadius;
+}
 
 html {
 	scroll-behavior: smooth;
@@ -32,29 +45,28 @@ body {
 	max-width: $contentMaxWidth;
 	margin: 0em auto;
 
-	margin-top: 1em;
-	margin-bottom: 0.5em;
 	background-color: $contentBackgroundColor;
 
 	$widthBoundary: $contentMaxWidth + 3em;
 
-	@media (max-width: $widthBoundary) {
+	@media screen and (max-width: $widthBoundary) {
 		padding-left: 1.5em;
 		padding-right: 1.5em;
 		padding-top: 2em;
 		padding-bottom: 1em;
 	}
 
-	@media (min-width: $widthBoundary) {
+	@media screen and (min-width: $widthBoundary) {
+		margin-top: 1em;
+		margin-bottom: 0.5em;
+
 		padding-left: 2em;
 		padding-right: 2em;
 		padding-top: 3em;
 		padding-bottom: 1em;
 
+		@include boxBorder();
 		border-radius: $contentBorderRadius;
-		border-style: solid;
-		border-width: 1px;
-		border-color: $boxBorderColor;
 	}
 }
 
@@ -71,15 +83,17 @@ h1 {
 	font-size: 2em;
 	font-weight: 700;
 
-	&#main-header {
-		font-size: 2em;
+	&#top-heading {
+		font-size: 2.2em;
 		font-weight: 800;
+		text-transform: capitalize;
+		letter-spacing: 0.02ch;
 
 		line-height: 1.4em;
 		text-align: center;
 
 		margin-top: 1em;
-		margin-bottom: 2em;
+		margin-bottom: 1em;
 		border: none;
 	}
 }
@@ -87,6 +101,20 @@ h1 {
 h2 {
 	font-size: 1.5em;
 	font-weight: 700;
+
+	&#top-subheading {
+		font-size: 1.5em;
+		font-weight: 800;
+		text-transform: capitalize;
+		//letter-spacing: 0.02ch;
+
+		line-height: 1.4em;
+		text-align: center;
+
+		margin-top: 0em;
+		margin-bottom: 3em;
+		border: none;
+	}
 }
 
 h1,
@@ -118,9 +146,10 @@ h6 {
 	color: $headerTextColor;
 
 	.header-anchor {
+		color: $headerAnchorLinkColor;
 		text-decoration: none;
 		opacity: 0;
-		transition: opacity 0.5s, visibility 0.5s;
+		transition: opacity 0.5s ease-in-out;
 
 		position: absolute;
 		left: -1.25ch;
@@ -193,10 +222,7 @@ pre.shiki,
 nav.table-of-contents {
 	padding: 1em;
 
-	border-radius: $boxBorderRadius;
-	border-color: $boxBorderColor;
-	border-style: solid;
-	border-width: 1px;
+	@include boxBorder();
 }
 
 footer {
@@ -213,68 +239,9 @@ footer {
 		font-weight: 350;
 
 		text-align: right;
-		color: rgb(122, 122, 122);
+		color: $lastModifiedTextColor;
 		margin: 0em;
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////
-//// Font definitions
-///////////////////////////////////////////////////////////////////////////////////////////
-
-@font-face {
-	font-family: "Fira Code";
-	src: url("../fonts/FiraCode/FiraCode-Light.woff2") format("woff2");
-	font-weight: 300;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "Fira Code";
-	src: url("../fonts/FiraCode/FiraCode-Regular.woff2") format("woff2");
-	font-weight: 400;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "Fira Code";
-	src: url("../fonts/FiraCode/FiraCode-Medium.woff2") format("woff2");
-	font-weight: 500;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "Fira Code";
-	src: url("../fonts/FiraCode/FiraCode-SemiBold.woff2") format("woff2");
-	font-weight: 600;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "Fira Code";
-	src: url("../fonts/FiraCode/FiraCode-Bold.woff2") format("woff2");
-	font-weight: 700;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "Fira Code VF";
-	src: url("../fonts/FiraCode/FiraCode-VF.woff2") format("woff2-variations");
-	/* font-weight requires a range: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts/Variable_Fonts_Guide#Using_a_variable_font_font-face_changes */
-	font-weight: 300 700;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "Selawik";
-	src: url("../fonts/Selawik/selawk.ttf");
-	font-weight: 400;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: "Selawik";
-	src: url("../fonts/Selawik/selawkb.ttf");
-	font-weight: 700;
-	font-style: normal;
-}
+@import "_fonts.scss";

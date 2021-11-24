@@ -1,4 +1,5 @@
-<h1 id="main-header">The Island Programming Language</h1>
+<h1 id="top-heading">The Island Programming Language</h1>
+<h2 id="top-subheading">Design Sketch</h2>
 
 **Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming, as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
 
@@ -4949,15 +4950,15 @@ However, contexts do support expansion, so we can add the property we want by us
 A property paired with a bidirectional mapping rule containing a semantic query:
 ```isl
 context expansion BasicKinematics
-	speedInMph <=> Speed.milesPerHour given Speed.metersPerSecond = speed
+	speedInMilesPerHour <=> Speed.milesPerHour given Speed.metersPerSecond = speed
 ```
 
 Roles:
 ```isl
 context expansion BasicKinematics
 	speedInMetersPerSecond: Speed.metersPerSecond => speed
-	speedInMph: Speed.milesPerHour
-	speedInKmPerHour: Speed.kilometersPerHour
+	speedInMilesPerHour: Speed.milesPerHour
+	speedInKilometersPerHour: Speed.kilometersPerHour
 ```
 
 Embed `Speed` context directly and map its `metersPerSecond` property to the value of `speed`:
