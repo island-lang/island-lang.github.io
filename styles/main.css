@@ -61,7 +61,7 @@ h1#top-heading {
   line-height: 1.4em;
   text-align: center;
   margin-top: 1em;
-  margin-bottom: 1em;
+  margin-bottom: 3em;
   border: none;
 }
 
@@ -72,7 +72,6 @@ h2 {
 h2#top-subheading {
   font-size: 1.5em;
   font-weight: 800;
-  text-transform: capitalize;
   line-height: 1.4em;
   text-align: center;
   margin-top: 0em;

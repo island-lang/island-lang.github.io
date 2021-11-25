@@ -1,15 +1,15 @@
 <h1 id="top-heading">The Island Programming Language</h1>
-<h2 id="top-subheading">Design Sketch</h2>
+<!--<h2 id="top-subheading">Design Document</h2>-->
 
 **Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming, as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
 
 It aspires to eventually serve as a practical programming tool for real-world applications, and designed with a strong emphasis on simplicity, clarity and aesthetics.
 
-The core of the language is characterized by a sequential, statement-oriented style. However, the language cannot be formally classified as imperative (it has **no mutable state**), nor as truly functional (it does not promote an idiomatically functional style), or traditionally object-oriented. Instead it may be said to represent a conceptually independent programming approach named **stateless-sequential programming**.
+The core of the language is characterized by a sequential, statement-oriented style. However, the language cannot be formally classified as imperative (it has **no mutable state**), nor as truly functional (it does not promote an idiomatically functional style), or traditionally object-oriented. Instead, it represents a conceptually independent programming approach named **stateless-sequential programming**.
 
 The language also embeds a statically-typed **logic programming subsystem**, that significantly deviates from the Prolog tradition - which mostly concentrates on the centrality of relations - and instead encourages tight interconnections between relations, functions and objects as complementary entities.
 
-A new form of declarative programming called **knowledge-driven programming** is introduced. It is currently a part of an ongoing experimental design process and may eventually receive its own dedicated language once it becomes sufficiently mature.
+A new form of declarative programming, called **knowledge-driven programming**, is introduced. It is currently a part of an ongoing experimental design process and may eventually receive its own dedicated language once it becomes sufficiently mature.
 
 [TOC]
 # Introduction
@@ -20,7 +20,7 @@ A new form of declarative programming called **knowledge-driven programming** is
 * **A programming language doesn't have to look like math or logic formulas**. The vast majority of real-world programming tasks have weak, if any, resemblance to abstract mathematics. Most programmers would benefit more from comprehensive, domain-specific language features that simplify common tasks, than minimalistic, math-like syntax that is possibly "mathematically beautiful" but either very difficult to understand or becomes unusably complicated even when confronted with routine real-world problems.
 * Many **common programming traps can be prevented right at the design stage**, either by stricter syntax and semantics, or better tooling and documentation. It is a part of the designer's responsibility to ensure that their language doesn't invite trivial mistakes that frustrate programmers and waste their time.
 * Many **mundane programming tasks can already be made partially, or fully automated**, or for the very least, drastically simplified. Machine-learning based tools like [GitHub Copilot](https://copilot.github.com/) are extremely impressive. However, much of their contribution is to introduce boilerplate or cut-and-paste code that might be better avoided or replaced with unambiguous semantic references that would enable safe and convenient code reuse, of the kind proposed on the [chapter discussing knowledge-driven programming](#universal-identifiers).
-* For the most part, **a programming language should be fully-designed** before it reaches a full implementation stage. Spend as much time as needed at the design stage (even years, if that's what it takes). Try to cover all possible aspects, including advanced features, until the design matures into a coherent whole.
+* For the most part, **a programming language should be fully designed** before it reaches a full implementation stage. Spend as much time as needed at the design stage (even years, if that's what it takes). Try to cover all possible aspects, including advanced features, until the design matures into a coherent whole.
 * **A programming language is a work of art!** It can be made aesthetically pleasing and enjoyable to use. That doesn't mean this objective is going to be easy to achieve. Beauty requires effort!
 
 ## Main innovations
@@ -322,7 +322,8 @@ action printNameAndAge(name: string, age: integer)
 	print("Name: {name}, Age: {age}")
 	return "OK"
 
-let status = printNameAndAge("John Smith", 35) // Prints "Name: John Smith, Age: 35" and returns "OK"
+let status = printNameAndAge("John Smith", 35)
+// Prints "Name: John Smith, Age: 35" and returns "OK"
 ```
 
 Despite allowing for "impure" operations like writing or reading from a file, actions do not allow for side-effects _internal_ to the program itself, since all variables and values are always guaranteed to be immutable. This doesn't prevent, however, mutable state to be weakly "emulated" through, say, reading and writing to external memory:
@@ -378,14 +379,16 @@ printNameAndAge(_, 12) // prints Name: Anonymous, Age: 12
 **First-class methods** is a language feature allowing functions (and actions) to be used similarly to values. They can be assigned to variables, returned from a secondary method, or passed as an argument:
 
 ```isl
-function giveMeFunction(f: () => integer)  // This function accepts an argument of type function
+// This function accepts an argument of type 'function'
+function giveMeFunction(f: () => integer)
 	return f() + 1
 ```
 
 A **lexical closure** allows a method to capture data from its environment:
 
 ```isl
-function outerFunction(x: integer): () => integer // This function returns a value of type 'function'
+// This function returns a value of type 'function'
+function outerFunction(x: integer): () => integer
 	function innerFunction()
 		return x + 1 // x is captured from the outer scope
 
@@ -820,13 +823,15 @@ function matchList(myList: List<integer>)
 		// Match if 'myList' is empty
 		case []
 
-		// Match first element only if it is smaller than 10 and capture it with the identifier 'head':
+		// Match first element only if it is smaller than 10 and capture it
+		// with the identifier 'head':
 		case [let head < 10, ...]
 
 		// Match if first element equals 25 and capture the last element as 'last':
 		case [25, ..., let last]
 
-		// Match if first element is greater or equal to 10. Capture the tail of the list with the identifier 'tail':
+		// Match if first element is greater or equal to 10. Capture the tail
+		// of the list with the identifier 'tail':
 		case [_ >= 10, let ...tail]
 
 		// Match if first element smaller than 0, second not equals to first,
@@ -937,9 +942,11 @@ function firstTwoElementsAreConsecutive(values: List<integer>): boolean =>
 
 **Loops** are control flow mechanisms for specifying code to be executed repeatedly.
 
-In Island, **loops are rooted in functional iteration patterns** and describe iterative progression in a more declarative way than in traditional sequential languages.
+In Island, **loops are rooted in functional iteration patterns** and describe iterative progression in a more declarative manner than in traditional sequential languages.
 
-Island's `for` loops maintain immutability for all variables within the scope of **each individual iteration** of the loop. This is achieved by:
+Island's `for` loops maintain immutability for all variables within the scope of **each individual iteration** of the loop.
+
+This is achieved by:
 * Requiring all alterable variables to be declared at the head of the loop.
 * Requiring all variable alterations to be conducted within a `continue` or `break` statement, or within the loop's `advance` clause.
 * Requiring variables exposed to the outer scope (after the loop has finished) to be declared with the `out` modifier.
@@ -1116,7 +1123,7 @@ function invalidReturnedFunction()
 
 		return localFunction // But this is invalid
 ```
-_(Note that `localFunction` is referentially transparent within the scope of each loop iteration)_
+_(`localFunction` is considered referentially transparent, if seen from within the scope of each loop iteration)_
 
 Similarly for deferred initialization:
 ```isl
@@ -2217,7 +2224,8 @@ class Fruit extends Named
 	name: string
 	weight: decimal
 
-let l = loveAffair(Person("Angela", 21), Fruit("Apple", 1.5)) // Error! could not find a binding for type parameter T.
+let l = loveAffair(Person("Angela", 21), Fruit("Apple", 1.5))
+// Error! could not find a binding for type parameter T.
 ```
 
 Even though both the types `Person` and `Fruit` satisfy the `Named` feature, the `T` type parameter can only be instantiated by a single type, therefore a compilation error is emitted.
@@ -3534,7 +3542,7 @@ if age is Failure
 
 ## Using `try`..`detect` (action scopes only)
 
-The second approach, available only in action scopes (due to its use of side-effects), uses a `try`..`detect` block and behaves very similarly to `try`, `catch` in mainstream imperative languages:
+The second approach, available only in action scopes (due to its use of side-effects), uses a `try`..`detect` block and behaves very similarly to `try`..`catch` in mainstream imperative languages:
 
 ```isl
 action readLineFromFile(f: File)
@@ -3799,7 +3807,9 @@ Here's an implementation of the `Repeated` pattern mentioned in a previous secti
 ```isl
 type AnyPattern<T> = pattern() in Stream<T>
 
-pattern Repeated<T> (p: AnyPattern<T>, minTimes: integer, maxTimes: integer) of (results: List<T> = []) in Stream<T>
+pattern Repeated<T>(p: AnyPattern<T>, minTimes: integer, maxTimes: integer)
+					of (results: List<T> = [])
+					in Stream<T>
 	if minTimes >= 1
 		for _ in 1..minTimes
 			results += accept p
@@ -3810,7 +3820,7 @@ pattern Repeated<T> (p: AnyPattern<T>, minTimes: integer, maxTimes: integer) of 
 		else
 			break
 
-pattern Repeated<T> (p: AnyPattern<T>, times: integer) of (results: List<T> = []) in Stream<T>
+pattern Repeated<T>(p: AnyPattern<T>, times: integer) of (results: List<T> = []) in Stream<T>
 	results = accept Repeated(p, times, times)
 ```
 
@@ -4149,7 +4159,10 @@ relation Reduced<E, R>
 
 	fact ([], _, _, nothing)
 
-	rule (in [head, ...tail]: List<E>, in reducer: ReducingRelation, in initialResult: R, result: R)
+	rule (in [head, ...tail]: List<E>,
+		  in reducer: ReducingRelation,
+		  in initialResult: R,
+		  result: R)
 		reducer(head, initialResult, let newResult)
 
 		when Equals(tail, [])
@@ -4181,12 +4194,12 @@ relation AllMembersGreaterThan
 
 ## Immutability and determinism in the logic programming subsystem
 
-The logic programming subsystem is fully compliant with the immutability constraint. A rule's arguments can be either assigned (meaning they are bound to a concrete value) or unassigned. If they are assigned they cannot accept a new value (there's simply no mechanism to do that) and if they are unassigned they can only be assigned once by a subgoal.
+Relations are fully immutable. A rule's arguments can be either assigned (meaning they are bound to a concrete value) or unassigned. If they are assigned they cannot accept a new value (there's simply no mechanism to do that) and if they are unassigned they can only be assigned once by a subgoal.
 
 Determinism (which is related to the property of referential transparency), means that an invocation of a relation with the same arguments would always yield the same results, and in the same order. Determinism is preserved since:
 * There is no `action relation`. Relations do not have any side-effects.
 * Objects containing relations cannot be modified in-place. Facts cannot be added or removed from a relation unless the object is copied first (as is done with the `with` operator).
-* The inference engine is designed to always perform the search in the same order (even if the search is parallelized), so given the same clauses and fact database, it would always produce identical results (note it is meant that it would produce the same results **for a given runtime session**, changes in the ordering of declarations or files, or different versions of the compiler, might cause variations in the ordering).
+* The inference engine is designed to always perform the search in the same order (even if the search is parallelized), so given the same clauses and fact database, it would always produce identical results (more specifically, it is meant that it would produce the same results **for a given runtime session**, changes in the ordering of declarations or files, or different versions of the compiler, might cause variations in the ordering).
 
 # Knowledge-driven programming
 
