@@ -1170,13 +1170,20 @@ for i in naturalNumbers() // Loops forever
 
 **Multiple streams** may be consumed within a single `for` loop. At every iteration, each stream is evaluated once by its order of declaration. The loop will terminate whenever any one of the streams end:
 ```isl
-action stream keypresses()
-	repeat
-		let key = getKeyPress()
-		yield key
+stream multiplesOfTwo()
+	for i in 1..infinity
+		if i mod 2 == 0
+			yield i
 
-for i in 1..100, key in keypresses() // This will repeat 100 times
-	print("Keypress {i} was '{key}'")
+for i in 1..100, m in multiplesOfTwo() // This will repeat 100 times
+	print("Num: {i}, Multiple: {m}'")
+
+// Prints:
+// "Num: 1, Multiple: 2"
+// "Num: 2, Multiple: 4"
+// "Num: 3, Multiple: 6"
+// ....
+// "Num: 100, Multiple: 200"
 ```
 
 A **stream object** is a stateless object, of the form:
@@ -1184,7 +1191,7 @@ A **stream object** is a stateless object, of the form:
 class Stream<T>
 	value: T? // The '?' means `value` may be of type `nothing`
 	ended: boolean
-	function next(): Stream<T> // For an action stream, `next` would be an action instead
+	function next(): Stream<T>
 ```
 
 Calling `next()` returns a new stream object, and would cause the previous one to be disposed (any attempt to access it would cause a runtime error).
@@ -2579,11 +2586,9 @@ let s = compute sqrt(z) // z is not evaluated but composed with the computation 
 // s now equals `compute sqrt(1 + 2)`
 ```
 
-Note that just like computed fields, computed variables and values cannot have side-effects therefore cannot include calls to actions or action streams.
+## Concurrent and parallel function execution with the `spawn` keyword
 
-## Concurrent and parallel execution with the `spawn` keyword
-
-When then `spawn` keyword is added to a method call, the method is immediately executed in a separate thread. When the returned value of the spawned method is first read, execution may block if the method had not yet completed:
+When then `spawn` keyword is added to a function call, the function is immediately executed in a separate thread. When the returned value of the spawned method is first read, execution may block if the method had not yet completed:
 
 ```isl
 function heavyCalculation()
@@ -2596,7 +2601,7 @@ let y = somethingUnrelated(....) // This will execute even if heavyCalculations(
 let z = x + y // This may block until heavyCalculations() returns and x receives a value
 ```
 
-**Multiple methods** may be spawned at the same time:
+**Multiple functions** may be spawned at the same time:
 ```isl
 let (r1, r2) = spawn (heavyCalculation1(), heavyCalculation2())
 let a = r1 + 1 // Will block until r1 received a value and exeute even if r2 hasn't yet
@@ -2640,14 +2645,17 @@ Sometimes the lazy behavior isn't desirable, and it is preferred to wait until o
 ```isl
 for (result1, result2) in spawn (heavyCalculations1(), heavyCalculations2())
 	wait result1, result2
-	print("Congratulations, we have new results!") // This will only execute when both result1 and result receive a value
+
+	// This will only execute once both result1 and result receive a value
+	print("Congratulations, we have new results!")
 	....
 ```
 
 For convenience, the `wait` keyword can also be integrated as a modifier to the loop variable:
 ```isl
 for (wait result1, wait result2) in spawn (heavyCalculations1(), heavyCalculations2())
-	print("Congratulations, we have new results!") // This will only execute when both result1 and result receive a value
+	// This will only execute when both result1 and result receive a value
+	print("Congratulations, we have new results!")
 	....
 ```
 
@@ -2660,33 +2668,6 @@ for wait any result in spawn (heavyCalculations1(), heavyCalculations2())
 	writeToDisk(result)
 ```
 
-A similar approach can be used to simultaneously listen to multiple event sources:
-```isl
-// Note that modifying 'event' with the `match` keyword here would automatically
-// wait until a result arrives. No need to specify `wait match`:
-for match any event in spawn (keyboardEvents(), mouseEvents())
-	case KeyboardEvent
-		print("Keyboard event!")
-	case MouseEvent
-		print("Mouse event!")
-```
-
-In a real-world application, however, it is more likely that event sources would require being dynamically subscribed and unsubscribed from throughout the program runtime. This can be achieved by applying `spawn` to a collection (in this example a dictionary) and altering the collection in progressive iterations of the loop:
-
-```isl
-for eventSources = { "kEvents": keyboardEvents() }, match any event in spawn eventSources
-	case KeyboardEvent
-		print("Keyboard event!")
-		print("Now listening to mouse events instead!")
-
-		continue eventSources with
-			no ["kEvents"]
-			["mEvents"] = mouseEvents()
-
-	case MouseEvent
-		print("Mouse event!")
-```
-
 The `spawn` keyword can also be used in stream and list comprehensions.
 
 This will define a stream method that computes an unbounded series of primes in the background:
@@ -2697,7 +2678,7 @@ let backgroundPrimes = (for p in spawn calculatePrimes()) => p
 
 ## Automatic parallelization via implicit spawning
 
-In the case of `function`s and plain (pure) `stream`s (i.e. non-`action stream`s), spawning may be done automatically, without any need for explicit annotation in the code, since execution of these methods does not carry any impact beyond the scope of their own running context.
+Since `function`s and `stream`s are pure computations, spawning may be performed automatically by the compiler, without any need for explicit annotation in the code, since execution of these methods does not carry any impact beyond the scope of their internal running context.
 
 This means that normal code may be internally transformed during compilation to include `spawn` modifiers based on the compiler's own judgement. For example:
 
@@ -2705,20 +2686,146 @@ This means that normal code may be internally transformed during compilation to 
 let x = someFunction(....)
 let y = anotherFunction(....)
 
-for a in somePureStream()
+for a in someStream()
 	....
 ```
 
-May be automatically transformed to:
+May be transformed to:
 ```isl
 let x = spawn someFunction(....)
 let y = spawn anotherFunction(....)
 
-for a in spawn somePureStream()
+for a in spawn someStream()
 	....
 ```
 
-In the case of a pure (functional) stream, the compiler may also choose to precompute one or more future elements ahead of time (that is, in parallel to the execution of the loop body), since doing so would have no impact on the program's behavior (aside from slightly increased memory use).
+In the case of a stream, the compiler may also choose to precompute one or more future elements ahead of time (that is, in parallel to the execution of the loop body), since doing so would have no impact on the program's behavior (aside from possible slight increase in memory use).
+
+## Delegates and structured side-effect parallelism
+
+`spawn` allows pure functions and streams to be easily parallelized. Since pure computations have no side-effects, there's no need for much careful considerations when applying it. The worst that can happen is that performance may be degraded due to excessive overhead, when managed inappropriately.
+
+When dealing with parallelism involving side-effects, however, the situation becomes more subtle. If it was possible to freely 'spawn' actions, that would open up several potential issues:
+
+* If an action could be freely spawned to execute in a separate thread, would its execution be let to 'invisibly' continue forever? even if the original caller has long terminated?
+* How would it be possible to conduct two-way communication with the spawned action? Perhaps via a channel? but are free-form channels, which can be duplicated and moved everywhere, really a good fit for a strict language such as Island?
+
+Instead of free-form threading and channeling, Island provides _delegates_ (no relation to C# delegates), which are worker-like action subroutines that are designed to follow a strict pattern of _structured parallelism_.
+
+A **delegate method** (analogous to a stream method) is an action scoped subroutine which once called, returns a **delegate object** (analogous to a stream object) that can be used for two-way communication with it.
+
+Here's a simple example:
+```isl
+delegate MyDelegate(): (in: string, out: string)
+	repeat
+		let name <- in
+		out <- "Hello {name}!"
+```
+
+The above delegate has two unnamed channels, an incoming one called `in`, of type `string`, and outgoing one called `out`, also of type `string`.
+
+`.... <- in` reads a value from the incoming channel.
+`out <- ....` writes a value to the outgoing channel.
+
+Calling `MyDelegate` returns an object of type `MyDelegate`. This object allows its caller scope to interactively communicate with it:
+```isl
+let myDelegate = MyDelegate()
+
+myDelegate.in <- "Adam" // Sends "Adam" to the incoming channel
+let result1 <- myDelegate.out // Receives the result "Hello Adam!" from the outgoing channel
+
+myDelegate.in <- "Tom" // Sends "Tom" to the incoming channel
+let result2 <- myDelegate.out // Receives the result "Hello Tom!" from the outgoing channel
+```
+
+Note that since in this example the `in` and `out` channels are unnamed, the `.in` and `.out` references can be safely omitted:
+```isl
+myDelegate <- "Adam" // "Adam" is sent to the incoming channel
+let result <- myDelegate // "Hello Adam!" is received from the outgoing channel
+```
+
+A delegate may include **several distinct incoming or outgoing channels**, by giving them individual names:
+```isl
+delegate MyDelegate(): (in nameChan: string, in ageChan: integer, out greetingChan: string)
+	repeat
+		let name <- nameChan
+		let age <- ageChan
+		greetingChan <- "Hello {name}, {age} years of age!"
+
+let myDelegate = MyDelegate()
+
+myDelegate.nameChan <- "Dennis"
+myDelegate.ageChan <- 29
+let greeting <- myDelegate.greetingChan // greeting <- "Hello Dennis, 29 years of age!"
+```
+
+A delegate's outgoing channels **may be consumed by loops**, similarly to streams:
+```isl
+delegate MyDelegate(): (out greetingChan: string)
+	for i in 1..infinity
+		greetingChan <- "Hello {i}"
+
+let myDelegate = MyDelegate()
+
+for greeting in myDelegate.greetingChan
+	print(greeting)
+
+// Prints "Hello 1", "Hello 2", "Hello 3", ....
+```
+
+Similarly to how multiple parallel streams can be consumed using the `any` modifier, an incoming message can be retrieved whenever it's received from any of two or more delegates:
+```isl
+delegate KeyEvents(): (out: KeyEvent)
+	....
+
+delegate MouseEvents(): (out: MouseEvent)
+	....
+
+// Note that modifying 'event' with the `match` keyword here would automatically
+// wait until a value arrives. No need to specify `wait match`:
+for match any event in (KeyEvents(), MouseEvents())
+	case KeyEvent
+		....
+	case MouseEvent
+		....
+```
+
+In a real-world application, however, it is more likely that event sources would require being dynamically subscribed and unsubscribed from throughout the program runtime. This can be achieved by iterating over a dynamic collection (in this example a dictionary) and altering the collection in progressive iterations of the loop:
+
+```isl
+for eventSources = { "kEvents": KeyEvents() }, match any event in eventSources
+	case KeyEvent
+		print("Keyboard event!")
+		print("Now listening to mouse events instead!")
+
+		continue eventSources with
+			no ["kEvents"]
+			["mEvents"] = MouseEvents()
+
+	case MouseEvent
+		print("Mouse event!")
+```
+
+A delegate executes in parallel to the calling thread, but is **bound to the lifetime of its object**. Once its object goes out of scope, its execution immediately terminates. It cannot be spawned and then "forgotten":
+```isl
+if ....
+	let longRunningDelegate = LongRunningDelegate() // Delegate starts in parallel thread
+
+	// `longRunningDelegate` scope ends here
+
+// The delegate execution's has been abruptly terminated since its object is no longer in scope!
+```
+
+A delegate object **cannot be copied, only moved**. Move semantics ensure that its channels can only communicate with a single endpoint at one time:
+
+```isl
+let myDelegate = MyDelegate()
+
+let myDelegate2 = myDelegate // Delegate object now only reachable via myDelegate2
+
+myDelegate2 <- "Nancy" // Works
+myDelegate <- "Nancy" // Fails at compile-time
+```
 
 # Contracts
 
@@ -2857,19 +2964,19 @@ function something(x: integer where x mod 10 == 0): (result: integer where resul
 
 These capabilities enable overload resolution to include rudimentary `match`-like predicates:
 ```isl
-action processSomething(category: "Animal", isMammal: true, owner: Person where age >= 18)
+action doSomething(category: "Animal", isMammal: true, owner: Person where age >= 18)
 	print("Hello animal lover!")
 
-action processSomething(category: "Animal", isMammal: false, owner: Person where age < 18)
+action doSomething(category: "Animal", isMammal: false, owner: Person where age < 18)
 	print("Hello young animal lover!")
 
-action processSomething(category: "Person", id: /[a..zA..Z]+/)
+action doSomething(category: "Person", id: /[a..zA..Z]+/)
 	print("Hello random person!")
 ```
 
 Using the compact overloading syntax would resemble more of the `match`/`case` structure. The following is semantically equivalent:
 ```isl
-action processSomething
+action doSomething
 	(category: "animal", isMammal: true, owner: Person where age >= 18)
 		print("Hello animal lover!")
 
@@ -2912,7 +3019,7 @@ Simple literal types like `"Animal"`, `5` or `true` can alternatively be stated 
 
 This would further simplify a previous example to:
 ```isl
-action processSomething
+action doSomething
 	("animal", true, owner: Person where age >= 18)
 		print("Hello animal lover!")
 
@@ -2926,7 +3033,7 @@ action processSomething
 Having no identifiers, the first two parameters can still accept named arguments by being referenced by their index:
 
 ```isl
-processSomething([2] = false, owner = Person("Lea","Johnson", 16), [1] = "Animal")
+doSomething([2] = false, owner = Person("Lea","Johnson", 16), [1] = "Animal")
 // prints "Hello young animal lover!"
 ```
 
@@ -4405,9 +4512,29 @@ let result = absoluteValue.result // result gets the value 11
 
 This syntax may become too cumbersome in many cases. An alternative would be using a **mapper** to define a simple function-like method which accepts a set of known properties as parameters, and returns one or more unknown ones as return values:
 ```isl
-mapper abs = (AbsoluteValue.input) => (AbsoluteValue.result)
+mapper abs(AbsoluteValue.input) => AbsoluteValue.result
 
 let x = abs(-11) // x gets the value 11
+```
+
+Like conventional functions, mapper signatures can be overloaded:
+```isl
+mapper getDistance(SimpleKinematics.Time,
+				   SimpleKinematics.speed.metersPerSecond) => SimpleKinematics.distance
+mapper getDistance(SimpleKinematics.Time,
+				   SimpleKinematics.speed.kilometersPerHour) => SimpleKinematics.distance
+```
+
+Mapper parameters may receive aliases (though they are not generally necessary since semantic identities are always unique) and be invoked with named arguments:
+```isl
+mapper getDistance(time: SimpleKinematics.Time,
+				   speed: SimpleKinematics.speed.kilometersPerHour) => SimpleKinematics.distance
+
+let distance = getDistance(time = 54, speed = 75)
+
+// Or alternatively, using full semantic identity references:
+let distance = getDistance(SimpleKinematics.Time = 54,
+						   SimpleKinematics.speed.kilometersPerHour = 75)
 ```
 
 ## Recursive instantiation and embedding
@@ -4643,6 +4770,10 @@ let speedMph = Speed.milesPerHour given // speedMph gets the value 17.04545
 let distanceMiles = Distance.miles given // distanceMiles gets the value 156.11951
 	Speed.kilometersPerHour = 33.5,
 	Time.hours = 7.5
+
+// Same computations, but generalized to reusable mappers:
+mapper computeSpeedMph(Distance.yards, Time.minutes) => Speed.milesPerHour
+mapper computeDistanceMiles(Speed.kilometersPerHour, Time.hours) => Distance.miles
 ```
 
 We've used a form of syntax we haven't seen before: `let x = .... given ....`.
@@ -4689,8 +4820,8 @@ context Lowercase
 
 Next define the main context. We'll use some helper mappers to simplify the code:
 ```isl
-mapper uppercase = (Uppercase.plain) ⇒ Uppercase.uppercase
-mapper lowercase = (Lowercase.plain) ⇒ Lowercase.lowercase
+mapper uppercase(Uppercase.plain) => Uppercase.uppercase
+mapper lowercase(Lowercase.plain) => Lowercase.lowercase
 
 context Name
 	name: string
@@ -4998,7 +5129,7 @@ context AddNumbers
 	num2: integer
 	sum: integer => num1 + num2
 
-	mapper this = (num1, num2) => sum
+	mapper this(num1, num2) => sum
 ```
 
 Note that pseudo-functions must specify named return variables, since their return value (or values, if there are more than one) is directly translated into a property.
@@ -5101,19 +5232,19 @@ expect Factorial.previousFactorial.previousFactorial.input == 4 given Factorial.
 
 ...TODO...
 
-## ELI5: Illustrative "magic room" metaphors
+## ELI5: Illustrative "magic room" analogies
 
 ### Contexts, properties and mapping rules
 
 Think of a context as if it was a _blueprint_ for an imaginary "magic" room.
 
-The room may contain one or more boxes, which act as a metaphor for _properties_.
+The room may contain one or more boxes, which act as an analogy for its _properties_.
 
-Each box may contain an item of a particular type, e.g. a ball, a pen, a doll etc. The kind of thing the box may contain is a metaphor for the _type_ of a property (`string`, `integer` etc.).
+Each box may contain an item of a particular type, e.g. a ball, a pen, a doll etc. The kind of thing the box may contain is analogous to the _type_ of a property (`string`, `integer` etc.).
 
-The box is also characterized by a secondary quality, which is completely unique to it. This quality describes what purpose the box represents in relation to other boxes in the room, as well as to the room as a whole. This quality is a metaphor for its _semantic identity_.
+The box is also characterized by a secondary quality, which is completely unique to it. This quality describes what purpose the box represents in relation to other boxes in the room, as well as to the room as a whole. This quality is analogous to its _semantic identity_.
 
-The room can be cast with a one or more magic spells that cause items to appear inside of empty boxes. These spells may depend on the content of nonempty boxes, including boxes that received their content due to magic. These spells are metaphors for _mapping rules_.
+The room can be cast with a one or more magic spells that cause items to appear inside of empty boxes. These spells may depend on the content of nonempty boxes, including boxes that received their content due to magic. These spells are analogous to _mapping rules_.
 
 
 ### Embedded context
@@ -5444,7 +5575,7 @@ print(t2 == t3) // prints false
 
 ## Influences
 
-This work would not have been possible without ideas adapted or inspired by other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, Swift, F#, Oz, Scala, Quorum and Prolog.
+This work would not have been possible without ideas adapted or inspired by other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, Swift, Go, F#, Oz, Scala, Quorum and Prolog.
 
 ## Who wrote this?
 

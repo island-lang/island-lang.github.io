@@ -7,37 +7,38 @@ html {
 }
 
 body {
-  margin: 0em auto;
-  padding: 0em;
+  margin: 0rem auto;
+  padding: 0rem;
   background-color: #f8f8f8;
 }
 
 #main-content {
-  max-width: 52em;
-  margin: 0em auto;
+  max-width: 52rem;
+  margin: 0rem auto;
   background-color: white;
 }
-@media screen and (max-width: 55em) {
+@media screen and (max-width: 55rem) {
   #main-content {
-    padding-left: 1.5em;
-    padding-right: 1.5em;
-    padding-top: 2em;
-    padding-bottom: 1em;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 2rem;
+    padding-bottom: 1rem;
   }
 }
-@media screen and (min-width: 55em) {
+@media screen and (min-width: 55rem) {
   #main-content {
-    margin-top: 1em;
-    margin-bottom: 0.5em;
-    padding-left: 2em;
-    padding-right: 2em;
-    padding-top: 3em;
-    padding-bottom: 1em;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-top: 3rem;
+    padding-bottom: 1rem;
     border-style: solid;
     border-width: 1px;
     border-color: #e4e4e4;
-    border-radius: 0.6em;
-    border-radius: 1.35em;
+    border-radius: 0.6rem;
+    box-shadow: 0rem 0rem 0rem #eeeeee;
+    border-radius: 1.35rem;
   }
 }
 
@@ -59,6 +60,8 @@ h1#top-heading {
   text-transform: capitalize;
   letter-spacing: 0.02ch;
   line-height: 1.4em;
+  color: #292929;
+  text-shadow: 0ch 0ch 0ch #dadada;
   text-align: center;
   margin-top: 1em;
   margin-bottom: 3em;
@@ -149,8 +152,8 @@ nav.table-of-contents {
   font-size: 0.97em;
   font-weight: normal;
   background-color: #f8f8f8;
-  padding: 0.5em;
-  border-radius: 0.5em;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
   line-height: 1.6em;
 }
 nav.table-of-contents ol {
@@ -191,23 +194,25 @@ nav.table-of-contents {
   border-style: solid;
   border-width: 1px;
   border-color: #e4e4e4;
-  border-radius: 0.6em;
+  border-radius: 0.6rem;
+  box-shadow: 0rem 0rem 0rem #eeeeee;
 }
 
 footer {
-  max-width: 55.5em;
-  margin: 0em auto;
-  padding: 0em;
-  padding-left: 1em;
-  padding-right: 1em;
-  padding-bottom: 0.5em;
+  max-width: 55.5rem;
+  margin: 0rem auto;
+  padding: 0rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 0.5rem;
 }
 footer #last-modified {
   font-size: 0.8em;
   font-weight: 350;
   text-align: right;
   color: #7a7a7a;
-  margin: 0em;
+  text-shadow: 0ch 0ch 0.2ch #d1d1d1;
+  margin: 0rem;
 }
 
 @font-face {

@@ -12,17 +12,21 @@ $tocBackgroundColor: rgb(248, 248, 248);
 $boxBorderStyle: solid;
 $boxBorderWidth: 1px;
 $boxBorderColor: rgb(228, 228, 228);
-$boxBorderRadius: 0.6em;
+$boxBorderRadius: 0.6rem;
+$boxShadowRadius: 0.0rem;
+$boxShadowColor: rgb(238, 238, 238);
 
-$contentBorderRadius: 1.35em;
 
-$contentMaxWidth: 52em;
+$contentBorderRadius: 1.35rem;
+
+$contentMaxWidth: 52rem;
 
 @mixin boxBorder {
 	border-style: $boxBorderStyle;
 	border-width: $boxBorderWidth;
 	border-color: $boxBorderColor;
 	border-radius: $boxBorderRadius;
+	box-shadow: 0rem 0rem $boxShadowRadius $boxShadowColor;
 }
 
 html {
@@ -35,35 +39,35 @@ html {
 }
 
 body {
-	margin: 0em auto;
-	padding: 0em;
+	margin: 0rem auto;
+	padding: 0rem;
 
 	background-color: $bodyBackgroundColor;
 }
 
 #main-content {
 	max-width: $contentMaxWidth;
-	margin: 0em auto;
+	margin: 0rem auto;
 
 	background-color: $contentBackgroundColor;
 
-	$widthBoundary: $contentMaxWidth + 3em;
+	$widthBoundary: $contentMaxWidth + 3rem;
 
 	@media screen and (max-width: $widthBoundary) {
-		padding-left: 1.5em;
-		padding-right: 1.5em;
-		padding-top: 2em;
-		padding-bottom: 1em;
+		padding-left: 1.5rem;
+		padding-right: 1.5rem;
+		padding-top: 2rem;
+		padding-bottom: 1rem;
 	}
 
 	@media screen and (min-width: $widthBoundary) {
-		margin-top: 1em;
-		margin-bottom: 0.5em;
+		margin-top: 1rem;
+		margin-bottom: 0.5rem;
 
-		padding-left: 2em;
-		padding-right: 2em;
-		padding-top: 3em;
-		padding-bottom: 1em;
+		padding-left: 2rem;
+		padding-right: 2rem;
+		padding-top: 3rem;
+		padding-bottom: 1rem;
 
 		@include boxBorder();
 		border-radius: $contentBorderRadius;
@@ -88,8 +92,10 @@ h1 {
 		font-weight: 800;
 		text-transform: capitalize;
 		letter-spacing: 0.02ch;
-
 		line-height: 1.4em;
+		color:rgb(41, 41, 41);
+		text-shadow: 0.0ch 0.0ch 0.0ch rgb(218, 218, 218);
+
 		text-align: center;
 
 		margin-top: 1em;
@@ -179,8 +185,8 @@ nav.table-of-contents {
 	font-weight: normal;
 
 	background-color: $tocBackgroundColor;
-	padding: 0.5em;
-	border-radius: 0.5em;
+	padding: 0.5rem;
+	border-radius: 0.5rem;
 	line-height: 1.6em;
 
 	ol {
@@ -226,13 +232,13 @@ nav.table-of-contents {
 }
 
 footer {
-	max-width: $contentMaxWidth + 3.5em;
-	margin: 0em auto;
+	max-width: $contentMaxWidth + 3.5rem;
+	margin: 0rem auto;
 
-	padding: 0em;
-	padding-left: 1em;
-	padding-right: 1em;
-	padding-bottom: 0.5em;
+	padding: 0rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	padding-bottom: 0.5rem;
 
 	#last-modified {
 		font-size: 0.8em;
@@ -240,7 +246,9 @@ footer {
 
 		text-align: right;
 		color: $lastModifiedTextColor;
-		margin: 0em;
+		text-shadow: 0.0ch 0.0ch 0.2ch rgb(209, 209, 209);
+
+		margin: 0rem;
 	}
 }
 
