@@ -43,7 +43,7 @@ A new form of declarative programming, called **knowledge-driven programming**, 
 * Expressive, rather than minimalist, syntax. No special emphasis on cutting down on special keywords (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
 * Types should be inferred whenever possible.
 * Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and assertion types, compile-time contracts).
-* Allow for easy and effective concurrency (lightweight threads, deterministic dataflows, asynchronous generators, automatic parallelization).
+* Allow for easy and effective concurrency (lightweight threads, asynchronous generators, automatic parallelization, structured concurrency, deterministic dataflows).
 
 ## Implementation state
 
@@ -2701,18 +2701,18 @@ for a in spawn someStream()
 
 In the case of a stream, the compiler may also choose to precompute one or more future elements ahead of time (that is, in parallel to the execution of the loop body), since doing so would have no impact on the program's behavior (aside from possible slight increase in memory use).
 
-## Delegates and structured side-effect parallelism
+## Delegates and structured side-effect concurrency
 
 `spawn` allows pure functions and streams to be easily parallelized. Since pure computations have no side-effects, there's no need for much careful considerations when applying it. The worst that can happen is that performance may be degraded due to excessive overhead, when managed inappropriately.
 
-When dealing with parallelism involving side-effects, however, the situation becomes more subtle. If it was possible to freely 'spawn' actions, that would open up several potential issues:
+When dealing with concurrency and parallelism involving side-effects, however, the situation becomes more subtle. If it was possible to freely 'spawn' actions, that would open up several potential issues:
 
-* If an action could be freely spawned to execute in a separate thread, would its execution be let to 'invisibly' continue forever? even if the original caller has long terminated?
-* How would it be possible to conduct two-way communication with the spawned action? Perhaps via a channel? but are free-form channels, which can be duplicated and moved everywhere, really a good fit for a strict language such as Island?
+* If an action could be freely spawned to execute in a separate thread, would its execution be let to 'invisibly' continue forever? even long after execution has left the original caller's scope?
+* How would it be possible to conduct two-way communication with the spawned action? Perhaps via a channel? but are free-form channels, which can be duplicated and moved everywhere, really a good fit for a safe and strict language like Island?
 
-Instead of free-form threading and channeling, Island provides _delegates_ (no relation to C# delegates), which are worker-like action subroutines that are designed to follow a strict pattern of _structured parallelism_.
+For these reasons, instead of free-form threading and channeling, Island provides _delegates_ (no relation to C# delegates), which are worker-like action subroutines that are designed to follow a strict pattern of _structured concurrency and messaging_.
 
-A **delegate method** (analogous to a stream method) is an action scoped subroutine which once called, returns a **delegate object** (analogous to a stream object) that can be used for two-way communication with it.
+A **delegate method** (analogous to a stream method) is an action scoped subroutine which once called, returns a **delegate object** (analogous to a stream object) that can be used for two-way communication with it via one or more embedded channels.
 
 Here's a simple example:
 ```isl
@@ -2738,13 +2738,13 @@ myDelegate.in <- "Tom" // Sends "Tom" to the incoming channel
 let result2 <- myDelegate.out // Receives the result "Hello Tom!" from the outgoing channel
 ```
 
-Note that since in this example the `in` and `out` channels are unnamed, the `.in` and `.out` references can be safely omitted:
+Since in this example the `in` and `out` channels are unnamed, the `.in` and `.out` references can be omitted:
 ```isl
 myDelegate <- "Adam" // "Adam" is sent to the incoming channel
 let result <- myDelegate // "Hello Adam!" is received from the outgoing channel
 ```
 
-A delegate may include **several distinct incoming or outgoing channels**, by giving them individual names:
+A delegate may include **several distinct incoming or outgoing channels**, by giving them individual identifiers:
 ```isl
 delegate MyDelegate(): (in nameChan: string, in ageChan: integer, out greetingChan: string)
 	repeat
@@ -2759,7 +2759,7 @@ myDelegate.ageChan <- 29
 let greeting <- myDelegate.greetingChan // greeting <- "Hello Dennis, 29 years of age!"
 ```
 
-A delegate's outgoing channels **may be consumed by loops**, similarly to streams:
+A delegate's outgoing channels **may be consumed by `for` loops**, in a manner similar to streams:
 ```isl
 delegate MyDelegate(): (out greetingChan: string)
 	for i in 1..infinity
@@ -2773,7 +2773,7 @@ for greeting in myDelegate.greetingChan
 // Prints "Hello 1", "Hello 2", "Hello 3", ....
 ```
 
-Similarly to how multiple parallel streams can be consumed using the `any` modifier, an incoming message can be retrieved whenever it's received from any of two or more delegates:
+Similarly to how multiple parallel streams can be consumed using the `any` modifier, an incoming message can be consumed as soon as it's received from any of two or more delegate channels:
 ```isl
 delegate KeyEvents(): (out: KeyEvent)
 	....
@@ -2781,16 +2781,17 @@ delegate KeyEvents(): (out: KeyEvent)
 delegate MouseEvents(): (out: MouseEvent)
 	....
 
-// Note that modifying 'event' with the `match` keyword here would automatically
-// wait until a value arrives. No need to specify `wait match`:
-for match any event in (KeyEvents(), MouseEvents())
+// Note that modifying 'anyEvent' with the `match` keyword here would automatically
+// wait until a message arrives. No need to specify `wait match`:
+for match any anyEvent in (KeyEvents(), MouseEvents())
+	// 'anyEvent' has type 'KeyEvent or MouseEvent'
 	case KeyEvent
 		....
 	case MouseEvent
 		....
 ```
 
-In a real-world application, however, it is more likely that event sources would require being dynamically subscribed and unsubscribed from throughout the program runtime. This can be achieved by iterating over a dynamic collection (in this example a dictionary) and altering the collection in progressive iterations of the loop:
+In real-world applications, however, it is also likely that event sources would require being dynamically subscribed and unsubscribed from throughout the program runtime. This can be achieved by iterating over a dynamic collection of delegates (in this example a dictionary) and altering the collection in progressive iterations of the loop:
 
 ```isl
 for eventSources = { "kEvents": KeyEvents() }, match any event in eventSources
@@ -2809,11 +2810,28 @@ for eventSources = { "kEvents": KeyEvents() }, match any event in eventSources
 A delegate executes in parallel to the calling thread, but is **bound to the lifetime of its object**. Once its object goes out of scope, its execution immediately terminates. It cannot be spawned and then "forgotten":
 ```isl
 if ....
-	let longRunningDelegate = LongRunningDelegate() // Delegate starts in parallel thread
+	let longRunningDelegate = LongRunningDelegate() // Delegate starts on a parallel thread
 
 	// `longRunningDelegate` scope ends here
 
-// The delegate execution's has been abruptly terminated since its object is no longer in scope!
+// The delegate execution's may have been abruptly terminated
+// since its object is no longer in scope!
+```
+
+It is possible to convert a delegate call to a synchronous-like method invocation, in an `await`-like fashion, by immediately consuming a message from its outgoing channel:
+```isl
+delegate readTextFileInBackground(fileName: string): (out: string)
+	....
+
+	out <- fileContent
+	// 'return fileContent' can also be used as long as there's only one outgoing channel
+
+let text <- readTextFileInBackground("data.txt") // Execution waits until a message is received
+// The delegate is terminated immediately after it sends its first message.
+//
+// If the delegate body included additional code after `out <- fileContent`, this code
+// would not be executed, or alternatively a compile/run-time error may be issued
+// (depending on settings)
 ```
 
 A delegate object **cannot be copied, only moved**. Move semantics ensure that its channels can only communicate with a single endpoint at one time:
@@ -2825,6 +2843,33 @@ let myDelegate2 = myDelegate // Delegate object now only reachable via myDelegat
 
 myDelegate2 <- "Nancy" // Works
 myDelegate <- "Nancy" // Fails at compile-time
+```
+
+If a delegate, or any of the secondary delegates it spawns, encounters an unhandled failure, the resulting **failure object will be immediately captured and propagated** to all of its outgoing channels. A convenient way to handle these failures is to add a `Failure` match case handler when messages are read via a `for match any` statement.
+
+In this example, the `Failure` type becomes a hidden component of the choice type inferred for `anyEvent`. Failures will be caught from either `KeyEvents`, `MouseEvents` or any one of the delegates they encapsulate:
+
+```isl
+for match any anyEvent in (KeyEvents(), MouseEvents())
+	// 'anyEvent' has type 'KeyEvent or MouseEvent (or Failure)'
+	case KeyEvent
+		....
+	case MouseEvent
+		....
+	case Failure // Failure type can be further specialized, like to 'Failure<IO>'
+		....
+```
+
+By default, messages sent to a channel are delivered asynchronously:
+```isl
+myDelegate <- "Some data" // message will be buffered if receiver is busy
+.... // any subsequent code is immediately executed
+```
+
+To ensure the sent message is delivered before execution proceeds, the `wait` modifier can be used:
+```isl
+wait myDelegate <- "Some data" // execution will wait until message is delivered
+.... // any subsequent code will only be run only after the message is read by the delegate
 ```
 
 # Contracts
