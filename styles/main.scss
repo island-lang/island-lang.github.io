@@ -1,6 +1,11 @@
 $textColor: rgb(44, 44, 44);
 $headerTextColor: rgb(31, 31, 31);
+
+$topHeadingColor: rgb(41, 41, 41);
+$topHeadingShadowColor: rgb(218, 218, 218);
+
 $lastModifiedTextColor: rgb(122, 122, 122);
+$lastModifiedShadowColor: rgb(209, 209, 209);
 
 $linkColor: rgb(0, 89, 232);
 $headerAnchorLinkColor: rgb(0, 89, 232); //rgb(180, 58, 255);
@@ -16,9 +21,7 @@ $boxBorderRadius: 0.6rem;
 $boxShadowRadius: 0.0rem;
 $boxShadowColor: rgb(238, 238, 238);
 
-
 $contentBorderRadius: 1.35rem;
-
 $contentMaxWidth: 52rem;
 
 @mixin boxBorder {
@@ -93,8 +96,8 @@ h1 {
 		text-transform: capitalize;
 		letter-spacing: 0.02ch;
 		line-height: 1.4em;
-		color:rgb(41, 41, 41);
-		text-shadow: 0.0ch 0.0ch 0.0ch rgb(218, 218, 218);
+		color: $topHeadingColor;
+		text-shadow: 0.0ch 0.0ch 0.0ch $topHeadingShadowColor;
 
 		text-align: center;
 
@@ -246,7 +249,7 @@ footer {
 
 		text-align: right;
 		color: $lastModifiedTextColor;
-		text-shadow: 0.0ch 0.0ch 0.2ch rgb(209, 209, 209);
+		text-shadow: 0.0ch 0.0ch 0.2ch $lastModifiedShadowColor;
 
 		margin: 0rem;
 	}

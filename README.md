@@ -28,7 +28,7 @@ A new form of declarative programming, called **knowledge-driven programming**, 
 * **[Stateless loops](#loops)** (or alternatively **structured loops**) are an approach to iterative control flow that attempts to unify the best of both the imperative and functional idioms. Stateless loops are written in a sequential style but are bound by a strict structure that ensures they can be trivially reduced to tail-recursive functional iteration.
 * **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness of the language by abstracting over the notion of the "prior" output of a generator. **Named return variables** provide a safe and restricted form of mutability by enabling the return value to be "accumulated" in a write-only fashion, analogous to an accumulative generator.
 * **[Partially constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of the object's functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
-* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that provide a generalized way to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input stream, as well as be written as polymorphic or higher-order abstractions.
+* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that provide a generalized way to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input, as well as be written as polymorphic or higher-order abstractions.
 * **[Class-embedded relations](#logic-programming)** enable logic-programming style relations to be encapsulated within immutable container objects. Relations can be defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
 * **[Knowledge-driven programming](#knowledge-driven-programming)** is a form of declarative programming where information entities are given precise semantics via universally referenceable schemas, and computations are synthesized at compile-time, by composing chains of inference rules that derive unknown information entities from known ones.
 
@@ -2586,7 +2586,7 @@ let s = compute sqrt(z) // z is not evaluated but composed with the computation 
 // s now equals `compute sqrt(1 + 2)`
 ```
 
-## Concurrent and parallel function execution with the `spawn` keyword
+## Concurrent and parallel execution with the `spawn` keyword
 
 When then `spawn` keyword is added to a function call, the function is immediately executed in a separate thread. When the returned value of the spawned method is first read, execution may block if the method had not yet completed:
 
@@ -2708,11 +2708,11 @@ In the case of a stream, the compiler may also choose to precompute one or more 
 When dealing with concurrency and parallelism involving side-effects, however, the situation becomes more subtle. If it was possible to freely 'spawn' actions, that would open up several potential issues:
 
 * If an action could be freely spawned to execute in a separate thread, would its execution be let to 'invisibly' continue forever? even long after execution has left the original caller's scope?
-* How would it be possible to conduct two-way communication with the spawned action? Perhaps via a channel? but are free-form channels, which can be duplicated and moved everywhere, really a good fit for a safe and strict language like Island?
+* How would it be possible to conduct two-way communication with the spawned action? Perhaps by passing it a channel? but are free-form channels, which can be duplicated and moved everywhere, really a good fit for a safe and strict language like Island?
 
 For these reasons, instead of free-form threading and channeling, Island provides _delegates_ (no relation to C# delegates), which are worker-like action subroutines that are designed to follow a strict pattern of _structured concurrency and messaging_.
 
-A **delegate method** (analogous to a stream method) is an action scoped subroutine which once called, returns a **delegate object** (analogous to a stream object) that can be used for two-way communication with it via one or more embedded channels.
+A **delegate method** (analogous to a stream method) is an action scoped subroutine which once called, returns a **delegate object** (analogous to a stream object) that can be used for two-way communication with it via an embedded channel.
 
 Here's a simple example:
 ```isl
@@ -2722,58 +2722,38 @@ delegate MyDelegate(): (in: string, out: string)
 		out <- "Hello {name}!"
 ```
 
-The above delegate has two unnamed channels, an incoming one called `in`, of type `string`, and outgoing one called `out`, also of type `string`.
+The above delegate has both incoming and outgoing channels. An incoming one of type `string`, and an outgoing one, also of type `string`.
 
-`.... <- in` reads a value from the incoming channel.
-`out <- ....` writes a value to the outgoing channel.
+`.... <- in` reads a message from the incoming channel.
+`out <- ....` writes a message to the outgoing channel.
 
 Calling `MyDelegate` returns an object of type `MyDelegate`. This object allows its caller scope to interactively communicate with it:
 ```isl
 let myDelegate = MyDelegate()
 
-myDelegate.in <- "Adam" // Sends "Adam" to the incoming channel
-let result1 <- myDelegate.out // Receives the result "Hello Adam!" from the outgoing channel
+myDelegate <- "Adam" // Sends "Adam" to the incoming channel
+let result1 <- myDelegate // Receives the result "Hello Adam!" from the outgoing channel
 
-myDelegate.in <- "Tom" // Sends "Tom" to the incoming channel
-let result2 <- myDelegate.out // Receives the result "Hello Tom!" from the outgoing channel
+myDelegate <- "Tom" // Sends "Tom" to the incoming channel
+let result2 <- myDelegate // Receives the result "Hello Tom!" from the outgoing channel
 ```
 
-Since in this example the `in` and `out` channels are unnamed, the `.in` and `.out` references can be omitted:
+A delegate's outgoing channel **may be consumed by a `for` loop**, in a manner similar to a stream:
 ```isl
-myDelegate <- "Adam" // "Adam" is sent to the incoming channel
-let result <- myDelegate // "Hello Adam!" is received from the outgoing channel
-```
-
-A delegate may include **several distinct incoming or outgoing channels**, by giving them individual identifiers:
-```isl
-delegate MyDelegate(): (in nameChan: string, in ageChan: integer, out greetingChan: string)
-	repeat
-		let name <- nameChan
-		let age <- ageChan
-		greetingChan <- "Hello {name}, {age} years of age!"
-
-let myDelegate = MyDelegate()
-
-myDelegate.nameChan <- "Dennis"
-myDelegate.ageChan <- 29
-let greeting <- myDelegate.greetingChan // greeting <- "Hello Dennis, 29 years of age!"
-```
-
-A delegate's outgoing channels **may be consumed by `for` loops**, in a manner similar to streams:
-```isl
-delegate MyDelegate(): (out greetingChan: string)
+delegate MyDelegate(): (out: string)
+// This delegate only has an outgoing channel.
+// It is, in a sense, very similar to a stream, only that it may also produce side-effects,
+// by invoking actions or spawning further delegates.
 	for i in 1..infinity
 		greetingChan <- "Hello {i}"
 
-let myDelegate = MyDelegate()
-
-for greeting in myDelegate.greetingChan
+for greeting in myDelegate()
 	print(greeting)
 
 // Prints "Hello 1", "Hello 2", "Hello 3", ....
 ```
 
-Similarly to how multiple parallel streams can be consumed using the `any` modifier, an incoming message can be consumed as soon as it's received from any of two or more delegate channels:
+Similarly to how multiple parallel streams can be consumed using the `any` modifier, an incoming message can be consumed as soon as it's received from any of two or more delegates:
 ```isl
 delegate KeyEvents(): (out: KeyEvent)
 	....
@@ -2781,8 +2761,6 @@ delegate KeyEvents(): (out: KeyEvent)
 delegate MouseEvents(): (out: MouseEvent)
 	....
 
-// Note that modifying 'anyEvent' with the `match` keyword here would automatically
-// wait until a message arrives. No need to specify `wait match`:
 for match any anyEvent in (KeyEvents(), MouseEvents())
 	// 'anyEvent' has type 'KeyEvent or MouseEvent'
 	case KeyEvent
@@ -2791,8 +2769,7 @@ for match any anyEvent in (KeyEvents(), MouseEvents())
 		....
 ```
 
-In real-world applications, however, it is also likely that event sources would require being dynamically subscribed and unsubscribed from throughout the program runtime. This can be achieved by iterating over a dynamic collection of delegates (in this example a dictionary) and altering the collection in progressive iterations of the loop:
-
+In real-world applications, however, it is sometimes the case that event sources are required to be dynamically subscribed and unsubscribed from throughout the program's runtime. This can be achieved by iterating over a dynamic collection of delegates (in this example a dictionary) and altering the collection in progressive iterations of the loop:
 ```isl
 for eventSources = { "kEvents": KeyEvents() }, match any event in eventSources
 	case KeyEvent
@@ -2807,35 +2784,66 @@ for eventSources = { "kEvents": KeyEvents() }, match any event in eventSources
 		print("Mouse event!")
 ```
 
-A delegate executes in parallel to the calling thread, but is **bound to the lifetime of its object**. Once its object goes out of scope, its execution immediately terminates. It cannot be spawned and then "forgotten":
+Channel type references can be used to disambiguate messages from different channels sharing the same base type:
 ```isl
-if ....
-	let longRunningDelegate = LongRunningDelegate() // Delegate starts on a parallel thread
+delegate ProducesStrings(): (out: string)
+	....
 
-	// `longRunningDelegate` scope ends here
+delegate AlsoProducesStrings(): (out: string)
+	....
 
-// The delegate execution's may have been abruptly terminated
-// since its object is no longer in scope!
+for match any anyMessage in (ProducesStrings(), AlsoProducesStrings())
+	// Superficially, anyMessage has type 'string'. However, by matching over references
+	// to the delegate channels' identifiers, the correct case can be selected:
+	case ProducesStrings.out
+		....
+	case AlsoProducesStrings.out
+		....
 ```
 
-It is possible to convert a delegate call to a synchronous-like method invocation, in an `await`-like fashion, by immediately consuming a message from its outgoing channel:
+A delegate executes in parallel to the calling thread, but is **bound to the lifetime of its object**. Once its object goes out of scope, its execution immediately terminates. It cannot be spawned and then "forgotten":
+```isl
+if someConditionIsTrue
+	let longRunningDelegate = LongRunningDelegate() // Delegate starts on a parallel thread
+	....
+	// `longRunningDelegate` scope ends here
+
+// The delegate execution's may have been abruptly terminated since its
+// object is no longer in scope!
+```
+
+Messages received from its outgoing channel are evaluated asynchronously, similarly to how individual values yielded from a spawned stream only become potentially "blocking" towards the current thread once they are first read.
+
+By using the `wait` modifier, it is possible to convert a delegate call to a synchronous-like method invocation, in an `await`-like fashion:
 ```isl
 delegate readTextFileInBackground(fileName: string): (out: string)
 	....
 
 	out <- fileContent
-	// 'return fileContent' can also be used as long as there's only one outgoing channel
+	// 'return fileContent' can also be interchangably used here
 
-let text <- readTextFileInBackground("data.txt") // Execution waits until a message is received
-// The delegate is terminated immediately after it sends its first message.
-//
-// If the delegate body included additional code after `out <- fileContent`, this code
-// would not be executed, or alternatively a compile/run-time error may be issued
+// Execution waits until a message is received
+let text <- wait readTextFileInBackground("data.txt")
+
+// Note that at this point, the delegate is terminated immediately after it sends its
+// first message. If the delegate body included additional code after `out <- fileContent`,
+// this code would not be executed, or alternatively a compile/run-time error may be issued
 // (depending on settings)
 ```
 
-A delegate object **cannot be copied, only moved**. Move semantics ensure that its channels can only communicate with a single endpoint at one time:
+By default, messages are delivered asynchronously:
+```isl
+myDelegate <- "Some data" // message will be buffered if receiver is busy
+.... // any subsequent code is immediately executed
+```
 
+To ensure the message has been successfully delivered before execution proceeds, the `wait` modifier can be similarly used:
+```isl
+wait myDelegate <- "Some data" // execution will wait until message is delivered
+.... // any subsequent code will only be run only after the message is accepted by the delegate
+```
+
+A delegate object **cannot be copied, only moved**. Move semantics ensure that its channels can communicate with only one single endpoint at a time:
 ```isl
 let myDelegate = MyDelegate()
 
@@ -2845,10 +2853,9 @@ myDelegate2 <- "Nancy" // Works
 myDelegate <- "Nancy" // Fails at compile-time
 ```
 
-If a delegate, or any of the secondary delegates it spawns, encounters an unhandled failure, the resulting **failure object will be immediately captured and propagated** to all of its outgoing channels. A convenient way to handle these failures is to add a `Failure` match case handler when messages are read via a `for match any` statement.
+Whenever a delegate, or any of the secondary delegates it spawns, encounters an unhandled failure, the resulting **failure object will be immediately captured and propagated** to its outgoing channel. A convenient way to handle these failures is to add a `Failure` match case handler when messages are read via a `match` statement.
 
 In this example, the `Failure` type becomes a hidden component of the choice type inferred for `anyEvent`. Failures will be caught from either `KeyEvents`, `MouseEvents` or any one of the delegates they encapsulate:
-
 ```isl
 for match any anyEvent in (KeyEvents(), MouseEvents())
 	// 'anyEvent' has type 'KeyEvent or MouseEvent (or Failure)'
@@ -2858,18 +2865,6 @@ for match any anyEvent in (KeyEvents(), MouseEvents())
 		....
 	case Failure // Failure type can be further specialized, like to 'Failure<IO>'
 		....
-```
-
-By default, messages sent to a channel are delivered asynchronously:
-```isl
-myDelegate <- "Some data" // message will be buffered if receiver is busy
-.... // any subsequent code is immediately executed
-```
-
-To ensure the sent message is delivered before execution proceeds, the `wait` modifier can be used:
-```isl
-wait myDelegate <- "Some data" // execution will wait until message is delivered
-.... // any subsequent code will only be run only after the message is read by the delegate
 ```
 
 # Contracts
@@ -3993,6 +3988,70 @@ if str matches Date of let (day, month, year)
 	....
 else
 	....
+```
+
+## Wrapping pattern expressions in pattern methods
+
+A simple pattern expression, like one that's used in `match` statements and expressions:
+```isl
+case [let first < 0, let second != first, let ...rest]
+	....
+```
+
+can be made reusable by wrapping it in a pattern method:
+```isl
+pattern SomeListPattern() of (first, second, rest) in List<integer> = // note the '=' operator
+	[first < 0, second != first, ...rest]
+```
+
+and then applied via its method name and signature:
+```isl
+case SomeListPattern of let (first, second, rest)
+	....
+```
+
+## Patterns in non-stream inputs
+
+The previous section suggests pattern methods may also describe simpler patterns, which could accept non-stream inputs like tuples, objects, or even unary values like integers or decimals, as well, for example:
+```isl
+pattern AscendingNumbers() of (first, second) in (integer, integer) =
+	[first, second == first + 1]
+```
+
+Or even:
+```isl
+pattern EvenNumber() in integer =
+	_ mod 2 == 0
+```
+
+We can extend conventional pattern methods to support this as well, but that would mean there would only one `accept` or `reject` statement allowed (since there is only one input value):
+
+```isl
+pattern FollowingNumbers() of (first, second) in (integer, integer)
+	(first, second) = accept if _[2] == _[1] + 1
+```
+
+Here's a pattern method that tests if a number is a composite (non-prime) and captures its prime factors:
+```isl
+pattern CompositeNumber(primeFactors, isHighlyComposite) in integer
+	let number = accept if not isPrime(_)
+	primeFactors = getPrimeFactors(number)
+	isHighlyComposite = isHighlyComposite(number)
+
+action printPrimalityInfo(match someNumber: integer)
+	case PrimeNumber
+		print("Prime!")
+	case CompositeNumber of (let factors, false)
+		print("Composite! with prime factors {factors}")
+
+	// (CompositeNumber pattern doesn't need to be recomputed since previous result is cached)
+	case CompositeNumber of (let factors, true)
+		print("Highly composite! with prime factors {factors}")
+
+
+printPrimalityInfo(97) // prints "Print"
+printPrimalityInfo(100) // prints "Composite! with prime factors 2, 5"
+printPrimalityInfo(60) // prints "Highly composite! with prime factors 2, 3, 5"
 ```
 
 # Logic programming
@@ -5422,108 +5481,6 @@ Now I cast second spell that if the second box has a blue pen, the first will re
 
 I can't use this blueprint, since it is invalid.
 
-# Reactive programming
-
-_(This chapter is currently an early sketch)_
-
-## Reactive values
-
-```isl
-for currentTemperature in Weather.currentTemperature
-	print("Current temperature is {currentTemperature}")
-
-let temperatureIsOver20: reactive boolean = temperature > 20
-
-for match currentlyOver20 in temperatureIsOver20
-	case true
-		print("Current temperature is over 20 degrees!")
-	otherwise
-		print("Current temperature is under 20 degrees!")
-
-reactive lightSwitchState()
-	for currentState: boolean? = nothing
-		let newState = getLightSwitchState()
-
-		if newState != currentState
-			emit newState
-			currentState = newState
-
-		wait 100
-
-reactive selection oneOfSeveralEvents
-	Temperature = Weather.currentTemperature
-	LightSwitch = lightSwitchState
-	CustomIntEvent: integer
-
-for match event in oneOfSeveralEvents
-	case Temperature(let t)
-		print("Temperature is now {t}")
-		oneOfSeveralEvents << someAction(t) as CustomIntEvent // Implicitly spawns someAction
-		// Execution immediately proceeds here
-
-	case LightSwitch(let s)
-		print("Light switch state is now {t}")
-
-	case CustomIntEvent(let i)
-		print("Custom int event of {i}")
-```
-
-```isl
-class MyState
-	downloadingFile: boolean = false
-
-	downloadButtonPressed: reactive boolean = downloadButton.Pressed
-	downloadResult: reactive (url: string, fileContent: string)
-	outsideTemperature: reactive decimal = Weather.outsideTemperature
-
-for state = MyState(), change in observe state
-	match change, state.downloadingFile
-		case MyState.downloadButtonPressed of (true), false
-			print("Starting download..")
-			let result = spawn downloadFile("https://example.com/someFile")
-			continue state with (downloadingFile = true, downloadResult << result)
-
-		case MyState.downloadButtonPressed of (true), true
-			print("Already downloading!")
-
-		case MyState.downloadResult of (let url, let fileContent), _
-			print("Finished downloading {url}")
-			spawn saveFile("myFile", fileContent)
-			continue state with downloadingFile = false
-
-		case MyState.outsideTemperature of (let temperature), _
-			print("Current temperature is {temperature}")
-```
-
-# Symbolic data structures
-_(This chapter is currently an early sketch)_
-
-## Symbolic structures
-
-```isl
-symbolic atom Term(a: integer): integer
-symbolic function Plus(a: Term, b: Term): Term
-symbolic function Minus(a: Term, b: Term): Term
-symbolic function Expression(a: Term, b: Term): Term
-symbolic function Sqrt(a: Term): Term
-
-let x = Sqrt(Minus(Plus(Term(5), Term(10)), Term(4)))
-
-unique type Expression = Plus: (a: Expression, b: Expression) or
-					  Minus: (a: Expression, b: Expression) or
-					  Literal: integer
-```
-
-Symbolic operators:
-```isl
-symbolic atom Term: integer
-symbolic operator +(a: Term, b: Term): Term
-symbolic operator -(a: Term, b: Term): Term
-symbolic function Sqrt(a: Term): Term
-
-let x = Sqrt((Term(5) + Term(10)) - Term(4))
-```
-
 # Misc. topics
 
 ## Lists and streams as array index specifiers
@@ -5539,7 +5496,7 @@ let result = nums[indexes] // result = [50, 30, 70]
 More generally, the same effect can be achieved using any stream of integers:
 ```isl
 let nums = [10, 20, 30, 40, 50, 60, 70, 80, 90]
-let indexStream = (for i in 9..1 where i % 3 == 0) => i
+let indexStream = (for i in 9..1 where i mod 3 == 0) => i
 
 let result = nums[indexStream] // result = [90, 60, 30]
 ```
@@ -5547,7 +5504,7 @@ let result = nums[indexStream] // result = [90, 60, 30]
 And for modifying an existing list:
 ```isl
 let nums = [10, 20, 30, 40, 50, 60, 70, 80, 90]
-let indexStream = (for i in 9..1 where i % 3 == 0) => i
+let indexStream = (for i in 9..1 where i mod 3 == 0) => i
 
 let modifiedNums = nums with [indexStream] = [900, 600, 300]
 // modifiedNums = [10, 20, 300, 40, 50, 600, 70, 80, 900]
@@ -5611,8 +5568,9 @@ print(t2 == t3) // prints false
 ## Namespaces
 ## Modules
 ## Attributes
-## Infix functions
-## Reflection
+## Infix operators
+## Metaprogramming and reflection
+## Symbolic data structures
 ## Memoization
 ## Compile-time execution
 
