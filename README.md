@@ -2378,9 +2378,7 @@ class Person
 	age: integer
 
 	titleAndLastName => "{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
-
 	fullName => "{firstName} {lastName}"
-
 	fullNameAndAge => "{fullName}, of {age} years of age"
 ```
 
@@ -2400,16 +2398,14 @@ let mrSmith = Person with lastName = "Smith", gender = Gender.Male
 
 Because some of `mrSmith`'s fields (namely `firstName` and `age`) are missing (and don't have default values), a full instance of `Person` could not be constructed. Instead, the resulting value - `mrSmith` is not an object of type `Person`, but of the type `partial Person with lastName, gender`.
 
-Wouldn't it be nice if we could call some of the partially constructed object's methods? Unfortunately since these methods access the `this` object (either implicitly or explicitly), they don't provide any formal guarantees they wouldn't attempt to access uninitialized fields. In the special case the methods never pass the `this` object to an external method, the requirements of each method can be determined automatically:
+Wouldn't it be nice if we could call some of the partially constructed object's methods? Unfortunately since methods may access the `this` object (either implicitly or explicitly), there's no general, formal guarantee they wouldn't attempt to access uninitialized fields. However, in the common case, where the methods never pass the `this` object to an external method, the requirements of each method can be determined automatically:
 
 ```isl
 class Person
 	....
 
 	titleAndLastName => "{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
-
 	fullName => "{firstName} {lastName}"
-
 	fullNameAndAge => "{fullName}, of {age} years of age"
 ```
 
@@ -2436,18 +2432,19 @@ class Person
 
 We could continue adding more information to the object:
 ```isl
-let mrJohnSmith = mrSmith with firstName = "John"
+mrSmith.firstName = "John"
+// The type of 'mrSmith' has now changed to 'partial Person with firstName, lastName, gender'
 
-print(mrJohnSmith.fullName) // prints "John Smith"
-print(mrJohnSmith.fullNameAndAge) // Error! fullNameAndAge uses member `age`, which is not defined for type `partial Person with firstName, lastName, gender`
+print(mrSmith.fullName) // prints "John Smith"
+print(mrSmith.fullNameAndAge) // Error! fullNameAndAge uses member `age`, which is not defined for type `partial Person with firstName, lastName, gender`
 ```
 
 Finally, when we add a value for `age`, the object becomes fully constructed:
 ```isl
-let mrJohnSmith28 = mrJohnSmith with age = 28
-// mrJohnSmith28 finally receives the type `Person`
+mrSmith.age = 28
+// mrSmith finally receives the type `Person`
 
-print(mrJohnSmith28.fullNameAndAge) // prints "John Smith, of 28 years of age"
+print(mrSmith.fullNameAndAge) // prints "John Smith, of 28 years of age"
 ```
 
 An alternative, but more limited, way to achieve a similar effect is to partially apply the constructor call:
@@ -2461,7 +2458,7 @@ let pointWhereXEquals1 = Point(1, ...)
 // The type of pointWhereXEquals1 is `partial Point with x`
 ```
 
-Here's a more realistic use case.
+Here's a different use case.
 
 Say we had an object representing a database, and that has the fields `connection` and `name`:
 ```isl
@@ -4529,7 +4526,7 @@ So far, this may not look much different than computed fields, albeit with the a
 
 ## Context embedding
 
-At the end of the last section we've mentioned the notion of describing speed in a unit other than the default (say, in miles per hour instead of meters per second).
+At the end of the previous section we've mentioned the notion of describing speed in a unit other than the default (say, in miles per hour instead of meters per second).
 
 If we wanted to include additional measurement units, we could add more properties and mapping rules to `BasicKinematics`, but that wouldn't be a good style.  Instead, it would be better to define a new context dedicated only for speed units, for example:
 
@@ -5096,6 +5093,80 @@ context Example
 	personInfo: Person with firstName, lastName, no age
 ```
 
+## Incremental instance initialization
+
+Context instances are fully immutable object-like entities. However, similarly to conventional Island objects, **instances may be initialized in an incremental fashion**, where each added property causes its instance type to be altered in a stepwise manner (these type changes are analyzed at compile-time thus provide full soundness guarantees).
+
+For example, instead of setting all properties on the initial instantiation of the `Kinematics` context, they can be gradually added later, even from within conditionals:
+
+```isl
+let kinematics: BasicKinematics
+// At this point, 'kinematics' is effectively 'empty'. Its type is 'BasicKinematics'.
+// It has no known properties and cannot be used for anything.
+
+kinematics.distance = 10.0
+// Now it has one known property, and its type has changed to 'BasicKinematics with distance',
+// though it is still not very useful since not much new knowledge can be inferred from it.
+
+if ....someCondition....
+	kinematics.time = 5.0
+else
+	kinematics.time = 7.0 // This branch must also initialize a value for 'time'
+
+// Its type has changed again, now to 'BasicKinematics with distance, time'.
+// The value for the 'time' property was set within a conditional, but that's
+// okay, since the compiler ensured that all branches assigned a value
+// (otherwise, a compilation error would have occured).
+
+// Now the 'speed' value can be computed, since sufficient information is available for it:
+let speed = kinematics.speed
+```
+
+## Anonymous contexts
+
+**Anonymous contexts** are context declarations included directly within a type annotation.
+
+They can provide a convenient way to assign similar roles for two or more distinct properties:
+```isl
+context Name
+	firstName: context
+		plain: Uppercase.plain, Lowercase.plain
+		uppercase: Uppercase.uppercase
+		lowercase: Lowercase.lowercase
+
+	lastName: context
+		plain: Uppercase.plain, Lowercase.plain
+		uppercase: Uppercase.uppercase
+		lowercase: Lowercase.lowercase
+
+	fullNameUpperCase => firstName.uppercase + “ “ + lastName.upperCase
+```
+
+A variant of this syntax can also be used to **embed an ad-hoc context instance directly into the local procedural scope**, such that via incremental initialization, its properties can be used as if they were plain local variables:
+
+```isl
+// Declaring 'context' with no identifier embeds its properties into the local scope.
+// Thus, in addition to defining the anonymous context type, it also introduces
+// a nameless, 'ghost' instance for it.
+//
+// Alternatively, 'someName: context' would have namespaced the properties under
+// the 'someName.' prefix, but otherwise behave identically.
+context
+	name: string
+	age: integer
+	greeting given age >= 18 => "Hello {name} of {age} years of age!"
+	greeting given age < 18 => "Hello young {name} of {age} years of age!"
+
+name = "Luna" // This assigns directly into the 'invisible' locally scoped instance.
+
+if ....
+	age = 46
+	print(someOtherProperty) // prints "Hello Luna of 46 years of age!"
+else
+	age = 15 // This branch must also assign a value
+	print(someOtherProperty) //prints "Hello young Luna of 15 years of age!"
+```
+
 ## Role coupling and semantic indexing
 
 Say we wanted to use roles to describe a simple computation that accepts a string-encoded decimal number and outputs the square of that number.
@@ -5174,24 +5245,6 @@ let valueOfAnonymousProperty = instance[StringifiedNumber.number]
 // valueOfAnonymousProperty gets the value 5.32
 ```
 
-## Anonymous contexts
-
-**Anonymous contexts** provide a convenient way to assign similar roles for two or more distinct properties:
-
-```isl
-context Name
-	firstName: context
-		plain: Uppercase.plain, Lowercase.plain
-		uppercase: Uppercase.uppercase
-		lowercase: Lowercase.lowercase
-
-	lastName: context
-		plain: Uppercase.plain, Lowercase.plain
-		uppercase: Uppercase.uppercase
-		lowercase: Lowercase.lowercase
-
-	fullNameUpperCase => firstName.uppercase + “ “ + lastName.upperCase
-```
 
 ## Context expansion
 
