@@ -4048,10 +4048,26 @@ action printPrimalityInfo(match someNumber: integer)
 	case CompositeNumber of (let factors, true)
 		print("Highly composite! with prime factors {factors}")
 
-
-printPrimalityInfo(97) // prints "Print"
+printPrimalityInfo(97) // prints "Prime!"
 printPrimalityInfo(100) // prints "Composite! with prime factors 2, 5"
 printPrimalityInfo(60) // prints "Highly composite! with prime factors 2, 3, 5"
+```
+
+Now there may be times where we wish to apply this kind of simple unary pattern matching to input types that are conventionally interpreted as streams, like `string`s, `List`s or even abstract `Stream< >` objects. This can be achieved by enclosing the input type by parenthesis, for example:
+```isl
+pattern FirstCharacterSameAsLast() of (first, last) in (string) // note the (T)
+	try
+		// Always accept when string is empty
+		accept ""
+
+		first = ""
+		last = ""
+	else try
+		[first, ..., last] = accept // The entire string is consumed here
+
+		// Reject if first and last character don't match
+		if first != last
+			reject
 ```
 
 # Logic programming
