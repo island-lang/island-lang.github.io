@@ -5161,10 +5161,10 @@ name = "Luna" // This assigns directly into the 'invisible' locally scoped insta
 
 if ....
 	age = 46
-	print(someOtherProperty) // prints "Hello Luna of 46 years of age!"
+	print(greeting) // prints "Hello Luna of 46 years of age!"
 else
 	age = 15 // This branch must also assign a value
-	print(someOtherProperty) //prints "Hello young Luna of 15 years of age!"
+	print(greeting) //prints "Hello young Luna of 15 years of age!"
 ```
 
 ## Role coupling and semantic indexing
