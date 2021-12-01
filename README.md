@@ -4062,7 +4062,7 @@ pattern FirstCharacterSameAsLast() of (first, last) in (string) // note the (T)
 	else try
 		[first, ..., last] = accept // The entire string is consumed here
 
-		// Reject if first and last character don't match
+		// Reject if first and last characters don't match
 		if first != last
 			reject
 ```
@@ -4587,10 +4587,12 @@ context AbsoluteValue
 	inputIsNegative: boolean
 	inputIsNegative => input < 0
 
-	result given input, inputIsNegative == true => input * -1
-	result given input, inputIsNegative == false => input
+	when inputIsNegative == true
+		result => input * -1.0
+	otherwise
+		result => input
 ```
-`inputIsNegative` will receive `true` if `input` is greater or equal to 0 and `false` otherwise. Consequently, `result` will receive `input * -1` if `inputIsNegative` is true, and `input` otherwise.
+`inputIsNegative` will receive `true` if `input` is greater or equal to 0 and `false` otherwise. Consequently, `result` will receive `input * -1` if `inputIsNegative` is true, and `input` otherwise. An alternate value for `result` in the `otherwise` clause is mandatory (and with identical prerequisites), since the compiler must provide a compile-time assurance that `result` unconditionally receives a value when `input` is known.
 
 You may now realize that the ability to define simple preconditions on the truth-value of Boolean properties opens up the possibility for arbitrarily complex preconditions, since the Boolean property's mapping rules may potentially involve highly sophisticated computations.
 
@@ -4601,22 +4603,13 @@ context AbsoluteValue
 	input: decimal
 	result: decimal
 
-	result given input < 0 => input * -1
-	result given input >= 0 => input
+	when input < 0
+		result => input * -1.0
+	otherwise
+		result => input
 ```
 
 An ad-hoc precondition like `input < 0` implicitly introduces a Boolean property and an associated mapping rule that computes its truth-value.
-
-Note that the second mapping rule can be shortened further. Instead of explicitly describing a precondition for the case where `input >= 0` it can just describe a fallback case that would take effect whenever the others fails:
-
-```isl
-context AbsoluteValue
-	input: decimal
-	result: decimal
-
-	result given input < 0 => input * -1
-	result given input => input
-```
 
 ## Mappers
 
@@ -4662,33 +4655,34 @@ Based on the syntax we've introduced so far. We could write something like:
 
 ```isl
 context Factorial
-	input: integer
-	result: integer
+	input: 0..infinity
+	result: 1..infinity
 
-	result given input == 0 or input == 1 => 1
-	result given input > 1
-		for i = 1, out output = 1 while i <= input advance i += 1
-			continue output *= i
+	when input == 0 or input == 1
+		result => 1
+	otherwise
+		result
+			for i = 1, out output = 1 while i <= input advance i += 1
+				continue output *= i
 
-		return output
-
-	result given input < 0 => Failure("Invalid input")
+			return output
 ```
 
 Well, that might work, but wouldn't it be nicer if we could write it in a manner that is more idiomatic of the knowledge-driven style? One approach would be to recursively create an instance of `Factorial` within the body of the mapping rule itself:
 
 ```isl
 context Factorial
-	input: integer
-	result: integer
+	input: 0..infinity
+	result: 1..infinity
 
-	result given input == 0 or input == 1 => 1
-	result given input > 1
-		let previousFactorial = Factorial with input = this.input - 1
-		return input * previousFactorial.result
-
-	result given input < 0 => Failure("Invalid input")
+	when input == 0 or input == 1
+		result => 1
+	otherwise
+		result
+			let previousFactorial = Factorial with input = this.input - 1
+			return input * previousFactorial.result
 ```
+
 This approach is called **recursive instantiation**, and works quite similarly to how functions may invoke themselves, or class members create an instance of their own class.
 
 However, there's another, possibly more thought-provoking alternative. In a previous section we've embedded one context (`Speed`) inside another (`BasicKinematics`). What if we could embed `Factorial` inside of `Factorial` itself?
@@ -4697,15 +4691,17 @@ Long story short, it turns out there's no reason why that shouldn't be possible!
 
 ```isl
 context Factorial
-	input: integer
-	result: integer
+	input: 0..infinity
+	result: 1..infinity
 
-	// Notice how the type of `previousFactorial` is Factorial itself!
+	// Notice how the type of 'previousFactorial' is Factorial itself!
 	previousFactorial: Factorial
 
-	result given input == 0 or input == 1 => 1
-	previousFactorial.input given input > 1 => input - 1
-	result given input > 1 => input * previousFactorial.result
+	when input == 0 or input == 1
+		result => 1
+	otherwise
+		previousFactorial.input => input - 1
+		result => input * previousFactorial.result
 ```
 
 But how? why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become materialized. A context instance represents a knowledge scope _possibly_ accommodating information artifacts of various semantic identities (some of which may actually lie outside the realm of the context's own schema, as you'll see on future sections). It is not primarily intended as a data structure or as an assortment of value-bound methods.
@@ -4717,14 +4713,17 @@ This kind of "nesting" is called **recursive embedding**.
 The way it's utilized in `Factorial` is that there's one mapping rule that infers into the recursively embedded context:
 
 ```isl
-previousFactorial.input given input > 1 => input - 1
+otherwise
+	previousFactorial.input => input - 1
 ```
 
 Informally, what this mapping rule says is that _"when input is greater than one, the input of the previous factorial is same as this one, minus one"_.
 
 There's a second reference to `previousFactorial` in the subsequent mapping rule:
 ```isl
-result given input > 1 => input * previousFactorial.result
+otherwise
+	....
+	result => input * previousFactorial.result
 ```
 
 This one says that _"when input is greater than one, the result of this factorial is the input multiplied by the result of the previous factorial"_.
@@ -4737,32 +4736,40 @@ This same approach can be used to describe more complex computations. For exampl
 context Quicksort
 	items: List<integer>
 	sortedItems: List<integer>
-	pivot: integer => items[items.length / 2] // declaration is integerated into a mapping rule
-	smallerThanPivot: Quicksort
-	greaterOrEqualToPivot: Quicksort
+	pivot: integer
+	smallerThanPivot: this // 'this' type is synonymous with 'Quicksort'
+	greaterOrEqualToPivot: this
 
-	smallerThanPivot.items => [(i in items where i < pivot) => i]
-	greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
-	sortedItems given items == [] => []
-	sortedItems given items => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
+	when items == []
+		sortedItems => []
+	otherwise
+		pivot => items[items.length / 2]
+		smallerThanPivot.items => [(i in items where i < pivot) => i]
+		greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
+		sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
 ```
 
-Here are natural language translations of the mapping rules included in `Quicksort`, written in a slightly altered order:
+Here are natural language translations of the mapping rules included in `Quicksort`, described in an altered order:
 ```isl
-sortedItems given items == [] => []
+when items == []
+	sortedItems => []
 ```
 means: _"When the input is an empty list, the sorted items list is empty as well"_.
 
 and
 ```isl
-sortedItems given items => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
+otherwise
+	....
+	sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
 ```
 means: _"When the input items are nonempty, the sorted items list is a concatenation of the sorted versions of the items that are smaller than the pivot and greater or equal to the pivot"_.
 
 and
 ```isl
-smallerThanPivot.items => [(i in items where i < pivot) => i]
-greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
+otherwise
+	....
+	smallerThanPivot.items => [(i in items where i < pivot) => i]
+	greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
 ```
 
 means: _"The items fed to the 'smaller than pivot' context are the given items, filtered to the ones that are smaller than the pivot. Similarly, the 'greater or equal to the pivot' context is fed the items that are greater or equal to the pivot"_.
@@ -4770,11 +4777,10 @@ means: _"The items fed to the 'smaller than pivot' context are the given items, 
 and finally:
 
 ```isl
-pivot: integer => items[items.length / 2]
+otherwise
+	pivot => items[items.length / 2]
 ```
 means: _"The pivot is the value in the middle of the item list"_.
-
-(note that the rules are written in such a way that ensures `pivot`, `smallerThanPivot.items` and `greaterOrEqualToPivot.items` would only be computed when `items` is nonempty)
 
 ## Universal identifiers
 
@@ -5142,10 +5148,10 @@ context Name
 	fullNameUpperCase => firstName.uppercase + “ “ + lastName.upperCase
 ```
 
-A variant of this syntax can also be used to **embed an ad-hoc context instance directly into the local procedural scope**, such that via incremental initialization, its properties can be used as if they were plain local variables:
+A variant of this syntax can also be used to **integrate an ad-hoc context instance directly into the local procedural scope**, such that via incremental initialization, its properties can be used as if they were plain local variables:
 
 ```isl
-// Declaring 'context' with no identifier embeds its properties into the local scope.
+// Declaring 'context' with no identifier imports its properties into the local scope.
 // Thus, in addition to defining the anonymous context type, it also introduces
 // a nameless, 'ghost' instance for it.
 //
@@ -5154,17 +5160,20 @@ A variant of this syntax can also be used to **embed an ad-hoc context instance 
 context
 	name: string
 	age: integer
-	greeting given age >= 18 => "Hello {name} of {age} years of age!"
-	greeting given age < 18 => "Hello young {name} of {age} years of age!"
 
-name = "Luna" // This assigns directly into the 'invisible' locally scoped instance.
+	when age >= 18
+		greeting => "Hello {name} of {age} years of age!"
+	otherwise
+		greeting => "Hello young {name} of {age} years of age!"
+
+name = "Luna" // This assigns directly into the anonymous instance's 'name' property.
 
 if ....
 	age = 46
 	print(greeting) // prints "Hello Luna of 46 years of age!"
 else
-	age = 15 // This branch must also assign a value
-	print(greeting) //prints "Hello young Luna of 15 years of age!"
+	age = 15 // This branch must also assign a value for the 'age' property
+	print(greeting) // prints "Hello young Luna of 15 years of age!"
 ```
 
 ## Role coupling and semantic indexing
@@ -5207,9 +5216,8 @@ So, in a sense, if we didn't care about exposing `unstringified` as a property, 
 ```isl
 context StringifiedNumberSquared
 	stringified: StringifiedNumber.stringified
-	squared: NumberSquare.squared
-
 	StringifiedNumber.number =:= NumberSquare.number // This is called a "coupling rule"
+	squared: NumberSquare.squared
 ```
 So how and why this works?
 
@@ -5320,11 +5328,10 @@ let PhoneNumberPattern = /^{[0-9][0-9][0-9]}\-{[0-9]+}$/
 context PhoneNumber
 	str: string
 
-	isValid, areaCode, number given str matches PhoneNumberPattern of let (area, num) =>
-		true, area, num
-
-	isValid, areaCode, number =>
-		false, "", ""
+	when str matches PhoneNumberPattern of let (area, num)
+		isValid, areaCode, number => true, area, num
+	otherwise
+		isValid, areaCode, number => false, "", ""
 ```
 
 A second example defines a context that extracts the first and last elements of a list using a pattern expression:
@@ -5332,8 +5339,10 @@ A second example defines a context that extracts the first and last elements of 
 context MyList
 	items: List<integer>
 
-	first, last given items matches [let f, …, let l] => f, l
-	first, last given items => nothing, nothing
+	when items matches [let f, …, let l]
+		first, last => f, l
+	otherwise
+		first, last => nothing, nothing
 ```
 
 Notice how **mapping rules can be shared by multiple properties** simultaneously. This also implies that in order to compute any single property that’s included in the rule, all remaining properties have to be computed as well.
