@@ -9,7 +9,7 @@ The core of the language is characterized by a sequential, statement-oriented st
 
 The language also embeds a statically-typed **logic programming subsystem**, that significantly deviates from the Prolog tradition - which mostly concentrates on the centrality of relations - and instead encourages tight interconnections between relations, functions and objects as complementary entities.
 
-A new form of declarative programming, called **knowledge-driven programming**, is introduced. It is currently a part of an ongoing experimental design process and may eventually become fully assimilated into the core of the language, or a separate, future one, once it becomes sufficiently mature.
+A new form of declarative programming, called **knowledge-driven programming**, is introduced. It is currently a part of an ongoing experimental design process and may eventually become fully assimilated into the core of the language, or branch out to a separate, future one, once it becomes sufficiently mature.
 
 [TOC]
 # Introduction
@@ -627,7 +627,7 @@ function abs(num: integer)
 ```
 The most important differences between `when`-`otherwise` and `if`-`else if`-`else` are:
 * It can only be used in `function` (pure computation) contexts.
-* It must be the only conditional in its enclosing function (`let` statements, nested functions and type alias declarations are permitted).
+* It must be the only conditional in its enclosing function (surrounding `let` statements, nested functions and type alias declarations are permitted).
 * It must include an `otherwise` clause, or provably exhaust all cases (for more, see a following chapter about exhaustiveness checking).
 
 `when`-`otherwise` clauses can be nested any number of times:
@@ -911,6 +911,7 @@ function testXY(x, y)
 // function testXY(x: integer, y: integer)
 // function testXY(x: integer, y: decimal)
 ```
+
 ## Exhaustiveness checking
 
 The compiler will try to ensure that matched cases include all possible values for a type:
@@ -4578,6 +4579,17 @@ context Person
 
 let person1 = Person with age = 20 // 'person1.name' gets te default value "Anonymous"
 let person2 = Person with name = "Ines", age = 20 // 'person2.name' gets the value "Ines"
+```
+
+A property specifying a default value cannot be the target of a mapping rule:
+
+```isl
+context Person
+	name = "Anonymous"
+	age: integer
+	nickname: string
+
+	name => nickname // This is invalid, since 'name' is assured to always have a value
 ```
 
 ## Mapping rule preconditions
