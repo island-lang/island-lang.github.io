@@ -658,9 +658,9 @@ function numToWords(num: 1..999): string
 	when num <= 20 or (num < 100 and num mod 10 == 0) =>
 		numberNames[num]
 	when num < 100 =>
-		"{numToWords(n / 10)} {numToWords(num mod 10)} ".trimWhitespace()
+		"{numToWords(num div 10)} {numToWords(num mod 10)} ".trimWhitespace()
 	otherwise =>
-		"{numToWords(n / 100)} hundered {numToWords(num mod 100)}".trimWhitespace()
+		"{numToWords(num div 100)} hundered {numToWords(num mod 100)}".trimWhitespace()
 ```
 
 ## Pattern matching
@@ -798,13 +798,10 @@ function matchAnimal(animal: Animal)
 			case barkingLoudness < 0.3 => "Quite dog lucky!"
 			case barkingLoudness > 0.7 => "Loud dog lucky!"
 			otherwise => "Nice dog lucky!"
-
 		case Cat
 			case likesMilk => "Nice cat!"
 			otherwise => "A cat who doesn't like milk! Who knew?"
-
 		case Horse where height > 180 => "Tall horse!"
-
 		otherwise => "Nothing interesting here"
 ```
 
@@ -1004,9 +1001,9 @@ function boundedFactorial(num: integer)
 Here's a binary search implemented using a `for` loop and pattern matching, formatted to allow for better readability:
 ```isl
 function binarySearch(values: List<integer>, target: integer)
-	for low = 1, high = values.length, mid = (low + high) / 2
+	for low = 1, high = values.length, mid = (low + high) div 2
 	while low <= high
-	advance mid = (low + high) / 2
+	advance mid = (low + high) div 2
 		match values[mid]
 			case target
 				return mid
@@ -1021,10 +1018,10 @@ function binarySearch(values: List<integer>, target: integer)
 Here's equivalent code translated to a tail-recursive function (original code in comments):
 ```isl
 function binarySearch(values: List<integer>, target: integer)
-	// for low = 1, high = values.length, mid = (low + high) / 2
+	// for low = 1, high = values.length, mid = (low + high) div 2
 	// ..
-	// advance mid = (low + high) / 2
-	function iterate(low = 1, high = values.length, mid = (low + high) / 2)
+	// advance mid = (low + high) div 2
+	function iterate(low = 1, high = values.length, mid = (low + high) div 2)
 		// while low <= high
 		if low <= high
 			match values[mid]
@@ -1509,7 +1506,7 @@ Here's a very simple recursive quicksort implementation using list comprehension
 function quicksort(match items: List<integer>)
 	case [] => []
 	otherwise
-		let pivot = items[items.length / 2]
+		let pivot = items[items.length div 2]
 		let left = quicksort([(for x in items where x < pivot) => x])
 		let right = quicksort([(for x in items where x >= pivot) => x])
 		return [...left, ...right]
@@ -1923,7 +1920,6 @@ class SomeClass
 	url: string
 	speed: integer
 	weight: decimal
-
 	....
 
 let instanceOfSomeClass = SomeClass("SomeName", "https://example.com", 10000, 125.5)
@@ -2752,8 +2748,8 @@ delegate KeyEvents(): (out: KeyEvent)
 delegate MouseEvents(): (out: MouseEvent)
 	....
 
-for match any anyEvent in (KeyEvents(), MouseEvents())
-	// 'anyEvent' has type 'KeyEvent or MouseEvent'
+for match any inputEvent in (KeyEvents(), MouseEvents())
+	// 'inputEvent' has type 'KeyEvent or MouseEvent'
 	case KeyEvent
 		....
 	case MouseEvent
@@ -2770,7 +2766,6 @@ for eventSources = { "kEvents": KeyEvents() }, match any event in eventSources
 		continue eventSources with
 			no ["kEvents"]
 			["mEvents"] = MouseEvents()
-
 	case MouseEvent
 		print("Mouse event!")
 ```
@@ -2783,8 +2778,8 @@ delegate ProducesStrings(): (out: string)
 delegate AlsoProducesStrings(): (out: string)
 	....
 
-for match any anyMessage in (ProducesStrings(), AlsoProducesStrings())
-	// Superficially, anyMessage has type 'string'. However, by matching over references
+for match any stringMessage in (ProducesStrings(), AlsoProducesStrings())
+	// Superficially, 'stringMessage' has type 'string'. However, by matching over references
 	// to the delegate channels' identifiers, the correct case can be selected:
 	case ProducesStrings.out
 		....
@@ -2848,8 +2843,8 @@ Whenever a delegate, or any of the secondary delegates it spawns, encounters an 
 
 In this example, the `Failure` type becomes a hidden component of the choice type inferred for `anyEvent`. Failures will be caught from either `KeyEvents`, `MouseEvents` or any one of the delegates they encapsulate:
 ```isl
-for match any anyEvent in (KeyEvents(), MouseEvents())
-	// 'anyEvent' has type 'KeyEvent or MouseEvent (or Failure)'
+for match any inputEvent in (KeyEvents(), MouseEvents())
+	// 'inputEvent' has type 'KeyEvent or MouseEvent (or Failure)'
 	case KeyEvent
 		....
 	case MouseEvent
@@ -3645,18 +3640,18 @@ Alternatively, the **Failure type** is a special type designated to represent fa
 Island has two approaches to using the failure type:
 
 1. Returned directly from a method, as a part of a choice type, and then optionally assert on through the returned value. This is the only approach permittable for a function.
-2. Use the `fail` statement to raise an error, together with a `try`..`detect` block to capture the error in a caller scope. This is only possible in action scopes.
+2. Use the `fail` statement to raise an exception, together with a `try`..`detect` block to capture the error in a caller scope. This is only possible in action scopes.
 
 ## Returning the failure type from a method
 
-The failure type possesses a special "vanishing" quality when included inside of a choice type. If the choice type contains only a single type that is not of type `failure` then no assertion is needed for the variable to be used as if it could only have that type.
+The failure type possesses a special "vanishing" quality when included inside of a choice type. If the choice type contains only a single type that is not of type `Failure` then no assertion is needed for the variable to be used as if it could only have that type.
 
 ```isl
 function divide(x: integer, y: integer)
 	when y == 0 => Failure("Divide by zero!")
 	otherwise => x / y
 
-let r1 = divide(10, someInt) // `r1` gets type integer or Failure<string>
+let r1 = divide(10, someInt) // `r1` gets type integer (or Failure<string>)
 let r2 = divide(10, 0) // `r2` gets type Failure<string>
 
 let r3 = r1 + 10 // Works! no type assertion needed!
@@ -3675,12 +3670,12 @@ let someDictionary = { "Linda": (25, "Mary"),  "Alan": (34, "Anton") }
 let (age, bestFriend) = getKeyOrFail("James", someDictionary)
 
 if age is Failure
-	print("Couldn't find 'James' in the dictionary!")
+	print("Couldn't find 'James' in the dictionary!: {age as Failure<string>}")
 ```
 
 ## Using `try`..`detect` (action scopes only)
 
-The second approach, available only in action scopes (due to its use of side-effects), uses a `try`..`detect` block and behaves very similarly to `try`..`catch` in mainstream imperative languages:
+The second approach, available only in action scopes (due to its reliance on side-effects), uses a `try`..`detect` block and behaves very similarly to `try`..`catch` in mainstream imperative languages:
 
 ```isl
 action readLineFromFile(f: File)
@@ -3727,7 +3722,6 @@ For instance, we'll look at a regular expression that captures a phone number pa
 let PhoneNumberRegExp = /^[\+]?[ ]?([0-9][0-9]?[0-9]?)[ ]?\(([0-9][0-9][0-9])\)[ ]?([0-9][0-9][0-9])\-([0-9][0-9][0-9][0-9])$/
 
 // Example matching string: "+1 (534) 953-6345"
-
 match str
 	case PhoneNumberRegExp of ("1", "800", _, let lineNumber)
 		....
@@ -4005,7 +3999,7 @@ case SomeListPattern of let (first, second, rest)
 
 The previous section suggests pattern methods may also describe simpler patterns, which could accept non-stream inputs like tuples, objects, or even unary values like integers or decimals, as well, for example:
 ```isl
-pattern AscendingNumbers() of (first, second) in (integer, integer) =
+pattern SuccessiveNumbers() of (first, second) in (integer, integer) =
 	[first, second == first + 1]
 ```
 
@@ -4034,7 +4028,6 @@ action printPrimalityInfo(match someNumber: integer)
 		print("Prime!")
 	case CompositeNumber of (let factors, false)
 		print("Composite! with prime factors {factors}")
-
 	// (CompositeNumber pattern doesn't need to be recomputed since previous result is cached)
 	case CompositeNumber of (let factors, true)
 		print("Highly composite! with prime factors {factors}")
@@ -4623,9 +4616,9 @@ context AbsoluteValue
 	result given input => input // Having no precondition is interpreted as a fallback case
 ```
 
-An ad-hoc precondition like `input < 0` implicitly introduces a Boolean property and an associated mapping rule that computes its truth-value.
+An ad-hoc precondition like `given input < 0` implicitly introduces a Boolean property and an associated mapping rule that computes its truth-value. The second rule (`given input`) does not include a predicate, and acts as a fallback to 'absorb' the case when `input` is known but no other rule has been successfully matched to it.
 
-Using an alternative syntax, the precondition can be structured similarly to a `when` - `otherwise` block. This may be chosen for stylistic reasons, but will also be useful in the case where there are multiple rules sharing a precondition:
+Using an alternative syntax, the precondition can be refactored out to resemble the appearance of a conditional (though in fact it is not really a "true" conditional, since it doesn't introduce its own scope). This may be chosen for stylistic reasons, but will also be useful in the case where there are multiple rules sharing one or more identical preconditions:
 
 ```isl
 context AbsoluteValue
@@ -4634,7 +4627,7 @@ context AbsoluteValue
 
 	given input < 0
 		result => input * -1.0
-	given otherwise // The 'given otherwise' case requires 'input' to be known as well.
+	given input
 		result => input
 ```
 
@@ -4651,7 +4644,7 @@ context PhoneNumber
 
 	given str matches PhoneNumberPattern of let (area, num)
 		isValid, areaCode, number => true, area, num
-	given otherwise
+	given str
 		isValid, areaCode, number => false, "", ""
 ```
 
@@ -4662,7 +4655,7 @@ context MyList
 
 	given items matches [let f, …, let l]
 		first, last => f, l
-	given otherwise
+	given items
 		first, last => nothing, nothing
 ```
 
@@ -4723,7 +4716,7 @@ context Factorial
 				continue output *= i
 
 			return output
-	given otherwise
+	given input
 		result => Failure("Input must be nonnegative")
 ```
 
@@ -4740,7 +4733,7 @@ context Factorial
 		result
 			let previousFactorial = Factorial with input = this.input - 1
 			return input * previousFactorial.result
-	given otherwise
+	given input
 		result => Failure("Input must be nonnegative")
 ```
 
@@ -4763,7 +4756,7 @@ context Factorial
 	given input > 1
 		previousFactorial.input => input - 1
 		result => input * previousFactorial.result
-	given otherwise
+	given input
 		result => Failure("Input must be nonnegative")
 ```
 
@@ -4804,8 +4797,8 @@ context Quicksort
 
 	given items == []
 		sortedItems => []
-	given otherwise // remember 'given otherwise' is only interpretable when 'items' is known
-		pivot => items[items.length / 2] // 'pivot' declaration is combined with a mapping rule
+	given items
+		pivot => items[items.length div 2] // 'pivot' declaration is combined with a mapping rule
 		smallerThanPivot.items => [(i in items where i < pivot) => i]
 		greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
 		sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
@@ -4820,27 +4813,27 @@ means: _"When the input is an empty list, the sorted items list is empty as well
 
 and
 ```isl
-given otherwise
+given items
 	....
 	sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
 ```
-means: _"When the input items are nonempty, the sorted items list is a concatenation of the sorted versions of the items that are smaller than the pivot and greater or equal to the pivot"_.
+means: _"When the input item list is nonempty, the sorted items list is a concatenation of the sorted versions of the items that are smaller than the pivot and greater or equal to the pivot"_.
 
 and
 ```isl
-given otherwise
+given items
 	....
 	smallerThanPivot.items => [(i in items where i < pivot) => i]
 	greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
 ```
 
-means: _"The items fed to the 'smaller than pivot' context are the given items, filtered to the ones that are smaller than the pivot. Similarly, the 'greater or equal to the pivot' context is fed the items that are greater or equal to the pivot"_.
+means: _"The items fed to the 'smaller than pivot' context are the input items, filtered to the ones that are smaller than the pivot. Similarly, the 'greater or equal to the pivot' context is fed the items that are greater or equal to the pivot"_.
 
 and finally:
 
 ```isl
-given otherwise
-	pivot => items[items.length / 2]
+given items
+	pivot => items[items.length div 2]
 ```
 means: _"The pivot is the value in the middle of the item list"_.
 
@@ -4891,7 +4884,6 @@ This subtle change in mindset opens up some very interesting possibilities. So i
 context Quicksort
 	items <=> <publisher.com/lib/Sort.isl#Sort.items>
 	sortedItems <=> <publisher.com/lib/Sort.isl#Sort.sortedItems>
-
 	....
 ```
 These connections are called **semantic links**. What they mean is that every mapping rule that applies to `Quicksort.items`, would also apply to `Sort.items`, and vice-versa: every mapping rule that applies to `Sort.items` would apply back to `Quicksort.items`. Same between `Sort.sortedItems` and `Quicksort.sortedItems`.
@@ -5245,7 +5237,7 @@ context
 
 	given age >= 18
 		greeting => "Hello {name} of {age} years of age!"
-	given otherwise
+	given age
 		greeting => "Hello young {name} of {age} years of age!"
 
 name = "Luna" // This assigns directly into the anonymous instance's 'name' property.
@@ -5664,7 +5656,7 @@ With these features, combined with named return variables, we can further simpli
 
 ```isl
 function binarySearch(values: List<integer>, target: integer)
-	function iterate(low = 1, high = values.length): (mid = low + high / 2)?
+	function iterate(low = 1, high = values.length): (mid = low + high div 2)?
 		if low > high
 			return nothing
 		else
@@ -5704,7 +5696,7 @@ print(t2 == t3) // prints false
 
 ## Influences
 
-This work would not have been possible without ideas adapted or inspired by other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, Swift, Go, F#, Oz, Scala, Quorum and Prolog.
+This work would not have been possible without ideas adapted or inspired by other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, Swift, Go, F#, Oz, Scala, Quorum, Pascal and Prolog.
 
 ## Who wrote this?
 
