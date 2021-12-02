@@ -120,9 +120,9 @@ Initialization can be deferred to a later code position, as long as all branches
 ```isl
 let greeting: string
 
-if x > 0
+when x > 0
 	greeting = "Hello"
-else
+otherwise
 	greeting = "Hi"
 ```
 
@@ -130,9 +130,9 @@ If a type is not specified, it would be automatically inferred as long as the as
 ```isl
 let greeting
 
-if x > 0
+when x > 0
 	greeting = "Hello"
-else
+otherwise
 	greeting = "Hi"
 
 // Type inferred as string
@@ -142,9 +142,9 @@ This would not work:
 ```isl
 let greeting
 
-if x > 0
+when x > 0
 	greeting = "Hello"
-else
+otherwise
 	greeting = 24 // Error: incompatible types
 ```
 
@@ -624,32 +624,30 @@ function abs(num: integer)
 	otherwise => num     // Equivalent to 'else ..'
 ```
 
-The most important difference between `if`-`else if`-`else` and `when`-`otherwise` is that `when`-`otherwise` **cannot be followed by any other statement** in its enclosing scope.
+The most important difference between `if`-`else if`-`else` and `when`-`otherwise` is that unlike `if`, which can be written by itself, as an independent statement, **`when` must be followed by `otherwise`**.
 
 So this is OK:
 ```isl
 function abs(num: integer)
-	if num == 0
-		return 0
+	let result
 
-	let x = num
-
-	when x < 0 // OK since when - otherwise sequence is not followed by anything
-		return -x
+	when num < 0
+		result = -x
 	otherwise
-		return x
+		result = x
+
+	return result
 ```
 
-But this is not:
+but this is not:
 ```isl
 function abs(num: integer)
-	when num < 0 => -num
-	when num > 0 => num
+	when num < 0 => -num // Error: 'when' must be followed by 'otherwise'
 
-	return 0 // Error, a 'when' statement sequence cannot be followed by any other statement
+	return num
 ```
 
-`when` can also be written as an expression:
+`when`-`otherwise` can also be written as an expression:
 ```isl
 let abs = (num: integer) =>
 	when num > 0: num, when num < 0: -num, otherwise: 0
@@ -658,7 +656,7 @@ function gcd(a: integer, b: integer) =>
 	when b == 0: abs(a), otherwise: gcd(b, a mod b)
 ```
 
-This function uses a structure and a `when` statement to convert an integer number on the range 1..999 to words:
+This function uses a structure and a `when` statement to convert an integer number on the range `1..999` to words:
 ```isl
 function numToWords(num: 1..999): string
 	let numberNames = { 0: "", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "thirteen", 13: "thirteen", 14: "fourteen", 15: "fifteen", 16: "sixteen", 17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty", 30: "thirty", 40: "fourty", 50: "fifty", 60: "sixty", 70: "seventy", 80: "eighty", 90: "ninety" }
@@ -913,7 +911,7 @@ function testXY(x, y)
 			when x < y or y == 0.0 => -1.0
 			otherwise => 0.0
 
-	// (Note the omitted 'otherwise' clauses are interpreted as a fail cases)
+	// (The omitted 'otherwise' clauses are interpreted as fail cases)
 
 // Inferred signature:
 // function testXY(x: integer, y: integer)
@@ -972,10 +970,10 @@ function factorial(num: integer)
 	// for i = 1, out result = 1
 	function iterate(i = 1, result = 1)
 		// if i <= num
-		if i <= num
+		when i <= num
 			// continue result = result * i, i = i + 1
 			return iterate(result = result * i, i = i + 1)
-		else
+		otherwise
 			// (implicitly returns)
 			return result
 
@@ -1117,13 +1115,13 @@ function findFirstInSquareMatrix(matrix: List<List<integer>>, value: integer): (
 
 A **local method may capture a variable declared within a loop body**, however, such a function cannot be passed outside of the loop scope:
 ```isl
-function invalidReturnedFunction()
+function invalidReturnedFunction(): (integer) => integer
 	for i = 1 advance i += 1
-		let localFunction() => i * 2 // This is okay
-
+		let multiplyBy = (m: integer) => i * m // This is okay
+		let x = multiplyBy(3) // This is also okay
 		return localFunction // But this is invalid
 ```
-_(`localFunction` is considered referentially transparent, if seen from within the scope of each loop iteration)_
+_(`multiplyBy` is considered referentially transparent, if seen from within the scope of each loop iteration)_
 
 Similarly for deferred initialization:
 ```isl
@@ -2978,9 +2976,9 @@ let val: integer = ....
 
 // Note that `val` has been declared with the type `integer`, not `MultipleOf10`
 // The following type assertion depends on the runtime value of `val`:
-if val is MultipleOf10 // practical alternative to writing MultipleOf10(val)
+when val is MultipleOf10 // practical alternative to writing MultipleOf10(val)
 	....
-else
+otherwise
 	....
 ```
 
@@ -3927,7 +3925,7 @@ function recognizeThis(str: string, p: MyAbstractPattern, expectedValues: (integ
 	match str
 		case p of expectedValues:
 			return true
-		else
+		otherwise
 			return false
 
 pattern MyPattern() of (value, ok) in string
@@ -3981,9 +3979,9 @@ Instead, the `matches` operator, which was mentioned in a previous chapter, allo
 ```isl
 let str = "5/11/1972"
 
-if str matches Date of let (day, month, year)
+when str matches Date of let (day, month, year)
 	....
-else
+otherwise
 	....
 ```
 
@@ -4445,7 +4443,7 @@ A **property** is an information entity representing a unique semantic identity.
 
 A **mapping rule** is an unnamed inference rule specifying a method for deriving one or more unknown properties from one or more known properties, within a given context.
 
-A **context instance** is a materialized form of a context, analogous to how an object is a materialized form of a class. A context instance can be viewed as a simple immutable knowledge base. It can be initialized with a set of known property values, and then queried for unknown ones.
+A **context instance** (also called a **knowledge scope**) is a materialized form of a context, analogous to how an object is a materialized form of a class. A context instance can be viewed as a simple immutable knowledge base. It can be initialized with a set of known property values, and then queried for unknown ones.
 
 For example, this context describes the basic kinematic relations between distance, time and speed.
 
@@ -4576,7 +4574,7 @@ The notion of providing a value to a nested property like `speed.milesPerHour` m
 
 ## Mapping rule preconditions
 
-A mapping rule precondition is a predicate that must be satisfied in order for the mapping rule to be available for use.
+A mapping rule precondition is a predicate that must be satisfied in order for a mapping rule to be available for use.
 
 The simplest form of a precondition is a predicate dependent on the truth-value of a Boolean property, like in this example:
 ```isl
@@ -4587,12 +4585,10 @@ context AbsoluteValue
 	inputIsNegative: boolean
 	inputIsNegative => input < 0
 
-	when inputIsNegative == true
-		result => input * -1.0
-	otherwise
-		result => input
+	result given inputIsNegative == true => input * -1.0
+	result given inputIsNegative == false => input
 ```
-`inputIsNegative` will receive `true` if `input` is greater or equal to 0 and `false` otherwise. Consequently, `result` will receive `input * -1` if `inputIsNegative` is true, and `input` otherwise. An alternate value for `result` in the `otherwise` clause is mandatory (and with identical prerequisites), since the compiler must provide a compile-time assurance that `result` unconditionally receives a value when `input` is known.
+`inputIsNegative` will receive `true` if `input` is greater or equal to 0 and `false` otherwise. Consequently, `result` will receive `input * -1` if `inputIsNegative` is true, and `input` otherwise. An alternate value for `result`, for the case where `inputIsNegative == false`, is mandatory, since the compiler must provide the unconditional guarantee that `result` is always knowable when `input` is known.
 
 You may now realize that the ability to define simple preconditions on the truth-value of Boolean properties opens up the possibility for arbitrarily complex preconditions, since the Boolean property's mapping rules may potentially involve highly sophisticated computations.
 
@@ -4603,13 +4599,54 @@ context AbsoluteValue
 	input: decimal
 	result: decimal
 
-	when input < 0
-		result => input * -1.0
-	otherwise
-		result => input
+	result given input < 0 => input * -1.0
+	result given input => input // Having no precondition is interpreted as a fallback case
 ```
 
 An ad-hoc precondition like `input < 0` implicitly introduces a Boolean property and an associated mapping rule that computes its truth-value.
+
+Using an alternative syntax, the precondition can be structured similarly to a `when` - `otherwise` block. This may be chosen for stylistic reasons, but will also be useful in the case where there are multiple rules sharing a precondition:
+
+```isl
+context AbsoluteValue
+	input: decimal
+	result: decimal
+
+	given input < 0
+		result => input * -1.0
+	given otherwise // The 'given otherwise' case requires 'input' to be known as well.
+		result => input
+```
+
+## Precondition pattern matching
+
+Preconditions may match patterns as well as capture their component parts.
+
+This example defines a context which recognizes and parses a phone number pattern, specified by a regular expression, where the parsed `area` and `number` components are introduced as variables into the body of the rule:
+```isl
+let PhoneNumberPattern = /^{[0-9][0-9][0-9]}\-{[0-9]+}$/
+
+context PhoneNumber
+	str: string
+
+	given str matches PhoneNumberPattern of let (area, num)
+		isValid, areaCode, number => true, area, num
+	given otherwise
+		isValid, areaCode, number => false, "", ""
+```
+
+A second example defines a context that extracts the first and last elements of a list using a pattern expression:
+```isl
+context MyList
+	items: List<integer>
+
+	given items matches [let f, …, let l]
+		first, last => f, l
+	given otherwise
+		first, last => nothing, nothing
+```
+
+Notice how **mapping rules can be shared by multiple properties** simultaneously. This also implies that in order to compute any single property that’s included in the rule, all remaining properties have to be computed as well.
 
 ## Mappers
 
@@ -4655,32 +4692,36 @@ Based on the syntax we've introduced so far. We could write something like:
 
 ```isl
 context Factorial
-	input: 0..infinity
-	result: 1..infinity
+	input: integer
+	result: integer
 
-	when input == 0 or input == 1
+	given input == 0 or input == 1
 		result => 1
-	otherwise
+	given input > 1
 		result
 			for i = 1, out output = 1 while i <= input advance i += 1
 				continue output *= i
 
 			return output
+	given otherwise
+		result => Failure("Input must be nonnegative")
 ```
 
 Well, that might work, but wouldn't it be nicer if we could write it in a manner that is more idiomatic of the knowledge-driven style? One approach would be to recursively create an instance of `Factorial` within the body of the mapping rule itself:
 
 ```isl
 context Factorial
-	input: 0..infinity
-	result: 1..infinity
+	input: integer
+	result: integer
 
-	when input == 0 or input == 1
+	given input == 0 or input == 1
 		result => 1
-	otherwise
+	given input > 1
 		result
 			let previousFactorial = Factorial with input = this.input - 1
 			return input * previousFactorial.result
+	given otherwise
+		result => Failure("Input must be nonnegative")
 ```
 
 This approach is called **recursive instantiation**, and works quite similarly to how functions may invoke themselves, or class members create an instance of their own class.
@@ -4691,29 +4732,31 @@ Long story short, it turns out there's no reason why that shouldn't be possible!
 
 ```isl
 context Factorial
-	input: 0..infinity
-	result: 1..infinity
+	input: integer
+	result: integer
 
 	// Notice how the type of 'previousFactorial' is Factorial itself!
 	previousFactorial: Factorial
 
-	when input == 0 or input == 1
+	given input == 0 or input == 1
 		result => 1
-	otherwise
+	given input > 1
 		previousFactorial.input => input - 1
 		result => input * previousFactorial.result
+	given otherwise
+		result => Failure("Input must be nonnegative")
 ```
 
 But how? why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become materialized. A context instance represents a knowledge scope _possibly_ accommodating information artifacts of various semantic identities (some of which may actually lie outside the realm of the context's own schema, as you'll see on future sections). It is not primarily intended as a data structure or as an assortment of value-bound methods.
 
 If `Factorial` is embedded inside of `Factorial` itself, all that means is that an instance of `Factorial` would also incorporate a secondary inner scope that happens to share its own knowledge schema, and which can be initialized with a different set of known and unknown properties than itself.
 
-This kind of "nesting" is called **recursive embedding**.
+This kind of "self nesting" is called **recursive embedding**.
 
 The way it's utilized in `Factorial` is that there's one mapping rule that infers into the recursively embedded context:
 
 ```isl
-otherwise
+given input > 1
 	previousFactorial.input => input - 1
 ```
 
@@ -4721,7 +4764,7 @@ Informally, what this mapping rule says is that _"when input is greater than one
 
 There's a second reference to `previousFactorial` in the subsequent mapping rule:
 ```isl
-otherwise
+given input > 1
 	....
 	result => input * previousFactorial.result
 ```
@@ -4736,14 +4779,13 @@ This same approach can be used to describe more complex computations. For exampl
 context Quicksort
 	items: List<integer>
 	sortedItems: List<integer>
-	pivot: integer
 	smallerThanPivot: this // 'this' type is synonymous with 'Quicksort'
 	greaterOrEqualToPivot: this
 
-	when items == []
+	given items == []
 		sortedItems => []
-	otherwise
-		pivot => items[items.length / 2]
+	given otherwise // remember 'given otherwise' is only interpretable when 'items' is known
+		pivot => items[items.length / 2] // 'pivot' declaration is combined with a mapping rule
 		smallerThanPivot.items => [(i in items where i < pivot) => i]
 		greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
 		sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
@@ -4751,14 +4793,14 @@ context Quicksort
 
 Here are natural language translations of the mapping rules included in `Quicksort`, described in an altered order:
 ```isl
-when items == []
+given items == []
 	sortedItems => []
 ```
 means: _"When the input is an empty list, the sorted items list is empty as well"_.
 
 and
 ```isl
-otherwise
+given otherwise
 	....
 	sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
 ```
@@ -4766,7 +4808,7 @@ means: _"When the input items are nonempty, the sorted items list is a concatena
 
 and
 ```isl
-otherwise
+given otherwise
 	....
 	smallerThanPivot.items => [(i in items where i < pivot) => i]
 	greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
@@ -4777,7 +4819,7 @@ means: _"The items fed to the 'smaller than pivot' context are the given items, 
 and finally:
 
 ```isl
-otherwise
+given otherwise
 	pivot => items[items.length / 2]
 ```
 means: _"The pivot is the value in the middle of the item list"_.
@@ -5057,7 +5099,7 @@ Circle with radius, area
 
 It is clear why `radius` is included, since it was assigned an explicit value, but why is `area` there?
 
-The answer is that from a knowledge-driven perspective, there's no substantial distinction between an information entity that is "given" and one that's computed. They are both considered _knowable_.
+The answer is that from a knowledge-driven perspective, there's no substantial distinction between an information entity that is provided as "fact" and one that's computed. They are both considered _knowable_.
 
 Now by using this method, the compiler can prove that `twoShapes.totalArea` is knowable:
 
@@ -5093,7 +5135,7 @@ let validInstance = Example with personInfo = (Person with firstName = "Miguel",
 let invalidInstance = Example with personInfo = (Person with age = 34) // Fails to compile
 ```
 
-Instance types may also explicitly state members that must _not_ be given, e.g.
+Instance types may also explicitly state members that must _not_ be provided during initialization, e.g.
 ```isl
 context Example
 	personInfo: Person with firstName, lastName, no age
@@ -5114,9 +5156,9 @@ kinematics.distance = 10.0
 // Now it has one known property, and its type has changed to 'BasicKinematics with distance',
 // though it is still not very useful since not much new knowledge can be inferred from it.
 
-if ....someCondition....
+when ....someCondition....
 	kinematics.time = 5.0
-else
+otherwise
 	kinematics.time = 7.0 // This branch must also initialize a value for 'time'
 
 // Its type has changed again, now to 'BasicKinematics with distance, time'.
@@ -5161,17 +5203,17 @@ context
 	name: string
 	age: integer
 
-	when age >= 18
+	given age >= 18
 		greeting => "Hello {name} of {age} years of age!"
-	otherwise
+	given otherwise
 		greeting => "Hello young {name} of {age} years of age!"
 
 name = "Luna" // This assigns directly into the anonymous instance's 'name' property.
 
-if ....
+when ....
 	age = 46
 	print(greeting) // prints "Hello Luna of 46 years of age!"
-else
+otherwise
 	age = 15 // This branch must also assign a value for the 'age' property
 	print(greeting) // prints "Hello young Luna of 15 years of age!"
 ```
@@ -5253,7 +5295,6 @@ let valueOfAnonymousProperty = instance[StringifiedNumber.number]
 // valueOfAnonymousProperty gets the value 5.32
 ```
 
-
 ## Context expansion
 
 Let's go back to our initial `BasicKinematics` example:
@@ -5316,37 +5357,6 @@ context AddNumbers
 Note that pseudo-functions must specify named return variables, since their return value (or values, if there are more than one) is directly translated into a property.
 
 Also, pseudo-functions can't include preconditions on their parameters, though they can annotate their parameters and return values with semantic links or roles.
-
-## Precondition pattern matching
-
-Preconditions may match patterns as well as capture their component parts:
-
-This example defines a context which recognizes and parses a phone number pattern, specified by a regular expression, where the parsed `area` and `number` components are introduced as variables into the body of the rule:
-```isl
-let PhoneNumberPattern = /^{[0-9][0-9][0-9]}\-{[0-9]+}$/
-
-context PhoneNumber
-	str: string
-
-	when str matches PhoneNumberPattern of let (area, num)
-		isValid, areaCode, number => true, area, num
-	otherwise
-		isValid, areaCode, number => false, "", ""
-```
-
-A second example defines a context that extracts the first and last elements of a list using a pattern expression:
-```isl
-context MyList
-	items: List<integer>
-
-	when items matches [let f, …, let l]
-		first, last => f, l
-	otherwise
-		first, last => nothing, nothing
-```
-
-Notice how **mapping rules can be shared by multiple properties** simultaneously. This also implies that in order to compute any single property that’s included in the rule, all remaining properties have to be computed as well.
-
 
 ## Stream properties
 
