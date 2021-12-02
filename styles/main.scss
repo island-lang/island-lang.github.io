@@ -4,11 +4,14 @@ $headerTextColor: rgb(31, 31, 31);
 $topHeadingColor: rgb(41, 41, 41);
 $topHeadingShadowColor: rgb(218, 218, 218);
 
+$topSubheadingColor: rgba(217, 157, 255, 0.795);
+$topSubheadingShadowColor: rgb(218, 218, 218);
+
 $lastModifiedTextColor: rgb(122, 122, 122);
 $lastModifiedShadowColor: rgb(209, 209, 209);
 
 $linkColor: rgb(0, 89, 232);
-$headerAnchorLinkColor: rgb(0, 89, 232); //rgb(180, 58, 255);
+$headerAnchorLinkColor: rgb(0, 89, 232);
 
 $bodyBackgroundColor: rgb(248, 248, 248);
 $contentBackgroundColor: rgb(255, 255, 255);
@@ -102,7 +105,7 @@ h1 {
 		text-align: center;
 
 		margin-top: 1em;
-		margin-bottom: 3em;
+		margin-bottom: 1em;
 		border: none;
 	}
 }
@@ -112,10 +115,11 @@ h2 {
 	font-weight: 700;
 
 	&#top-subheading {
-		font-size: 1.5em;
+		font-size: 1.45em;
 		font-weight: 800;
 		//text-transform: capitalize;
 		//letter-spacing: 0.02ch;
+		color: $topSubheadingColor;
 
 		line-height: 1.4em;
 		text-align: center;

@@ -1,5 +1,5 @@
 <h1 id="top-heading">The Island Programming Language</h1>
-<!--<h2 id="top-subheading">Design Document</h2>-->
+<h2 id="top-subheading">(Work In Progress)</h2>
 
 **Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming, as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
 
@@ -9,17 +9,17 @@ The core of the language is characterized by a sequential, statement-oriented st
 
 The language also embeds a statically-typed **logic programming subsystem**, that significantly deviates from the Prolog tradition - which mostly concentrates on the centrality of relations - and instead encourages tight interconnections between relations, functions and objects as complementary entities.
 
-A new form of declarative programming, called **knowledge-driven programming**, is introduced. It is currently a part of an ongoing experimental design process and may eventually receive its own dedicated language once it becomes sufficiently mature.
+A new form of declarative programming, called **knowledge-driven programming**, is introduced. It is currently a part of an ongoing experimental design process and may eventually become fully assimilated into the core of the language, or a separate, future one, once it becomes sufficiently mature.
 
 [TOC]
 # Introduction
 
 ## Design philosophy
 
-* **Programming should be made accessible for every person who wishes to learn it**. A language designer's role is to try to make the language as friendly and approachable as possible. This doesn't mean that abstractions like generics, higher order methods, or other advanced features should be avoided. Instead, try to make the core of the language beginner-friendly, and more advanced features as transparent and unobtrusive as possible, such that users could gradually become familiar with more and more of them as they develop their skills.
+* **Programming should be made accessible to every person who wishes to learn it**. A language designer's role is to try to make the language as friendly and approachable as possible. This doesn't mean that abstractions like generics, higher order methods, or other advanced features should be avoided. Instead, try to make the core of the language beginner-friendly, and more advanced features as transparent and unobtrusive as possible, such that users could gradually become familiar with more and more of them as they develop their skills.
 * **A programming language doesn't have to look like math or logic formulas**. The vast majority of real-world programming tasks have weak, if any, resemblance to abstract mathematics. Most programmers would benefit more from comprehensive, domain-specific language features that simplify common tasks, than minimalistic, math-like syntax that is possibly "mathematically beautiful" but either very difficult to understand or becomes unusably complicated even when confronted with routine real-world problems.
 * Many **common programming traps can be prevented right at the design stage**, either by stricter syntax and semantics, or better tooling and documentation. It is a part of the designer's responsibility to ensure that their language doesn't invite trivial mistakes that frustrate programmers and waste their time.
-* Many **mundane programming tasks can already be made partially, or fully automated**, or for the very least, drastically simplified. Machine-learning based tools like [GitHub Copilot](https://copilot.github.com/) are extremely impressive. However, much of their contribution is to introduce boilerplate or cut-and-paste code that might be better avoided or replaced with unambiguous semantic references that would enable safe and convenient code reuse, of the kind proposed on the [chapter discussing knowledge-driven programming](#universal-identifiers).
+* Many **mundane programming tasks can already be made partially, or fully automated**, or for the very least, drastically simplified. Machine-learning based tools like [GitHub Copilot](https://copilot.github.com/) are extremely powerful. However, a significant portion of their contribution is to introduce boilerplate or cut-and-paste code that might be better avoided or replaced with unambiguous, universal semantic references that would enable safe and convenient code reuse, of the kind proposed on the [chapter discussing knowledge-driven programming](#universal-identifiers).
 * For the most part, **a programming language should be fully designed** before it reaches a full implementation stage. Spend as much time as needed at the design stage (even years, if that's what it takes). Try to cover all possible aspects, including advanced features, until the design matures into a coherent whole.
 * **A programming language is a work of art!** It can be made aesthetically pleasing and enjoyable to use. That doesn't mean this objective is going to be easy to achieve. Beauty requires effort!
 
@@ -27,8 +27,8 @@ A new form of declarative programming, called **knowledge-driven programming**, 
 
 * **[Stateless loops](#loops)** (or alternatively **structured loops**) are an approach to iterative control flow that attempts to unify the best of both the imperative and functional idioms. Stateless loops are written in a sequential style but are bound by a strict structure that ensures they can be trivially reduced to tail-recursive functional iteration.
 * **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness of the language by abstracting over the notion of the "prior" output of a generator. **Named return variables** provide a safe and restricted form of mutability by enabling the return value to be "accumulated" in a write-only fashion, analogous to an accumulative generator.
-* **[Partially constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of the object's functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
-* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that provide a generalized way to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input, as well as be written as polymorphic or higher-order abstractions.
+* **[Partial and gradually constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of the object's functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
+* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that provided general means to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in expression syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input, and be written as polymorphic or higher-order abstractions.
 * **[Class-embedded relations](#logic-programming)** enable logic-programming style relations to be encapsulated within immutable container objects. Relations can be defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
 * **[Knowledge-driven programming](#knowledge-driven-programming)** is a form of declarative programming where information entities are given precise semantics via universally referenceable schemas, and computations are synthesized at compile-time, by composing chains of inference rules that derive unknown information entities from known ones.
 
@@ -97,7 +97,9 @@ print(greeting) // Prints "Hello"
 Newly declared variable reusing an existing name will replace the previous one if redeclared in the same scope:
 ```isl
 let greeting = "Hello"
-let greeting = "Hi" // This is permitted since the previous binding of `greeting` is not reachable anymore
+
+// This is permitted since the previous binding of `greeting` is not reachable anymore:
+let greeting = "Hi"
 
 print(greeting) // Prints "Hi"
 ```
@@ -120,9 +122,9 @@ Initialization can be deferred to a later code position, as long as all branches
 ```isl
 let greeting: string
 
-when x > 0
+if x > 0
 	greeting = "Hello"
-otherwise
+else
 	greeting = "Hi"
 ```
 
@@ -130,9 +132,9 @@ If a type is not specified, it would be automatically inferred as long as the as
 ```isl
 let greeting
 
-when x > 0
+if x > 0
 	greeting = "Hello"
-otherwise
+else
 	greeting = "Hi"
 
 // Type inferred as string
@@ -142,9 +144,9 @@ This would not work:
 ```isl
 let greeting
 
-when x > 0
+if x > 0
 	greeting = "Hello"
-otherwise
+else
 	greeting = 24 // Error: incompatible types
 ```
 
@@ -155,7 +157,7 @@ Island is a **statically typed** language, meaning that every one of its values 
 Island has a few primitive data types:
 
 * `integer`: arbitrary precision integer number.
-* `decimal`: 64-bit floating-point number (IEEE 754).
+* `decimal`: real number (floating-point 64-bit IEEE 754).
 * `boolean`: Boolean value (`true` or `false`).
 * `string`: Unicode character sequence.
 
@@ -616,35 +618,27 @@ function abs(num: integer)
 		return num
 ```
 
-The conceptually similar, but more constrained **`when `-` otherwise`** syntax, which also allows for using `=>` to directly return a value from the enclosing method:
+The similar, but more declarative **`when `-` otherwise`** syntax, uses `=>` to directly return a value from an enclosing method:
 ```isl
 function abs(num: integer)
 	when num == 0 => 0   // Equivalent to 'if num == 0 ..'
 	when num < 0 => -num // Equivalent to 'else if num < 0 ..'
 	otherwise => num     // Equivalent to 'else ..'
 ```
+The most important differences between `when`-`otherwise` and `if`-`else if`-`else` are:
+* It can only be used in `function` (pure computation) contexts.
+* It must be the only conditional in its enclosing function (`let` statements, nested functions and type alias declarations are permitted).
+* It must include an `otherwise` clause, or provably exhaust all cases (for more, see a following chapter about exhaustiveness checking).
 
-The most important difference between `if`-`else if`-`else` and `when`-`otherwise` is that unlike `if`, which can be written by itself, as an independent statement, **`when` must be followed by `otherwise`**.
-
-So this is OK:
+`when`-`otherwise` clauses can be nested any number of times:
 ```isl
-function abs(num: integer)
-	let result
-
-	when num < 0
-		result = -x
+function nestedWhenExample(num: integer)
+	when num > 0
+		when num < 5 => "hey"
+		otherwise => "yo"
 	otherwise
-		result = x
-
-	return result
-```
-
-but this is not:
-```isl
-function abs(num: integer)
-	when num < 0 => -num // Error: 'when' must be followed by 'otherwise'
-
-	return num
+		when num == 0 => "no"
+		otherwise => "bye"
 ```
 
 `when`-`otherwise` can also be written as an expression:
@@ -656,7 +650,7 @@ function gcd(a: integer, b: integer) =>
 	when b == 0: abs(a), otherwise: gcd(b, a mod b)
 ```
 
-This function uses a structure and a `when` statement to convert an integer number on the range `1..999` to words:
+This function uses a structure and a `when` statement block to convert an integer number on the range `1..999` to words:
 ```isl
 function numToWords(num: 1..999): string
 	let numberNames = { 0: "", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "thirteen", 13: "thirteen", 14: "fourteen", 15: "fifteen", 16: "sixteen", 17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty", 30: "thirty", 40: "fourty", 50: "fifty", 60: "sixty", 70: "seventy", 80: "eighty", 90: "ninety" }
@@ -970,10 +964,10 @@ function factorial(num: integer)
 	// for i = 1, out result = 1
 	function iterate(i = 1, result = 1)
 		// if i <= num
-		when i <= num
+		if i <= num
 			// continue result = result * i, i = i + 1
 			return iterate(result = result * i, i = i + 1)
-		otherwise
+		else
 			// (implicitly returns)
 			return result
 
@@ -998,9 +992,9 @@ Loops can be aborted with the `break` keyword, which also allows for alterations
 ```isl
 function boundedFactorial(num: integer)
 	for i = 1, out result = 1 while i <= num advance i += 1
-		when i < 100
+		if i < 100
 			continue result *= i
-		otherwise
+		else
 			break result = nothing
 
 	return result
@@ -1031,7 +1025,7 @@ function binarySearch(values: List<integer>, target: integer)
 	// advance mid = (low + high) / 2
 	function iterate(low = 1, high = values.length, mid = (low + high) / 2)
 		// while low <= high
-		when low <= high
+		if low <= high
 			match values[mid]
 				case target
 					// return mid
@@ -1042,7 +1036,7 @@ function binarySearch(values: List<integer>, target: integer)
 				otherwise
 					// continue high = mid - 1
 					return iterate(low = low, high = mid - 1)
-		otherwise
+		else
 			// return nothing
 			return nothing
 
@@ -1106,6 +1100,7 @@ function findFirstInSquareMatrix(matrix: List<List<integer>>, value: integer): (
 			otherwise => nothing
 
 		let result = iterateY()
+
 		when result is not nothing => result
 		when x < matrix.length => iterateX(x = x + 1)
 		otherwise => nothing
@@ -2736,9 +2731,9 @@ let result2 <- myDelegate // Receives the result "Hello Tom!" from the outgoing 
 A delegate's outgoing channel **may be consumed by a `for` loop**, in a manner similar to a stream:
 ```isl
 delegate MyDelegate(): (out: string)
-// This delegate only has an outgoing channel.
-// It is, in a sense, very similar to a stream, only that it may also produce side-effects,
-// by invoking actions or spawning further delegates.
+	// This delegate only has an outgoing channel.
+	// It is, in a sense, very similar to a stream, only that it may also
+	// produce side-effects, by invoking actions or spawning further delegates.
 	for i in 1..infinity
 		greetingChan <- "Hello {i}"
 
@@ -2976,9 +2971,9 @@ let val: integer = ....
 
 // Note that `val` has been declared with the type `integer`, not `MultipleOf10`
 // The following type assertion depends on the runtime value of `val`:
-when val is MultipleOf10 // practical alternative to writing MultipleOf10(val)
+if val is MultipleOf10 // practical alternative to writing MultipleOf10(val)
 	....
-otherwise
+else
 	....
 ```
 
@@ -3420,9 +3415,9 @@ So far we've occasionally used the `nothing` keyword, but hadn't really got into
 Take for example:
 ```isl
 function computeSomething(integer num): integer or nothing // can also be written as 'integer?'
-	when num >= 0
+	if num >= 0
 		return num * 2
-	otherwise
+	else
 		return nothing // `nothing` here acts somewhat like `null`
 
 let x = computeSomething(-1) // what type and value does 'x' receive?
@@ -3979,9 +3974,9 @@ Instead, the `matches` operator, which was mentioned in a previous chapter, allo
 ```isl
 let str = "5/11/1972"
 
-when str matches Date of let (day, month, year)
+if str matches Date of let (day, month, year)
 	....
-otherwise
+else
 	....
 ```
 
@@ -4224,7 +4219,7 @@ relation Subtraction
 		// (0, -2, 2), (1, -1, 2), (-1, -3, 2), (2, 0, 2), (-2, -4, 2), ....
 ```
 
-The `when` keyword allows branch-like functionality for relation blocks:
+The `if` keyword allows branch-like functionality for relation blocks:
 
 Here's the infamous "Fizz-Buzz" problem, this time implemented using a relation:
 ```isl
@@ -4235,13 +4230,13 @@ relation FizzBuzz
 	rule (index: integer, output: string)
 		InRange(index, 1, infinity)
 
-		when Divides(index, 15)
+		if Divides(index, 15)
 			Equals(output, "FizzBuzz")
-		when Divides(index, 3)
+		else if Divides(index, 3)
 			Equals(output, "Fizz")
-		when Divides(index, 5)
+		else if Divides(index, 5)
 			Equals(output, "Buzz")
-		otherwise
+		else
 			Equals(output, "{index}")
 
 FizzBuzz(30, "Buzz").exists // returns false
@@ -4255,9 +4250,9 @@ for (_, str) in FizzBuzz(_, _)
 	// prints "1", "2", "Fizz", "4", "Buzz", "Fizz" ....
 ```
 
-`when` blocks also handle cases where the conditional cannot be resolved:
+`if` blocks also handle cases where the conditional cannot be resolved:
 
-For example, in the case where `FizzBuzz(_, "Fizz")` is queried, since `index` isn't bound to anything on the `when` conditional, the inference engine unconditionally evaluates the branch, as well as any other unresolvable conditional branches, which in this example includes all of them (the `otherwise` branch is considered unresolvable as well):
+For example, in the case where `FizzBuzz(_, "Fizz")` is queried, since `index` isn't bound to anything on the `if` conditional, the inference engine unconditionally evaluates the branch, as well as any other unresolvable conditional branches, which in this example includes all of them (the `otherwise` branch is considered unresolvable as well):
 
 ```isl
 for (index, _) in FizzBuzzer.FizzBuzz(_, "Fizz")
@@ -4266,13 +4261,13 @@ for (index, _) in FizzBuzzer.FizzBuzz(_, "Fizz")
 	// prints 3, 6, 9, 12, 18, 21, ....
 ```
 
-Here's the absolute value implemented as a relation using a `when` conditional:
+Here's the absolute value implemented as a relation using an `if` conditional:
 ```isl
 relation Abs
 	rule (number: integer, abs: integer)
-		when GreaterThanOrEquals(number, 0)
+		if GreaterThanOrEquals(number, 0)
 			Equals(number, abs)
-		otherwise
+		else
 			Negation(number, let negation)
 			Equals(abs, negation)
 
@@ -4387,9 +4382,9 @@ relation Reduced<E, R>
 		  result: R)
 		reducer(head, initialResult, let newResult)
 
-		when Equals(tail, [])
+		if Equals(tail, [])
 			Equals(result, newResult)
-		otherwise
+		else
 			Reduced(tail, reducer, newResult, result)
 ```
 
@@ -4397,9 +4392,9 @@ Using the `reduced` relation we now can provide a more efficient rule-based impl
 ```isl
 relation MinimumOf2
 	rule (val1: integer, val2: integer, minimum: integer)
-		when SmallerOrEqual(val1, val2)
+		if SmallerOrEqual(val1, val2)
 			Equals(minimum, val1)
-		otherwise
+		else
 			Equals(minimum, val2)
 
 relation SmallestValue
@@ -4571,6 +4566,19 @@ let distance = kinematics.distance
 ```
 
 The notion of providing a value to a nested property like `speed.milesPerHour` may seem a bit strange at first since it isn't something we're used to do with classes and objects, but remember that the embedded context really does become an integral part of the parent context, and that contexts, unlike classes, don't have a predefined set of required members, so a notation like `speed.milesPerHour = 15.0` may make more sense, as there's no need to think of `Speed` as needing to be 'constructed' as an independent entity.
+
+## Default property values
+
+Properties may be set with default values. Default values must be knowable at compile-time.
+
+```isl
+context Person
+	name = "Anonymous" // type of 'name' is inferred to 'string'
+	age: integer
+
+let person1 = Person with age = 20 // 'person1.name' gets te default value "Anonymous"
+let person2 = Person with name = "Ines", age = 20 // 'person2.name' gets the value "Ines"
+```
 
 ## Mapping rule preconditions
 
@@ -5156,9 +5164,9 @@ kinematics.distance = 10.0
 // Now it has one known property, and its type has changed to 'BasicKinematics with distance',
 // though it is still not very useful since not much new knowledge can be inferred from it.
 
-when ....someCondition....
+if ....someCondition....
 	kinematics.time = 5.0
-otherwise
+else
 	kinematics.time = 7.0 // This branch must also initialize a value for 'time'
 
 // Its type has changed again, now to 'BasicKinematics with distance, time'.
@@ -5168,6 +5176,26 @@ otherwise
 
 // Now the 'speed' value can be computed, since sufficient information is available for it:
 let speed = kinematics.speed
+```
+
+A **property that has a default value cannot be late-initialized**. To remedy this, the default value must be explicitly removed using the `no` operator. For example:
+```isl
+context Person
+	name = "Anonymous"
+	age: integer
+
+let person = Person with age = 20 // 'person.name' gets the default value "Anonymous"
+
+// This is invalid! 'name' property has already been set to the default value:
+person.name = "Anja"
+```
+
+However:
+```isl
+let person = Person with age = 20, no name // 'person.name' gets no value
+
+// Now this works:
+person.name = "Anja"
 ```
 
 ## Anonymous contexts
@@ -5197,7 +5225,7 @@ A variant of this syntax can also be used to **integrate an ad-hoc context insta
 // Thus, in addition to defining the anonymous context type, it also introduces
 // a nameless, 'ghost' instance for it.
 //
-// Alternatively, 'someName: context' would have namespaced the properties under
+// Alternatively, 'let someName: context' would have namespaced the properties under
 // the 'someName.' prefix, but otherwise behave identically.
 context
 	name: string
@@ -5210,10 +5238,10 @@ context
 
 name = "Luna" // This assigns directly into the anonymous instance's 'name' property.
 
-when ....
+if ....
 	age = 46
 	print(greeting) // prints "Hello Luna of 46 years of age!"
-otherwise
+else
 	age = 15 // This branch must also assign a value for the 'age' property
 	print(greeting) // prints "Hello young Luna of 15 years of age!"
 ```
@@ -5227,13 +5255,11 @@ First we'll define contexts for the auxiliary computations:
 context StringifiedNumber
 	source: decimal
 	stringified: string
-
 	....
 
 context NumberSquare
 	number: decimal
 	squared: decimal
-
 	....
 ```
 
@@ -5627,9 +5653,9 @@ With these features, combined with named return variables, we can further simpli
 ```isl
 function binarySearch(values: List<integer>, target: integer)
 	function iterate(low = 1, high = values.length): (mid = low + high / 2)?
-		when low > high
+		if low > high
 			return nothing
-		otherwise
+		else
 			match values[mid]
 				case target => return
 				case _ < target => recurse low = mid + 1
