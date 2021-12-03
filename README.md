@@ -1,4 +1,4 @@
-<h1 id="top-heading">The Island Programming Language</h1>
+<h1 id="top-heading">The <span id="top-heading-island-word">Island</span> Programming Language</h1>
 <h2 id="top-subheading">(Work In Progress)</h2>
 
 **Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming, as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
@@ -5680,6 +5680,107 @@ let t3 = (1, "Hi", true, [5, 4, 3, 1])
 print(t1 == t2) // prints true
 print(t2 == t3) // prints false
 ```
+
+# Design decisions still under consideration
+
+## Possibly questionable syntax
+
+**Some syntax I find potentially confusing but haven't, to date, found better alternatives for:**
+
+---
+
+Using the `stream` keyword only for pure generators. Based on this logic, a 'stream' of data read from a file isn't eligible to be called a 'stream'?
+
+---
+
+Using the `delegate` keyword for worker methods. Is this the best option? Maybe every `action` could be modified to become a `delegate` instead? (or maybe `action delegate`??)
+
+---
+
+`+` and `+=` used to concatenate strings. This is very JavaScript-like and I remember I found it confusing when I started learning the language. I wish I could find a better alternative. Example:
+```isl
+let s = "abcd" + "efg"
+let s = someString + someOtherString
+someString += someOtherString
+```
+`++` is a candidate but I feel that it may look too cryptic (`++=` also doesn't read very nicely), so avoid it for now. Does this look better?
+
+```isl
+let s = "abcd" ++ "efg"
+let s = someString ++ someOtherString
+someString ++= someOtherString
+```
+
+How about `||`? Is it too confusing with the logical or operator in other languages (island uses `or` instead)?
+
+```isl
+let s = "abcd" || "efg"
+let s = someString || someOtherString
+someString ||= someOtherString
+```
+
+---
+
+`+` and `+=` used to add item to a list. If the list contains numbers, intuitively it may looks like it would add the number to each individual member. Example:
+```isl
+let someList: List<integer> = [1, 2, 3, 4] + 5
+someList += 6
+```
+Similarly, `+` and `+=` used to concatenate lists:
+```isl
+let someList: List<integer> = [1, 2, 3, 4] + [5, 6, 7]
+someList += [7, 8, 9]
+```
+
+---
+
+`_` as a contextual subject identifier. Slightly too cryptic for my taste by haven't found something that's as short and consistent with the `_` used to signify "don't care" or "anonymous" values:
+```isl
+case (_ > 1 and _ < 5, _.length > 2, _) => "Case 2"`
+```
+
+---
+
+`**` as power operator. `^` is another option, but that would expend a potentially useful operator:
+```isl
+let x = y ** 3
+```
+
+---
+
+`div` as integer division operator. Previously used plain `/` but then changed to improve the user experience (ambiguous type-dependent division with `/` may become a common place for human error):
+```isl
+let x = 10 div 3
+```
+
+---
+
+`delegate` `out` and `in` channels currently use the `<-` operator. Is it really necessary? Not having it would probably look cleaner.
+
+---
+
+In Python, a block statement usually ends with a `:` to signify the upcoming content block. I've decided I'm not doing that in Island (same for not having `then` after `if`). This brings some situations that are not intuitive to read.
+
+On issue is with multi-line block opening statements (e.g. `for ....`, `if ....`) may become difficult to visually differentiate from block content.
+
+In knowledge-driven programming context syntax, when mapping rules are written as blocks, the syntax becomes too sparse:
+```isl
+context Example
+	val: integer
+
+	val
+		for i in 1..10
+			....
+
+		return something
+```
+
+## Built-in types
+
+* Should `integer` be infinite or finite precision? How about having `integer<64>`, `integer<32>` etc?
+* Should `decimal` be infinite or finite precision?
+* Should `string` be renamed to `text`? (since `string` is a poor name in general).
+* Should constant-length arrays be natively supported?
 
 # TODO
 

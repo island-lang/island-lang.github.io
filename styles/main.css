@@ -67,6 +67,10 @@ h1#top-heading {
   margin-bottom: 1em;
   border: none;
 }
+h1#top-heading span#top-heading-island-word {
+  color: #248524;
+  text-shadow: 0ch 0ch 0.1ch #dadada;
+}
 
 h2 {
   font-size: 1.5em;
@@ -75,7 +79,7 @@ h2 {
 h2#top-subheading {
   font-size: 1.45em;
   font-weight: 800;
-  color: rgba(217, 157, 255, 0.795);
+  color: rgba(204, 122, 255, 0.795);
   line-height: 1.4em;
   text-align: center;
   margin-top: 0em;
@@ -138,6 +142,14 @@ h4:hover .header-anchor:hover,
 h5:hover .header-anchor:hover,
 h6:hover .header-anchor:hover {
   opacity: 1;
+}
+
+hr {
+  border-style: solid;
+  border-width: 2px;
+  border-color: #e4e4e4;
+  border-radius: 0em;
+  background-color: #e4e4e4;
 }
 
 p,
