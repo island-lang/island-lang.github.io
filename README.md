@@ -157,7 +157,7 @@ Island is a **statically typed** language, meaning that every one of its values 
 Island has a few primitive data types:
 
 * `integer`: arbitrary precision integer number.
-* `decimal`: real number (floating-point 64-bit IEEE 754).
+* `decimal`: real number (64-bit floating-point).
 * `boolean`: Boolean value (`true` or `false`).
 * `string`: Unicode character sequence.
 
@@ -230,13 +230,16 @@ let x = (5) // `x` gets the plain type `integer`, there's no single member tuple
 let x = () // syntax error, `()` doesn't mean anything in Island
 ```
 
-**Dictionaries** are unordered collections where the indexing keys can have any type:
+**Dictionaries** are unordered collections where keys and values can be of any type:
 
 ```isl
 let fruits: Dictionary<string, integer> = { "apple": 55, "lemon": 95, "orange" : 31, "banana": 4 }
-let fruitValue = fruits["orange"] // fruitValue is 31
+let fruitValue = fruits["orange"] // fruitValue = 31
+let isFound1 = "orange" in fruits // isFound1 = true
+let isFound2 = "avocado" in fruits // isFound2 = false
 
 let alteredFruits = fruits with ["apple"] = 12, no ["orange"]
+let alteredFruits2 = fruits with { "apple": 12, no "orange" } // Equivalent to previous
 
 let extendedFruits1 = alteredFruits | { "mango": 76 }
 let extendedFruits2 = { ...alteredFruits, "mango": 76 } // Same but with spread syntax
@@ -249,9 +252,12 @@ let emptyDictionary = Dictionary<string, integer> {}
 **Sets** are unordered collections containing only unique elements:
 ```isl
 let fruits: Set<string> = { "apple", "lemon", "orange", "banana" }
-let fruitValue = fruits["orange"] // fruitValue is 31
+let fruitValue = fruits["orange"] // fruitValue = true
+let isFound1 = "orange" in fruits // isFound1 = true
+let isFound2 = "avocado" in fruits // isFound2 = false
 
-let alteredFruits = fruits with ["berries"], no ["orange"]
+let alteredFruits = fruits with "berries", no "orange" // no need for { } here
+let alteredFruits2 = fruits with { "berries", no "orange" } // Equivalent to previous
 
 let extendedFruits1 = alteredFruits | "mango"
 let extendedFruits2 = { ...alteredFruits, "mango" } // Same but with spread syntax
@@ -931,7 +937,8 @@ function matchAnimalAndPerson(animal: Cat, person: Woman)
 function matchAnimalAndPerson(animal: Horse, person: Person)
 
 // With assertion types, the compiler infers:
-function matchAnimalAndPerson(animal: Dog where name == "Lucky", person: Man where age < 18)
+function matchAnimalAndPerson(animal: Dog where name == "Lucky",
+							  person: Man where age < 18)
 function matchAnimalAndPerson(animal: Cat where age > 10,
 							  person: Woman where happinessLevel > 0.8)
 function matchAnimalAndPerson(animal: Horse where height > 180,
@@ -1478,13 +1485,13 @@ function combinationsOf2(min: integer, max: integer): (result: List<(integer, in
 **List comprehensions** allow building a list from `for`-like expressions.
 
 ```isl
-let l = [(for i in 1..5) => i*i]
+let l = [(for i in 1..5) => i^2]
 // l = [1, 4, 9, 16, 25]
 ```
 
 A **filtering predicate** can also be added, using the `where` clause:
 ```isl
-let l = [(for i in 1..5 where i mod 2 == 0) => i*i]
+let l = [(for i in 1..5 where i mod 2 == 0) => i^2]
 // l = [4, 16]
 ```
 
@@ -1522,7 +1529,7 @@ let sumsOfNaturalsUpTo5 = [(for initial = 1, i in 2..5) => prior + i]  // [1, 3,
 **Stream comprehensions** use identical syntax, excluding the brackets, but create a stream method instead:
 
 ```isl
-let squaresOfEvenNumbers = (for i in 1..infinity where i mod 2 == 0) => i**2
+let squaresOfEvenNumbers = (for i in 1..infinity where i mod 2 == 0) => i^2
 // The type of squaresOfEvenNumbers is 'stream () => integer'
 
 // (Note: since squaresOfEvenNumbers is a stream method with no parameters,
