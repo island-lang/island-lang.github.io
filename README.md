@@ -176,7 +176,7 @@ let emptyList: List<Integer> = []
 let emptyList = List<Integer> []
 ```
 
-Lists can be extended and concatenated using the concatenation operator `|` , or spread expressions (`[...someList, valueToAppend]` and `[...someList, ...SomeOtherList]`):
+Lists can be extended and concatenated using the concatenation operator `|` , or a spread expression (`[...someList, valueToAppend]`, `[...someList, ...SomeOtherList]`):
 ```isl
 let l1 = [1, 2]
 let l2 = [3, 4, 5]
@@ -196,7 +196,7 @@ let l2 = l1 with [1] = -1 // l2 is [99, 200, 300, 400]
 let l3 = l2 with [2] =+ 1, [3] -= 1, no [4]  // l3 is [99, 201, 299]
 ```
 
-The spread syntax can be embedded in concatenations or spread expressions:
+`with` expressions can be nested in concatenations or spread expressions:
 ```isl
 let l1 = [100, 200]
 let l2 = [300, 400, 500]
@@ -209,6 +209,7 @@ Lists can be sliced:
 let l1 = [100, 200, 300, 400]
 let l2 = l1[2..4] // l2 is [200, 300, 400]
 let l3 = l1[3..] // l3 is [300, 400]
+let l3 = l1[..2] // l3 is [100, 200]
 ```
 
 **Tuples** are ordered collections of fixed length in which each member may have a different type:
@@ -236,8 +237,9 @@ let fruits: Dictionary<string, integer> = { "apple": 55, "lemon": 95, "orange" :
 let fruitValue = fruits["orange"] // fruitValue is 31
 
 let alteredFruits = fruits with ["apple"] = 12, no ["orange"]
-let extendedFruits = { ...alteredFruits, "mango": 76 }
-let extendedFruits2 = alteredFruits | { "mango": 76 } // Same but uses '|' operator instead
+
+let extendedFruits1 = alteredFruits | { "mango": 76 }
+let extendedFruits2 = { ...alteredFruits, "mango": 76 } // Same but with spread syntax
 
 // Two ways of defining empty dictionaries:
 let emptyDictionary: Dictionary<string, integer> = {}
@@ -250,12 +252,13 @@ let fruits: Set<string> = { "apple", "lemon", "orange", "banana" }
 let fruitValue = fruits["orange"] // fruitValue is 31
 
 let alteredFruits = fruits with ["berries"], no ["orange"]
-let extendedFruits = { ...alteredFruits, "mango" }
-let extendedFruits2 = alteredFruits | "mango" // Same but uses '|' operator instead
+
+let extendedFruits1 = alteredFruits | "mango"
+let extendedFruits2 = { ...alteredFruits, "mango" } // Same but with spread syntax
 
 // Two ways of defining empty sets:
-let emptySet: Set<integer> = {}
-let emptySet = Set<integer> {}
+let emptySet: Set<string> = {}
+let emptySet = Set<string> {}
 ```
 
 ## Unpacking
@@ -322,7 +325,7 @@ let result = sum3(2, 3, 4)
 print("Result: {result}")
 ```
 
-A **predicate** is an alternate syntax to write function that returns either `true` of `false`. Using `predicate` instead of `function` simply ensures the return type will always be a `boolean`
+A **predicate** is an alternate syntax for a function that returns either `true` of `false`. Using `predicate` instead of `function` simply ensures the return type will always be `boolean`.
 
 ```isl
 predicate areEqual(x: integer, y: integer) => x == y // Short syntax
@@ -347,11 +350,11 @@ Despite allowing for "impure" operations like writing or reading from a file, ac
 
 ```isl
 action readMutableState() => readFile("myFile.state")
-action writeMutableState(data: string) => writeFile("myFile.state", data)
+action writeMutableState(data: string)
+	writeFile("myFile.state", data)
 
 let initialData = readMutableState()
 writeMutableState(initialData | " changed!")
-
 let modifiedData = readMutableState()
 ```
 
@@ -407,9 +410,9 @@ A **lexical closure** allows a method to capture data from its environment:
 
 ```isl
 // This function returns a value of type 'function'
-function outerFunction(x: integer): () => integer
-	function innerFunction()
-		return x + 1 // x is captured from the outer scope
+function outerFunction(x: integer): (integer) => integer
+	function innerFunction(y: integer)
+		return x + y // x is captured from the outer scope
 
 	return innerFunction
 ```
@@ -536,7 +539,7 @@ let average2 = averageOf3(2.0, nums[2..3]...) // pass nums tuple elements 2..3 t
 
 The `arguments` keywords allows getting a tuple bundling all the arguments passed to the current method:
 ```isl
-action printArguments(a: integer, b: integer, c: integer) =>
+action printArguments(a: integer, b: integer, c: integer)
 	print(arguments)
 
 printArguments(1, 4, 5) // Prints "(1, 4, 5)"
@@ -589,8 +592,8 @@ action printThreeNumbers(a: integer, b: integer, c: integer)
 
 action printThreeNumbers(a: integer, b: decimal, c: decimal)
 	print(a)
-	print("{b}")
-	print("{c}")
+	print("{b.roundToDecimals(3)}")
+	print("{c.roundToDecimals(3)}")
 
 let print5AndTwoNumbers = printThreeNumbers(5, ...) // Error! Ambiguous call. There are two matching overloads!
 
@@ -912,7 +915,7 @@ function matchAnimalAndPerson(match animal, match person)
 	case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
 	case Horse where height > 180, Person where hobby == "Horseriding" =>
 		"Tall horse and a true horseriding lover!"
-	otherwise => "Nothing interesting here"
+	otherwise => Failure("Invalid match argument types!")
 
 	// Note the 'otherwise' clause must fail for the parameter types to be properly inferred!
 	//
@@ -929,8 +932,10 @@ function matchAnimalAndPerson(animal: Horse, person: Person)
 
 // With assertion types, the compiler infers:
 function matchAnimalAndPerson(animal: Dog where name == "Lucky", person: Man where age < 18)
-function matchAnimalAndPerson(animal: Cat where age > 10, person: Woman where happinessLevel > 0.8)
-function matchAnimalAndPerson(animal: Horse where height > 180, person: Person where hobby == "Horseriding")
+function matchAnimalAndPerson(animal: Cat where age > 10,
+							  person: Woman where happinessLevel > 0.8)
+function matchAnimalAndPerson(animal: Horse where height > 180,
+							  person: Person where hobby == "Horseriding")
 ```
 
 Even without the `match` modifier, parameter types can still be omitted and asserted in the method body using the `is` operator:
@@ -2950,8 +2955,11 @@ function someMath2(a: decimal, b: decimal)
 	assert a + b < 5
 	....
 
-let r1 = someMath1(???) // r1 is always greater than 5, regardless of argument passed to `someMath1`
-let r2 = someMath2(r1, ???) // Compiler error regardless of the value of r1 and the second argument
+// r1 is always greater than 5, regardless of argument passed to `someMath1`:
+let r1 = someMath1(???)
+
+// Compiler error regardless of the value of r1 and the second argument:
+let r2 = someMath2(r1, ???)
 ```
 
 # Type abstractions
@@ -3233,9 +3241,9 @@ stream traverseBinaryTree<T>(match tree: BinaryTree<T>)
 		yield value
 
 	// Tuple typed variant members don't require the extra parentheses
-	// e.g. instead of Internal((left: ...., right: ....))
-	//    we can write Internal(left: ...., right: ....)
-	case Internal(let left: BinaryTree<T>?, let right: BinaryTree<T>?)
+	// e.g. instead of Internal((let left, let right))
+	//    we can write Internal(let left, let right)
+	case Internal(let left, let right)
 		if left is not nothing
 			yield stream traverseBinaryTree(left)
 
@@ -3276,7 +3284,7 @@ function getResponseString(match personOrCar: PersonOrCar)
 	otherwise => "Not interesting"
 ```
 
-Members may individually include their own set of type parameters (this is related to the concept of **generalized algebraic data types**):
+Members may individually include their own set of type parameters (this is related to the notion of a **generalized algebraic data type**):
 ```isl
 variant PairOrTriple
 	Pair<T>: (x: T, y: T)
@@ -3368,30 +3376,34 @@ Like classes, variants may have **companion type objects**, which also enable th
 variant BinaryTree<V>
 	....
 
-object BinaryTree<V> extends Comparable<BinaryTree<V>>, Equatable<BinaryTree<V>>
-	stream traverse(match tree: BinaryTree<V>)
+// Here, 'this' type substitutes for 'BinaryTree<V>':
+object BinaryTree<V> extends Comparable<this>, Equatable<this>
+	stream traverse(match tree: this)
 		case Leaf(let value)
 			yield value
 
 		case Internal
 			yield stream tree.iterate()
 
-	function compare(t1: BinaryTree<V>, t2: BinaryTree<V>): integer
+	function compare(t1: this, t2: this): integer
 		....
 
-	operator ==(t1: BinaryTree<V>, t2: BinaryTree<V>): boolean
+	operator ==(t1: this, t2: this): boolean
 		....
 ```
 
 Individual members of the variant may also receive their own **dedicated type objects**:
 ```isl
-object BinaryTree<V> extends Comparable<BinaryTree<V>>, Equatable<BinaryTree<V>>
+// Here, 'this' type substitutes for 'BinaryTree<V>':
+object BinaryTree<V> extends Comparable<this>, Equatable<this>
 	....
 
-	object Leaf extends Comparable<BinaryTree<V>.Leaf>, Equatable<BinaryTree<V>.Leaf>
+	// Here, 'this' type substitutes for 'BinaryTree<V>.Leaf'
+	object Leaf extends Comparable<this>, Equatable<this>
 		....
 
-	object Internal extends Comparable<BinaryTree<V>.Internal>, Equatable<BinaryTree<V>.Internal>
+	// And here, 'this' type substitutes for 'BinaryTree<V>.Internal'
+	object Internal extends Comparable<this>, Equatable<this>
 		....
 ```
 
@@ -3400,10 +3412,7 @@ object BinaryTree<V> extends Comparable<BinaryTree<V>>, Equatable<BinaryTree<V>>
 An **enumeration** is a type expressing a choice between a set of identifiers associated with constant values. By default, enumeration members receive integer values following the sequence `1, 2, 3, ...`
 
 ```isl
-enumeration StatusCode
-	Waiting
-	OK
-	Failed
+enumeration StatusCode with Waiting, OK, Failed
 
 action alertStatus (match status: StatusCode)
 	case Waiting => print("Still waiting..")
@@ -5742,6 +5751,10 @@ Using the `delegate` keyword for worker methods. Is this the best option? Maybe 
 ---
 
 `delegate` `out` and `in` channels currently use the `<-` operator. Is it really necessary? Not having it would probably look cleaner.
+
+---
+
+Should `enumeration` be shortened to `enum`?
 
 ---
 
