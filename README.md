@@ -37,13 +37,13 @@ A new form of declarative programming, called **knowledge-driven programming**, 
 * **All variables and values should be strictly immutable**. I.e. both variables (locally and globally scoped) and values (primitive and compound objects, including any of their fields) must maintain their initial value, forever.
 * Adapt common imperative constructs like loops, objects and generators, while maintaining strict adherence to full immutability.
 * Maintain a strict separation between pure and side-effect scopes (e.g. `function` vs `action`).
-* Maintain a look-and-feel roughly resembling popular imperative languages (e.g Python, TypeScript, C#, Swift).
-* Aim for maximum simplicity and readability (good syntax does make a difference!). Aim for low-ambiguity, consistent syntax that reads like plain English (but don't overdo it for its own sake).
-* Clean syntax: avoid unnecessary punctuation like `;`, `:`, `{`, `}`, `(`, `)` and cryptic-looking symbols like `$`, `*`, `#`, `^` etc..
-* Expressive, rather than minimalist, syntax. No special emphasis on cutting down on special keywords (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
 * Types should be inferred whenever possible.
 * Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and assertion types, compile-time contracts).
 * Allow for easy and effective concurrency (lightweight threads, asynchronous generators, automatic parallelization, structured concurrency, deterministic dataflows).
+* Maintain a look-and-feel that's not completely "alien"-looking. It should loosely resemble popular imperative languages like Python, TypeScript, C#, Swift etc.
+* Aim for maximum simplicity and readability (good syntax does make a difference!). Aim for low-ambiguity, consistent syntax that reads like plain English (but don't overdo it for its own sake).
+* Clean syntax: avoid unnecessary punctuation like `;`, `:`, `{`, `}`, `(`, `)` and cryptic-looking symbols like `$`, `*`, `#`, `^` etc..
+* Expressive, rather than minimalist, syntax. No special emphasis on cutting down on special keywords (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
 
 ## Implementation state
 
@@ -176,15 +176,17 @@ let emptyList: List<Integer> = []
 let emptyList = List<Integer> []
 ```
 
-Lists can be extended and concatenated using the spread (`...`) syntax or the `+` operator:
+Lists can be extended and concatenated using the concatenation operator `|` , or spread expressions (`[...someList, valueToAppend]` and `[...someList, ...SomeOtherList]`):
 ```isl
 let l1 = [1, 2]
 let l2 = [3, 4, 5]
-let l3 = [...l2, 6] // l3 is [3, 4, 5, 6]
-let l4 = [...l1, ...l2]  // l4 is [1, 2, 3, 4, 5, 6]
 
-let l5 = [10, 11] + l1 // l5 is [10, 11, 1, 2]
-let l6 = l5 + [100] // l6 is [10, 11, 1, 2, 100]
+let l3 = l2 | 6 // l3 is [3, 4, 5, 6]
+let l4 = l1 | l2  // l4 is [1, 2, 3, 4, 5, 6]
+
+let l5 = [10, 11, ...l1] // l5 is [10, 11, 1, 2]
+let l6 = [...l5, 100] // l6 is [10, 11, 1, 2, 100]
+let l7 = [...l1, ...l2] // l7 is [1, 2, 3, 4, 5, 6]
 ```
 
 List members can be non-destructively altered using the `with` operator:
@@ -194,11 +196,11 @@ let l2 = l1 with [1] = -1 // l2 is [99, 200, 300, 400]
 let l3 = l2 with [2] =+ 1, [3] -= 1, no [4]  // l3 is [99, 201, 299]
 ```
 
-The spread syntax can naturally embed `with` expressions:
+The spread syntax can be embedded in concatenations or spread expressions:
 ```isl
 let l1 = [100, 200]
 let l2 = [300, 400, 500]
-let l3 = [...(l1 with [1] -= 10), ...(l2 with [1] *= 3), 6] // l3 is [90, 200, 900, 400, 500, 600]
+let l3 = (l1 with [1] -= 10) | (l2 with [1] *= 3) | 600 // l3 is [90, 200, 900, 400, 500, 600]
 let l4 = [...(l3 with no [1], [2] *= 4), -200, 300] // l4 is [800, 900, 400, 500, 600, -200, 300]
 ```
 
@@ -223,7 +225,7 @@ let alteredTuple = myTuple with someNumber = 42
 
 Island doesn't support 1 or 0 arity tuples:
 ```isl
-let x = (5) // `x` gets the plain type `integer`, there's no single member tuple `(integer)` in Island
+let x = (5) // `x` gets the plain type `integer`, there's no single member tuple in Island
 let x = () // syntax error, `()` doesn't mean anything in Island
 ```
 
@@ -235,6 +237,7 @@ let fruitValue = fruits["orange"] // fruitValue is 31
 
 let alteredFruits = fruits with ["apple"] = 12, no ["orange"]
 let extendedFruits = { ...alteredFruits, "mango": 76 }
+let extendedFruits2 = alteredFruits | { "mango": 76 } // Same but uses '|' operator instead
 
 // Two ways of defining empty dictionaries:
 let emptyDictionary: Dictionary<string, integer> = {}
@@ -248,6 +251,7 @@ let fruitValue = fruits["orange"] // fruitValue is 31
 
 let alteredFruits = fruits with ["berries"], no ["orange"]
 let extendedFruits = { ...alteredFruits, "mango" }
+let extendedFruits2 = alteredFruits | "mango" // Same but uses '|' operator instead
 
 // Two ways of defining empty sets:
 let emptySet: Set<integer> = {}
@@ -302,9 +306,9 @@ let [firstElement, ..., lastElement] = values // firstElement = 1, lastElement =
 
 # Subroutines
 
-## Functions, actions and computed variables
-
 The Island language has two main subroutine types: functions and actions.
+
+## Functions and predicates
 
 **Functions** are "pure", in the sense they do not have side effects (no hidden change of state) and maintain referential transparency (given the same set of arguments, they would always return the same value).
 
@@ -317,6 +321,17 @@ function sum3(x: integer, y: integer, z: integer) // Long syntax
 let result = sum3(2, 3, 4)
 print("Result: {result}")
 ```
+
+A **predicate** is an alternate syntax to write function that returns either `true` of `false`. Using `predicate` instead of `function` simply ensures the return type will always be a `boolean`
+
+```isl
+predicate areEqual(x: integer, y: integer) => x == y // Short syntax
+
+predicate areEqual(x: integer, y: integer) // Long syntax
+	return x == y
+```
+
+## Actions
 
 **Actions** extend functions and allow for _external_ side-effects. Actions can return values but can only be called from other actions (or the topmost scope):
 ```isl
@@ -335,12 +350,14 @@ action readMutableState() => readFile("myFile.state")
 action writeMutableState(data: string) => writeFile("myFile.state", data)
 
 let initialData = readMutableState()
-writeMutableState(initialData + " changed!")
+writeMutableState(initialData | " changed!")
 
 let modifiedData = readMutableState()
 ```
 
 The program can read and write to external mutable state. However, the modified data must be read into a new variable (here `modifiedData`) so the _internal_ state of the program (its variables and values) is never altered.
+
+## Computed variables
 
 **Computed variables** are functions that are referenced as if they were plain variables. They are only evaluated when first used:
 
@@ -382,8 +399,8 @@ printNameAndAge(_, 12) // prints Name: Anonymous, Age: 12
 
 ```isl
 // This function accepts an argument of type 'function'
-function giveMeFunction(f: () => integer)
-	return f() + 1
+function giveMeFunction(f: integer => integer)
+	return f(10) + 1
 ```
 
 A **lexical closure** allows a method to capture data from its environment:
@@ -397,9 +414,11 @@ function outerFunction(x: integer): () => integer
 	return innerFunction
 ```
 
+In general, a function accepting another function as argument is called a **higher-order function**.
+
 ## Anonymous methods
 
-Anonymous methods, also known as **lambda expressions** are functions or actions that are defined as expressions and are not bound to any identifier.
+**Anonymous methods**, also known as **lambda expressions** are functions or actions that are defined as expressions and are not bound to any identifier.
 
 ```isl
 let sum2 = (n1: integer, n2: integer) => n1 + n2 // Explicit parameter types
@@ -410,6 +429,28 @@ let negative = n => -n // Single implicitly typed parameter
 // Since 'print' is an action 'printInQuotes' implicitly becomes a action as well
 let printInQuotes = s => print("'{s}'")
 ```
+
+## Single parameter anonymous predicate syntax
+
+Consider this higher-order function that accepts a list of integers and a single-parameter filtering predicate:
+```isl
+function findInList(items: List<integer>, filteringPredicate: integer => boolean)
+	....
+
+let numbers = [1, 2, 3, 4, 5, 6]
+```
+
+Instead of passing a full anonymous predicate as an argument, e.g.:
+```isl
+let evenNumbers = findInList(numbers, number => number mod 2 == 0)
+```
+
+The predicate can be shortened to an even more terse syntax where the `it` keyword represents its parameter value:
+```isl
+let evenNumbers = findInList(numbers, it mod 2 == 0)
+```
+
+In general, any expression involving the `it` keyword, that's assigned to a placeholder where expected type is a single-parameter predicate, would be interpreted as an anonymous predicate (the `it` keyword is also employed for pattern matching, as we'll see in a future chapter, but the two applications are distinct).
 
 ## Method overloading
 
@@ -444,7 +485,7 @@ Function and action types can be written in several ways:
 
 ```isl
 // Short form (unnamed parameters):
-let f: (integer) => string
+let f: integer => string
 let f: (integer, boolean) => string
 let a: action (string) => (integer, integer)
 
@@ -667,7 +708,7 @@ function numToWords(num: 1..999): string
 
 **Pattern matching** is a form of a conditional which inspects one or more target values and their internal component parts. The `match`-`case` syntax expands over the traditional `switch`-`case` with more expressive control:
 
-_(`_` matches the target value, which is `num` in this example)_
+_(`it` represents the target value, which is `num` in this example)_
 
 ```isl
 // (long statement form)
@@ -675,7 +716,7 @@ function abs1(num: integer)
 	match num
 		case 0
 			return 0
-		case _ < 0
+		case it < 0
 			return -num
 		otherwise
 			return num
@@ -684,24 +725,24 @@ function abs1(num: integer)
 function abs2(num: integer)
 	match num
 		case 0 => 0
-		case _ < 0 => -num
+		case it < 0 => -num
 		otherwise => num
 
 // (expression form)
 let absOfVal = match num:
 	case 0 => 0,
-	case _ < 0 => -num,
+	case it < 0 => -num,
 	otherwise => num
 ```
 
 Match a tuple:
-_(here `_` contextually matches the corresponding element of the target tuple `someTuple`)_
+_(`any` matches any value, `here` contextually matches the corresponding element of the target tuple `someTuple`)_
 ```isl
 function tupleMatch(someTuple: (integer, string, boolean))
 	match someTuple
-		case (_, "Hi", _) => "Case 1"
-		case (_ > 1 and _ < 5, _.length > 2, _) => "Case 2"
-		case (_ > 1, _[1] == "O", false) => "Case 3"
+		case (any, "Hi", any) => "Case 1"
+		case (here > 1 and here < 5, here.length > 2, any) => "Case 2"
+		case (here > 1, here[1] == "O", false) => "Case 3"
 		otherwise => "No match"
 
 let r1 = matchTuple((1, "Hi", true))    // returns "Case 1"
@@ -714,8 +755,8 @@ Matched elements can be nested, and can be captured using the `let` keyword:
 ```isl
 function nestedTupleMatch(someNestedTuple: (integer, string, (boolean, string)))
 	match someNestedTuple
-		case (_, "Hi", (true, let name)) => "Case 1, {name}"
-		case (let num, "Hi", (true, _)) => "Case 2, {num}"
+		case (any, "Hi", (true, let name)) => "Case 1, {name}"
+		case (let num, "Hi", (true, any)) => "Case 2, {num}"
 		otherwise => "No match"
 ```
 
@@ -762,8 +803,8 @@ A third, terser matching syntax uses constructor-like notation, based on the ord
 function matchAnimal(animal: Animal)
 	match animal
 		case Dog("Lucky", Person("Andy", ...), ...) => "Good dog, Andy!"
-		case Cat(_, _ > 10, ...) => "Old cat!"
-		case Horse(_, _, _ > 180) => "Tall horse!"
+		case Cat(any, here > 10, ...) => "Old cat!"
+		case Horse(any, any, here > 180) => "Tall horse!"
 		otherwise => "Nothing interesting here"
 ```
 
@@ -773,7 +814,8 @@ function matchAnimalAndPerson(animal: Animal, person: Person)
 	match animal, person
 		case Dog where name == "Lucky", Man where age < 18 => "Good dog and young man!"
 		case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
-		case Horse where height > 180, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
+		case Horse where height > 180, Person where hobby == "Horseriding" =>
+			"Tall horse and a true horseriding lover!"
 		otherwise => "Nothing interesting here"
 ```
 
@@ -783,8 +825,8 @@ function hasPromotions(repeatCustomer: boolean, hasMemberCard: boolean, orderAmo
 	(freeShipping: boolean, discountPercent: decimal)
 
 	match repeatCustomer, hasMemberCard, orderAmount >= 100, orderAmount >= 1000
-		case true, _   , false, false => (freeShipping: true, discountPercent: 0)
-		case _   , true, false, false => (freeShipping: true, discountPercent: 0)
+		case true, any , false, false => (freeShipping: true, discountPercent: 0)
+		case any , true, false, false => (freeShipping: true, discountPercent: 0)
 		case true, true, true , false => (freeShipping: true, discountPercent: 0.05)
 		case true, true, true , true  => (freeShipping: true, discountPercent: 0.10)
 		otherwise                     => (freeShipping: false, discountPercent: 0)
@@ -821,7 +863,7 @@ function matchList(myList: List<integer>)
 
 		// Match if first element is greater or equal to 10. Capture the tail
 		// of the list with the identifier 'tail':
-		case [_ >= 10, let ...tail]
+		case [here >= 10, let ...tail]
 
 		// Match if first element smaller than 0, second not equals to first,
 		// capture them and the rest with the identifers 'first', 'second', 'rest':
@@ -858,7 +900,8 @@ If the outermost scope of a method consists only of a `match` statement (excludi
 function matchAnimalAndPerson(match animal: Animal, match person: Person)
 	case Dog where name == "Lucky", Man where age < 18 => "Good dog and young man!"
 	case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
-	case Horse where height > 180, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
+	case Horse where height > 180, Person where hobby == "Horseriding" =>
+		"Tall horse and a true horseriding lover!"
 	otherwise => "Nothing interesting here"
 ```
 
@@ -867,7 +910,8 @@ Observing the above carefully, it may be noticed the `: Animal` and `: Person` a
 function matchAnimalAndPerson(match animal, match person)
 	case Dog where name == "Lucky", Man where age < 18 => "Good dog and young man!"
 	case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
-	case Horse where height > 180, Person where hobby == "Horseriding" => "Tall horse and a true horseriding lover!"
+	case Horse where height > 180, Person where hobby == "Horseriding" =>
+		"Tall horse and a true horseriding lover!"
 	otherwise => "Nothing interesting here"
 
 	// Note the 'otherwise' clause must fail for the parameter types to be properly inferred!
@@ -925,7 +969,7 @@ Sometimes it may be useful to match a value against a single pattern. The `match
 
 ```isl
 function firstTwoElementsAreConsecutive(values: List<integer>): boolean =>
-	values matches [let first, let second == first + 1, ...]
+	values matches [let first, here == first + 1, ...]
 ```
 
 ## Loops
@@ -1007,7 +1051,7 @@ function binarySearch(values: List<integer>, target: integer)
 		match values[mid]
 			case target
 				return mid
-			case _ < target
+			case it < target
 				continue low = mid + 1
 			otherwise
 				continue high = mid - 1
@@ -1028,7 +1072,7 @@ function binarySearch(values: List<integer>, target: integer)
 				case target
 					// return mid
 					return mid
-				case _ < target
+				case it < target
 					// continue low = mid + 1
 					return iterate(low = mid + 1, high = high)
 				otherwise
@@ -1050,9 +1094,9 @@ function combinationsOf2(min: integer, max: integer)
 		for y = min, out row: List<(integer, integer)> = []
 		while y <= max
 		advance y += 1
-			continue row += [(x, y)]
+			continue row |= [(x, y)]
 
-		continue result += row
+		continue result |= row
 
 	return result
 
@@ -1064,10 +1108,10 @@ Nested loops are also reasonably straightforward to translate to recursive form:
 function combinationsOf2(min: integer, max: integer): List<(integer, integer)>
 	function iterateX(x = min, result: List<(integer, integer)> = [])
 		function iterateY(y = min, row: List<(integer, integer)> = [])
-			when y <= max => iterateY(y = y + 1, row = row + [(x, y)])
+			when y <= max => iterateY(y = y + 1, row = row | [(x, y)])
 			otherwise => row
 
-		when x <= max => iterateX(x = x + 1, result = result + iterateY())
+		when x <= max => iterateX(x = x + 1, result = result | iterateY())
 		otherwise => result
 
 	return iterate()
@@ -1248,14 +1292,14 @@ function urlTostring(url: Url): string
 	var urlstring = "" // There's no 'var' in Island - this is only meant for illustration
 
 	if url.isSecure
-		urlstring += "https://"
+		urlstring |= "https://"
 	else
-		urlstring += "http://"
+		urlstring |= "http://"
 
-	urlstring += url.hostname
+	urlstring |= url.hostname
 
 	if url.port is not nothing
-		urlstring += ":{url.port}"
+		urlstring |= ":{url.port}"
 
 	// ....
 
@@ -1275,11 +1319,11 @@ function urlTostring(url: Url): string
 	else
 		urlstring1 = "http://"
 
-	let urlstring2 = urlstring1 + url.hostname
+	let urlstring2 = urlstring1 | url.hostname
 
 	let urlstring3
 	if url.port is not nothing
-		urlstring3 = urlstring2 + ":{url.port}"
+		urlstring3 = urlstring2 | ":{url.port}"
 
 	// ....
 
@@ -1317,14 +1361,14 @@ function urlTostring(url: Url): string
 		yield initial ""
 
 		if url.isSecure
-			yield prior + "https://"
+			yield prior | "https://"
 		else
-			yield prior + "http://"
+			yield prior | "http://"
 
-		yield prior + url.hostname
+		yield prior | url.hostname
 
 		if url.port is not nothing
-			yield prior + ":{url.port}"
+			yield prior | ":{url.port}"
 
 		// ....
 
@@ -1340,14 +1384,14 @@ We can take this pattern and make it more implicit by introducing the notion of 
 ```isl
 function urlTostring(url: Url): (urlstring: string = "")
 	if url.isSecure
-		urlstring = urlstring + "https://"
+		urlstring = urlstring | "https://"
 	else
-		urlstring = urlstring + "http://"
+		urlstring = urlstring | "http://"
 
-	urlstring = urlstring + url.hostname
+	urlstring = urlstring | url.hostname
 
 	if url.port is not nothing
-		urlstring = urlstring + ":{url.port}"
+		urlstring = urlstring | ":{url.port}"
 
 	// ....
 
@@ -1375,18 +1419,18 @@ yield initial initialValue
 
 And finally, returning from the function implicitly returns the last value yielded.
 
-Now we can now allow the `resultVariable = resultVariable + something` pattern to be shortened to `resultVariable += something`:
+Now we can now allow the `resultVariable = resultVariable | something` pattern to be shortened to `resultVariable |= something`:
 ```isl
 function urlTostring(url: Url): (urlstring: string = "")
 	if url.isSecure
-		urlstring += "https://"
+		urlstring |= "https://"
 	else
-		urlstring += "http://"
+		urlstring |= "http://"
 
-	urlstring += url.hostname
+	urlstring |= url.hostname
 
 	if url.port is not nothing
-		urlstring += ":{url.port}"
+		urlstring |= ":{url.port}"
 
 	// ....
 
@@ -1421,7 +1465,7 @@ With a named return variable, a previous example can be made simpler:
 function combinationsOf2(min: integer, max: integer): (result: List<(integer, integer)> = [])
 	for x in min..max
 		for y in min..max
-			result += [(x, y)]
+			result |= [(x, y)]
 ```
 
 ## List and stream comprehensions
@@ -1519,7 +1563,7 @@ stream primesTo(max: integer)
 		if not nonprimes.includes(n)
 			yield n
 
-			let multiplesOfN = [(for initial = n**2 while prior < max) => prior + n]
+			let multiplesOfN = [(for initial = n^2 while prior < max) => prior + n]
 			continue nonprimes = nonprimes.union(multiplesOfN)
 ```
 
@@ -1528,21 +1572,21 @@ Wouldn't it be nice to make an infinite-length (unbounded) stream which enumerat
 stream primes()
 	// Generates the integer sequence n^2, n^2 + n, n^2 + n + n, n^2 + n + n + n, ...
 	stream multiplesOfN(n: integer) =
-		(for initial = n**2) => prior + n
+		(for initial = n^2) => prior + n
 
 	// For n in 2..infinity
 	// At each step, advance each stream until a value greater than or equal to n is reached
 	for n in 2..infinity, nonprimeStreams: List<Stream<integer>> = []
-	advance nonprimeStreams = [(for i in nonprimeStreams) => i.skipUntil(num => num >= n)]
+	advance nonprimeStreams = [(for i in nonprimeStreams) => i.skipUntil(it >= n)]
 
-		// Search the stream object collection for an stream that reached exactly n
-		if not nonprimeStreams.includes(nonprimeStream => nonprimeStream.value == n)
+		// Search the stream object collection for a stream that reached exactly n
+		if not nonprimeStreams.includes(it.value == n)
 			// If none found then n is a prime - yield it
 			yield n
 
 			// Create a new (infinite-length) stream for the multiples of the prime just found
-			// and add it to the collection
-			continue nonprimeStreams += multiplesOfN(n)
+			// and append it to the collection
+			continue nonprimeStreams |= multiplesOfN(n)
 ```
 
 List and stream comprehensions allow to easily implement common higher-order sequence processing functions like, `map`, `flatMap`, `filter`, `reduce` and `zip`, evaluated either eagerly (through list comprehensions) or lazily (through stream comprehensions). The generality of these operations requires type parameters, which would be introduced in a future chapter:
@@ -1976,7 +2020,7 @@ object Vector2
 	zero = Vector2(0, 0)
 
 	distance(a: Vector2, b: Vector2) =>
-		sqrt((a.x - b.x)**2 + (a.y - b.y)**2)
+		sqrt((a.x - b.x)^2 + (a.y - b.y)^2)
 
 let z = Vector2.zero // z = (0, 0)
 let d = Vector2.distance(Vector2(1, 3), Vector2(-5, 9)) // d = 8.485
@@ -2699,11 +2743,11 @@ When dealing with concurrency and parallelism involving side-effects, however, t
 
 For these reasons, instead of free-form threading and channeling, Island provides _delegates_ (no relation to C# delegates), which are worker-like action subroutines that are designed to follow a strict pattern of _structured concurrency and messaging_.
 
-A **delegate method** (analogous to a stream method) is an action scoped subroutine which once called, returns a **delegate object** (analogous to a stream object) that can be used for two-way communication with it via an embedded channel.
+A **delegate method** (analogous to a stream method) is an action which once called, returns a **delegate object** (analogous to a stream object) that can be used for two-way communication with it via an embedded channel.
 
 Here's a simple example:
 ```isl
-delegate MyDelegate(): (in: string, out: string)
+action MyDelegate(): (in: string, out: string)
 	repeat
 		let name <- in
 		out <- "Hello {name}!"
@@ -2714,7 +2758,7 @@ The above delegate has both incoming and outgoing channels. An incoming one of t
 `.... <- in` reads a message from the incoming channel.
 `out <- ....` writes a message to the outgoing channel.
 
-Calling `MyDelegate` returns an object of type `MyDelegate`. This object allows its caller scope to interactively communicate with it:
+Calling `MyDelegate` returns an object of type `Delegate<string, string>`. This object allows its caller scope to interactively communicate with it:
 ```isl
 let myDelegate = MyDelegate()
 
@@ -2879,16 +2923,16 @@ let z = x + y
 assert z > 5
 ```
 
-It can include function calls (but not action calls)
+It may include function and predicate calls (but not action calls):
 ```isl
-function notZero(x) => x != 0
+predicate nonzero(x: decimal) => x != 0
 
 function divide(a: decimal, b: decimal)
-	assert notZero(b)
+	assert nonzero(b)
 	return a / b
 ```
 
-It can reference the returned value as well (these types of assertions would always be evaluated after the function has returned):
+It can reference the returned value as well, if declared as a named return variable (these types of assertions would always be evaluated after the function has returned):
 ```isl
 function doSomeMath(x: decimal): (result: decimal)
 	assert result > x
@@ -3030,7 +3074,7 @@ Compare with a single function matching over `num` as a parameter:
 function fibonacci(match num)
 	case 1 => 0
 	case 2 => 1
-	case _ > 3 => fibonacci(num - 1) + fibonacci(num - 2)
+	case it > 3 => fibonacci(num - 1) + fibonacci(num - 2)
 ```
 
 Passing `fibonacci(0)`, would cause a compile-time error.
@@ -3227,8 +3271,8 @@ Same as above using the constructor-style syntax:
 ```isl
 function getResponseString(match personOrCar: PersonOrCar)
 	case Person("James", ...) => "Hi James"
-	case Person(_, _ >= 2.0, ...) => "Tall person"
-	case Car(_, _ >= 200, ...) => "Fast car"
+	case Person(any, here >= 2.0, ...) => "Tall person"
+	case Car(any, here >= 200, ...) => "Fast car"
 	otherwise => "Not interesting"
 ```
 
@@ -3239,11 +3283,11 @@ variant PairOrTriple
 	Triple<V>: (x: V, y: V, z: V)
 
 function matchPairOrTriple(match pairOrTriple: PairOrTriple)
-	case Pair<string>("James", _) => "Hi James"
-	case Pair<string>("XYZ" ,"123") => "123"
-	case Pair<integer>(1 ,_ > 100) => "Good"
-	case Triple<integer>(_, _, 55) => "55"
-	case Triple<boolean>(_, false, true) => "OK!"
+	case Pair<string>("James", any) => "Hi James"
+	case Pair<string>("XYZ", "123") => "123"
+	case Pair<integer>(1, here > 100) => "Good"
+	case Triple<integer>(any, any, 55) => "55"
+	case Triple<boolean>(any, false, true) => "OK!"
 	otherwise => "Not interesting"
 ```
 
@@ -3705,7 +3749,7 @@ match myList
 		....
 	case [25, ..., let last]
 		....
-	case [_ >= 10, let ...tail]
+	case [here >= 10, let ...tail]
 		....
 	case [let first < 0, let second != first, let ...rest]
 		....
@@ -3723,14 +3767,14 @@ let PhoneNumberRegExp = /^[\+]?[ ]?([0-9][0-9]?[0-9]?)[ ]?\(([0-9][0-9][0-9])\)[
 
 // Example matching string: "+1 (534) 953-6345"
 match str
-	case PhoneNumberRegExp of ("1", "800", _, let lineNumber)
+	case PhoneNumberRegExp of ("1", "800", any, let lineNumber)
 		....
 ```
 
 With a pattern method, we could instead write:
 ```isl
 match str
-	case PhoneNumberPattern of ("1", "800", _, let lineNumber)
+	case PhoneNumberPattern of ("1", "800", any, let lineNumber)
 		....
 ```
 
@@ -3763,10 +3807,10 @@ In the above example, `Repeated` and `Digit` are references to secondary pattern
 `Digit` can be defined as:
 ```isl
 pattern Digit() of (value) in string
-	value = accept if _ in { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }
+	value = accept if it in { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }
 ```
 
-`accept if ....` will accept only if the given condition is satisfied. The `_` has semantics similar to how its used in pattern matching, i.e. analogous to what it would mean in a pattern like `[_ >= 10, ...]` where it contextually matches the corresponding element of a list.
+`accept if ....` will accept only if the given condition is satisfied. The `it` keyword represents the target captured value (in `string` it defaults to a single character). In general in `accept <pattern> if it ....` `it` would represent the subsequence captured by the pattern.
 
 `Repeated` is a more complex, higher-order pattern method parameterized over any underlying pattern, as well as for any stream type (which includes strings). Its implementation is included in a future section about abstract patterns.
 
@@ -3809,7 +3853,7 @@ We could rewrite the previous example such that the pattern method would be para
 pattern Date(seperatorCharacterSet: Set<string>) of (day, month, year) in string
 	day = accept IntegerNumber(1, 31)
 
-	let seperator = accept if _ in seperatorCharacterSet
+	let seperator = accept if it in seperatorCharacterSet
 	month = accept IntegerNumber(1, 12)
 	accept separator // The accepted character must be the same as the one previously captured
 
@@ -3831,7 +3875,7 @@ pattern ThreePrimes() in Stream<integer>
 	predicate isPrime(num) => ....
 
 	for _ in 1..3
-		accept if isPrime(_)
+		accept if isPrime(it)
 
 	accept end
 
@@ -3841,7 +3885,7 @@ pattern EvenNaturalNumberSeries() in Stream<integer>
 
 	for i in evenNumbers
 		try
-			accept if _ == i
+			accept if it == i
 		else try
 			accept end
 
@@ -3853,11 +3897,11 @@ pattern TwinPrimesSequence() in Stream<IntegerPair>
 	predicate isPrime(num) => ....
 
 	pattern TwinPrimes in Stream<IntegerPair>
-		accept if _.second == _.first + 2 and isPrime(_.first) and isPrime(_.second)
+		accept if it.second == it.first + 2 and isPrime(it.first) and isPrime(it.second)
 
 	for previousLowPrime = -1
 		try
-			(p1, _) = accept TwinPrimes if _.first > previousLowPrime
+			(p1, _) = accept TwinPrimes if it.first > previousLowPrime
 			continue previousLowPrime = p1
 		else try
 			accept end
@@ -3893,7 +3937,7 @@ pattern AnythingUntil<T>(StopPattern: pattern in Stream<T>) of (results: List<T>
 			expect StopPattern
 			break // break out of the loop without advancing the read position
 		else try
-			results += accept
+			results |= accept any
 			// `results` acts similarly to a named return variable
 			// It can be incrementally updated,
 			// However, it can only be read when assigned back to itself
@@ -3944,11 +3988,11 @@ pattern Repeated<T>(p: AnyPattern<T>, minTimes: integer, maxTimes: integer)
 					in Stream<T>
 	if minTimes >= 1
 		for _ in 1..minTimes
-			results += accept p
+			results |= accept p
 
 	for _ in minTimes..maxTimes
 		try
-			results += accept p
+			results |= accept p
 		else
 			break
 
@@ -4006,20 +4050,20 @@ pattern SuccessiveNumbers() of (first, second) in (integer, integer) =
 Or even:
 ```isl
 pattern EvenNumber() in integer =
-	_ mod 2 == 0
+	it mod 2 == 0
 ```
 
 We can extend conventional pattern methods to support this as well, but that would mean there would only one `accept` or `reject` statement allowed (since there is only one input value):
 
 ```isl
 pattern FollowingNumbers() of (first, second) in (integer, integer)
-	(first, second) = accept if _[2] == _[1] + 1
+	(first, second) = accept if it[2] == it[1] + 1
 ```
 
 Here's a pattern method that tests if a number is a composite (non-prime) and captures its prime factors:
 ```isl
 pattern CompositeNumber(primeFactors, isHighlyComposite) in integer
-	let number = accept if not isPrime(_)
+	let number = accept if not isPrime(it)
 	primeFactors = getPrimeFactors(number)
 	isHighlyComposite = isHighlyComposite(number)
 
@@ -4037,17 +4081,17 @@ printPrimalityInfo(100) // prints "Composite! with prime factors 2, 5"
 printPrimalityInfo(60) // prints "Highly composite! with prime factors 2, 3, 5"
 ```
 
-Now there may be times where we wish to apply this kind of simple unary pattern matching to input types that are conventionally interpreted as streams, like `string`s, `List`s or even abstract `Stream< >` objects. This can be achieved by enclosing the input type by parenthesis, for example:
+Now there may be times where we wish to apply this kind of simple unary pattern matching to input types that are conventionally interpreted as streams, like `string`s, `List`s or even abstract `Stream< >` objects. For these cases, `accept all` enables the entire input to be captured all at once:
 ```isl
-pattern FirstCharacterSameAsLast() of (first, last) in (string) // note the (T)
+pattern FirstCharacterSameAsLast() of (first, last) in string
 	try
-		// Always accept when string is empty
-		accept ""
+		// Accept when string is empty
+		accept end
 
 		first = ""
 		last = ""
 	else try
-		[first, ..., last] = accept // The entire string is consumed here
+		[first, ..., last] = accept all // The entire string is consumed here
 
 		// Reject if first and last characters don't match
 		if first != last
@@ -4089,14 +4133,14 @@ let family = Family()
 // Getting its first result would require stepping once through the stream
 // The 'exists' expansion property returns true if a stream yields at least one value
 // The 'first' expansion property returns the first value yielded
-family.Parent("Alice", _).exists // returns true
+family.Parent("Alice", ?).exists // returns true
 family.Parent("Alice", "Angela").exists // returns true
 family.Parent("Alice", "Angela").first // returns ("Alice", "Angela")
 family.Parent("Alice", "John").exists // returns false
-family.Parent(_, "John").exists // returns true
-family.Parent(_, "John").first?.parent // returns "Tom"
+family.Parent(?, "John").exists // returns true
+family.Parent(?, "John").first?.parent // returns "Tom"
 
-for (sibling1, sibling2) in family.Siblings(_, _)
+for (sibling1, sibling2) in family.Siblings(?, ?)
 	print("({sibling1}, {sibling2})")
 
 // prints "(James, Angela)", "(Angela, James)"
@@ -4110,7 +4154,7 @@ let alteredFamlily = family with
 	Parent("Alice", "Chris")
 	no Parent("Alice", "James")
 
-for (sibling1, sibling2) in alteredFamlily.Siblings(_, _).distinctUnorderedPairs()
+for (sibling1, sibling2) in alteredFamlily.Siblings(?, ?).distinctUnorderedPairs()
 	print("({sibling1}, {sibling2})")
 
 // prints "(Angela, Lea)", "(Angela, Chris)", "(Lea, Chris)"
@@ -4127,13 +4171,13 @@ relation Factorial
 		Factorial(previousNumber, let previousFactorial)
 		Product(number, previousFactorial, result)
 
-print(Factorial(5, _).first) // Prints "(5, 120)"
-print(Factorial(5, _).first.result) // Prints "120"
+print(Factorial(5, ?).first) // Prints "(5, 120)"
+print(Factorial(5, ?).first.result) // Prints "120"
 
 // Since Factorial is a relation we could potentially query for any one of its parameters
 // Here we'll query which number has the factorial of 5040
-print(Factorial(_, 5040).first) // Prints "(7, 5040)"
-print(Factorial(_, 5040).first?.number) // Prints "7"
+print(Factorial(?, 5040).first) // Prints "(7, 5040)"
+print(Factorial(?, 5040).first?.number) // Prints "7"
 ```
 
 ## Relation predicates, functions and streams
@@ -4234,11 +4278,11 @@ relation FizzBuzz
 			Equals(output, "{index}")
 
 FizzBuzz(30, "Buzz").exists // returns false
-FizzBuzz(30, _).exists // returns true
-FizzBuzz(30, _).first?.output // returns "FizzBuzz"
+FizzBuzz(30, ?).exists // returns true
+FizzBuzz(30, ?).first?.output // returns "FizzBuzz"
 FizzBuzz(30, "FizzBuzz").exists // returns true
 
-for (_, str) in FizzBuzz(_, _)
+for (_, str) in FizzBuzz(?, ?)
 	print(str)
 
 	// prints "1", "2", "Fizz", "4", "Buzz", "Fizz" ....
@@ -4246,10 +4290,10 @@ for (_, str) in FizzBuzz(_, _)
 
 `if` blocks also handle cases where the conditional cannot be resolved:
 
-For example, in the case where `FizzBuzz(_, "Fizz")` is queried, since `index` isn't bound to anything on the `if` conditional, the inference engine unconditionally evaluates the branch, as well as any other unresolvable conditional branches, which in this example includes all of them (the `otherwise` branch is considered unresolvable as well):
+For example, in the case where `FizzBuzz(?, "Fizz")` is queried, since `index` isn't bound to anything on the `if` conditional, the inference engine unconditionally evaluates the branch, as well as any other unresolvable conditional branches, which in this example includes all of them (the `otherwise` branch is considered unresolvable as well):
 
 ```isl
-for (index, _) in FizzBuzzer.FizzBuzz(_, "Fizz")
+for (index, _) in FizzBuzzer.FizzBuzz(?, "Fizz")
 	print(index)
 
 	// prints 3, 6, 9, 12, 18, 21, ....
@@ -4267,11 +4311,11 @@ relation Abs
 
 Abs(-65, 100).exists // returns false
 Abs(-65, 65).exists // returns true
-Abs(-65, _).first?.abs // returns 65
-Abs(_, 65).first?.number // returns -65
+Abs(-65, ?).first?.abs // returns 65
+Abs(?, 65).first?.number // returns -65
 
 // This will query for any two numbers where the second is the absolute value of the first:
-for (number, abs) in Abs(_, _)
+for (number, abs) in Abs(?, ?)
 	print("({number}, {abs})")
 
 	// prints "(0, 0)", "(-1, 1)", "(1, -1)", "(-2, 2)", ....
@@ -4296,11 +4340,11 @@ AllMembersGreaterThan([3, 2, 4, 5], 3).exists // returns false
 AllMembersGreaterThan([3, 2, 4, 5], -5).exists // returns true
 ```
 
-It would be interesting to consider the query `AllMembersGreaterThan([3, 2, 4, 5], _)`, which asks for one or more values that are smaller than all the elements of the list.
+It would be interesting to consider the query `AllMembersGreaterThan([3, 2, 4, 5], ?)`, which asks for one or more values that are smaller than all the elements of the list.
 
 Let's consider the execution of:
 ```isl
-AllMembersGreaterThan([3, 2, 4, 5], _)
+AllMembersGreaterThan([3, 2, 4, 5], ?)
 ```
 
 If we were to unroll the `foreach` loop to multiple steps it would look somewhat like:
@@ -4311,7 +4355,7 @@ GreaterThan(4, smallerValue)
 GreaterThan(5, smallerValue)
 ```
 
-Once `smallerValue` receives a value in `GreaterThan(3, _)` the next evaluations of `GreaterThan` test for that value. If it doesn't satisfy them, the inference engine backtracks until a value for `smallerValue` is found that satisfies all the members (i.e. in this case `1`, which is smaller than all the members).
+Once `smallerValue` receives a value in `GreaterThan(3, ?)` the next evaluations of `GreaterThan` test for that value. If it doesn't satisfy them, the inference engine backtracks until a value for `smallerValue` is found that satisfies all the members (i.e. in this case `1`, which is smaller than all the members).
 
 As you may notice this is a highly inefficient way to calculate this! Consider the case where `list = [3, 2, 4, -1000000]`. It would require more than one million backtracking attempts to find the first satisfying result `-1000001`!
 
@@ -4340,7 +4384,7 @@ Here's an implementation of the `map` function, generalized to a relation:
 relation Mapped<E, R>
 	type MappingRelation = relation(value: E, resultValue: R)
 
-	fact ([], [], _)
+	fact ([], [], ?)
 
 	rule ([head, ...tail]: List<E>, [resultHead,...resultTail]: List<R>, in mappingRelation: MappingRelation)
 		mappingRelation(head, resultHead)
@@ -4357,10 +4401,10 @@ relation Successor
 let l1 = [2, 3, 4, 5]
 let l2 = [1, 2, 3, 4]
 Mapped(l1, l2, Successor).exists // returns true
-Mapped(l1, _, Successor).first // returns ([2, 3, 4, 5], [1, 2, 3, 4], Successor)
-Mapped(l1, _, Successor).first?[2] // returns [1, 2, 3, 4]
-Mapped(_, l2, Successor).first?[1] // returns [2, 3, 4, 5]
-Mapped(_, l1, Successor).first?[1] // returns [3, 4, 5, 6]
+Mapped(l1, ?, Successor).first // returns ([2, 3, 4, 5], [1, 2, 3, 4], Successor)
+Mapped(l1, ?, Successor).first?[2] // returns [1, 2, 3, 4]
+Mapped(?, l2, Successor).first?[1] // returns [2, 3, 4, 5]
+Mapped(?, l1, Successor).first?[1] // returns [3, 4, 5, 6]
 ```
 
 Here's `reduce` expressed as a higher order relation:
@@ -4368,7 +4412,7 @@ Here's `reduce` expressed as a higher order relation:
 relation Reduced<E, R>
 	type ReducingRelation = relation(in element: E, in currentResult: R, newResult: R)
 
-	fact ([], _, _, nothing)
+	fact ([], any, any, nothing)
 
 	rule (in [head, ...tail]: List<E>,
 		  in reducer: ReducingRelation,
@@ -4801,7 +4845,7 @@ context Quicksort
 		pivot => items[items.length div 2] // 'pivot' declaration is combined with a mapping rule
 		smallerThanPivot.items => [(i in items where i < pivot) => i]
 		greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
-		sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
+		sortedItems => smallerThanPivot.sortedItems | greaterOrEqualToPivot.sortedItems
 ```
 
 Here are natural language translations of the mapping rules included in `Quicksort`, described in an altered order:
@@ -4815,7 +4859,7 @@ and
 ```isl
 given items
 	....
-	sortedItems => smallerThanPivot.sortedItems + greaterOrEqualToPivot.sortedItems
+	sortedItems => smallerThanPivot.sortedItems | greaterOrEqualToPivot.sortedItems
 ```
 means: _"When the input item list is nonempty, the sorted items list is a concatenation of the sorted versions of the items that are smaller than the pivot and greater or equal to the pivot"_.
 
@@ -5219,7 +5263,7 @@ context Name
 		uppercase: Uppercase.uppercase
 		lowercase: Lowercase.lowercase
 
-	fullNameUpperCase => firstName.uppercase + “ “ + lastName.upperCase
+	fullNameUpperCase => firstName.uppercase | “ “ | lastName.upperCase
 ```
 
 A variant of this syntax can also be used to **integrate an ad-hoc context instance directly into the local procedural scope**, such that via incremental initialization, its properties can be used as if they were plain local variables:
@@ -5641,7 +5685,7 @@ The `recurse` keyword acts a lot like `continue` by allowing to only state the a
 ```isl
 function repeatAandB(match count: integer): (param r1 = "", param r2 = "")
 	case 0 => return
-	otherwise => recurse count -= 1, r1 += "a", r2 += "b"
+	otherwise => recurse count -= 1, r1 |= "a", r2 |= "b"
 
 let (r1, r2) = repeatAandB(4) // r1 = "aaaa", r2 = "bbbb"
 ```
@@ -5697,71 +5741,19 @@ Using the `delegate` keyword for worker methods. Is this the best option? Maybe 
 
 ---
 
-`+` and `+=` used to concatenate strings. This is very JavaScript-like and I remember I found it confusing when I started learning the language. I wish I could find a better alternative. Example:
-```isl
-let s = "abcd" + "efg"
-let s = someString + someOtherString
-someString += someOtherString
-```
-`++` is a candidate but I feel that it may look too cryptic (`++=` also doesn't read very nicely), so avoid it for now. Does this look better?
-
-```isl
-let s = "abcd" ++ "efg"
-let s = someString ++ someOtherString
-someString ++= someOtherString
-```
-
-How about `||`? Is it too confusing with the logical or operator in other languages (island uses `or` instead)?
-
-```isl
-let s = "abcd" || "efg"
-let s = someString || someOtherString
-someString ||= someOtherString
-```
-
----
-
-`+` and `+=` used to add item to a list. If the list contains numbers, intuitively it may looks like it would add the number to each individual member. Example:
-```isl
-let someList: List<integer> = [1, 2, 3, 4] + 5
-someList += 6
-```
-Similarly, `+` and `+=` used to concatenate lists:
-```isl
-let someList: List<integer> = [1, 2, 3, 4] + [5, 6, 7]
-someList += [7, 8, 9]
-```
-
----
-
-`_` as a contextual subject identifier. Slightly too cryptic for my taste by haven't found something that's as short and consistent with the `_` used to signify "don't care" or "anonymous" values:
-```isl
-case (_ > 1 and _ < 5, _.length > 2, _) => "Case 2"`
-```
-
----
-
-`**` as power operator. `^` is another option, but that would expend a potentially useful operator:
-```isl
-let x = y ** 3
-```
-
----
-
-`div` as integer division operator. Previously used plain `/` but then changed to improve the user experience (ambiguous type-dependent division with `/` may become a common place for human error):
-```isl
-let x = 10 div 3
-```
-
----
-
 `delegate` `out` and `in` channels currently use the `<-` operator. Is it really necessary? Not having it would probably look cleaner.
 
 ---
 
-In Python, a block statement usually ends with a `:` to signify the upcoming content block. I've decided I'm not doing that in Island (same for not having `then` after `if`). This brings some situations that are not intuitive to read.
+In Python, a statement block head usually ends with a `:` to signify the upcoming content block. I've decided I'm not doing that in Island (same for not having `then` after `if`). This brings some situations that are not trivially intuitive to read.
 
-On issue is with multi-line block opening statements (e.g. `for ....`, `if ....`) may become difficult to visually differentiate from block content.
+On issue is with multi-line block opening statements (e.g. `for ....`, `if ....`) may become difficult to visually differentiate from block content:
+
+```isl
+if  something1 and something2 and something3 and something4 and
+    something5 and something6 and something7 and something8
+	doSomething() // It's not visually clear this statement is within the body of the conditional.
+```
 
 In knowledge-driven programming context syntax, when mapping rules are written as blocks, the syntax becomes too sparse:
 ```isl
@@ -5777,9 +5769,9 @@ context Example
 
 ## Built-in types
 
-* Should `integer` be infinite or finite precision? How about having `integer<64>`, `integer<32>` etc?
+* Should `integer` be infinite or finite precision? How about having `integer<64>`, `integer<32>` etc.?
 * Should `decimal` be infinite or finite precision?
-* Should `string` be renamed to `text`? (since `string` is a poor name in general).
+* Should `string` be renamed to `text`? (since `string` is not a completely descriptive name).
 * Should constant-length arrays be natively supported?
 
 # TODO
