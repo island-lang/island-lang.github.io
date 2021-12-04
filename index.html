@@ -2739,7 +2739,7 @@
 <p>Note that if the result of the operation is immediately unpacked, the failure can still be asserted for any one of the unpacked variables:</p>
 <pre class="shiki" style="background-color: #FCFCFC"><code><span style="color: #0059E8">function</span><span style="color: #5B5B5B"> getKeyOrFail</span><span style="color: #B43AFF">(</span><span style="color: #5B5B5B">key: </span><span style="color: #0059E8">integer</span><span style="color: #5B5B5B">, dict: </span><span style="color: #B43AFF">{</span><span style="color: #5B5B5B"> </span><span style="color: #0059E8">string</span><span style="color: #5B5B5B">: </span><span style="color: #B43AFF">(</span><span style="color: #5B5B5B">age: </span><span style="color: #0059E8">integer</span><span style="color: #5B5B5B">, bestFriend: </span><span style="color: #0059E8">string</span><span style="color: #B43AFF">)</span><span style="color: #5B5B5B"> </span><span style="color: #B43AFF">})</span>
 <span style="color: #5B5B5B">	</span><span style="color: #0059E8">when</span><span style="color: #5B5B5B"> key </span><span style="color: #0059E8">in</span><span style="color: #5B5B5B"> dict </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> dict[key]</span>
-<span style="color: #5B5B5B">	</span><span style="color: #0059E8">otherwise</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> Failure</span><span style="color: #B43AFF">(</span><span style="color: #5B5B5B">'</span><span style="color: #AA6631">Key </span><span style="color: #5B5B5B">'</span><span style="color: #B43AFF">{</span><span style="color: #5B5B5B">key</span><span style="color: #B43AFF">}</span><span style="color: #5B5B5B">'</span><span style="color: #AA6631"> not found!</span><span style="color: #5B5B5B">'</span><span style="color: #B43AFF">)</span>
+<span style="color: #5B5B5B">	</span><span style="color: #0059E8">otherwise</span><span style="color: #5B5B5B"> </span><span style="color: #000000">=&gt;</span><span style="color: #5B5B5B"> Failure</span><span style="color: #B43AFF">(</span><span style="color: #5B5B5B">'</span><span style="color: #AA6631">Key </span><span style="color: #5B5B5B">''</span><span style="color: #B43AFF">{</span><span style="color: #AA6631">key</span><span style="color: #B43AFF">}</span><span style="color: #5B5B5B">''</span><span style="color: #AA6631"> not found!</span><span style="color: #5B5B5B">'</span><span style="color: #B43AFF">)</span>
 
 <span style="color: #0059E8">let</span><span style="color: #5B5B5B"> someDictionary </span><span style="color: #000000">=</span><span style="color: #5B5B5B"> </span><span style="color: #B43AFF">{</span><span style="color: #5B5B5B"> </span><span style="color: #5B5B5B">'</span><span style="color: #AA6631">Linda</span><span style="color: #5B5B5B">'</span><span style="color: #5B5B5B">: </span><span style="color: #B43AFF">(</span><span style="color: #E65C00">25</span><span style="color: #5B5B5B">, </span><span style="color: #5B5B5B">'</span><span style="color: #AA6631">Mary</span><span style="color: #5B5B5B">'</span><span style="color: #B43AFF">)</span><span style="color: #5B5B5B">,  </span><span style="color: #5B5B5B">'</span><span style="color: #AA6631">Alan</span><span style="color: #5B5B5B">'</span><span style="color: #5B5B5B">: </span><span style="color: #B43AFF">(</span><span style="color: #E65C00">34</span><span style="color: #5B5B5B">, </span><span style="color: #5B5B5B">'</span><span style="color: #AA6631">Anton</span><span style="color: #5B5B5B">'</span><span style="color: #B43AFF">)</span><span style="color: #5B5B5B"> </span><span style="color: #B43AFF">}</span>
 
@@ -4278,11 +4278,23 @@
 <h1 id="closing-chapter">Closing chapter <a class="header-anchor" href="#closing-chapter">§</a></h1>
 <section>
 <h2 id="influences">Influences <a class="header-anchor" href="#influences">§</a></h2>
-<p>This work would not have been possible without ideas adapted or inspired by other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, Swift, Go, F#, Oz, Scala, Quorum, Pascal and Prolog.</p>
+<p>This work would not have been possible without ideas inspired by or built-upon the collective design effort invested in many contemporary and past languages. In particular:</p>
+<ul>
+<li><strong>C#</strong>: expansions (called &quot;extension everything&quot; by the designers), computed fields (properties), <code>in</code> and <code>out</code> type modifiers, disambiguation of conflicting inherited interface members by prefixing, type cast and assertion syntax.</li>
+<li><strong>TypeScript</strong>: class member syntax, anonymous method syntax, type annotation syntax, generics syntax, type alias syntax, method type syntax, optional type syntax, <code>this</code> type semantics, join (intersection) types, <code>any</code> type, <code>never</code> type.</li>
+<li><strong>JavaScript</strong>: <code>arguments</code> keyword, array syntax, destructuring and rest parameter syntax.</li>
+<li><strong>Python</strong>: indent-based blocks, generators and comprehensions, range syntax.</li>
+<li><strong>Haskell</strong>: type features (type classes), variant types (tagged unions).</li>
+<li><strong>Scala</strong>: companion objects.</li>
+<li><strong>Kotlin</strong>: <code>it</code> keyword.</li>
+<li><strong>Oz</strong>, <strong>Go</strong>: concurrency, messaging.</li>
+<li><strong>Pascal</strong>: <code>div</code> and <code>mod</code> keywords.</li>
+<li><strong>Prolog</strong>, <strong>Datalog</strong>: logic programming.</li>
+</ul>
 </section>
 <section>
 <h2 id="who-wrote-this%3F">Who wrote this? <a class="header-anchor" href="#who-wrote-this%3F">§</a></h2>
-<p>Hi, my name is Rotem Dan. I'm A software developer who loves designing programming languages!</p>
+<p>My name is <strong>Rotem Dan</strong>. I'm a software developer who loves designing programming languages!</p>
 </section>
 <section>
 <h2 id="feedback-for-this-document">Feedback for this document <a class="header-anchor" href="#feedback-for-this-document">§</a></h2>

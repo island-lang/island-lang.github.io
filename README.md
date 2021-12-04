@@ -3723,7 +3723,7 @@ Note that if the result of the operation is immediately unpacked, the failure ca
 ```isl
 function getKeyOrFail(key: integer, dict: { string: (age: integer, bestFriend: string) })
 	when key in dict => dict[key]
-	otherwise => Failure('Key '{key}' not found!')
+	otherwise => Failure('Key ''{key}'' not found!')
 
 let someDictionary = { 'Linda': (25, 'Mary'),  'Alan': (34, 'Anton') }
 
@@ -5809,11 +5809,22 @@ context Example
 
 ## Influences
 
-This work would not have been possible without ideas adapted or inspired by other languages: in particular C#, Python, JavaScript, TypeScript, Haskell, Swift, Go, F#, Oz, Scala, Quorum, Pascal and Prolog.
+This work would not have been possible without ideas inspired by or built-upon the collective design effort invested in many contemporary and past languages. In particular:
+
+* **C#**: expansions (called "extension everything" by the designers), computed fields (properties), `in` and `out` type modifiers, disambiguation of conflicting inherited interface members by prefixing, type cast and assertion syntax.
+* **TypeScript**: class member syntax, anonymous method syntax, type annotation syntax, generics syntax, type alias syntax, method type syntax, optional type syntax, `this` type semantics, join (intersection) types, `any` type, `never` type.
+* **JavaScript**: `arguments` keyword, array syntax, destructuring and rest parameter syntax.
+* **Python**: indent-based blocks, generators and comprehensions, range syntax.
+* **Haskell**: type features (type classes), variant types (tagged unions).
+* **Scala**: companion objects.
+* **Kotlin**: `it` keyword.
+* **Oz**, **Go**: concurrency, messaging.
+* **Pascal**: `div` and `mod` keywords.
+* **Prolog**, **Datalog**: logic programming.
 
 ## Who wrote this?
 
-Hi, my name is Rotem Dan. I'm A software developer who loves designing programming languages!
+My name is **Rotem Dan**. I'm a software developer who loves designing programming languages!
 
 ## Feedback for this document
 
