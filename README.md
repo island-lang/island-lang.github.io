@@ -1,5 +1,5 @@
-<h1 id="top-heading">The <span id="top-heading-island-word">Island</span> Programming Language</h1>
-<h2 id="top-subheading">(Work In Progress)</h2>
+<h1 id='top-heading'>The <span id='top-heading-island-word'>Island</span> Programming Language</h1>
+<h2 id='top-subheading'>(Work In Progress)</h2>
 
 **Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming, as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
 
@@ -56,13 +56,13 @@ The language is currently at an early, design-only stage. A basic parser and com
 Variables are defined using the `let` keyword:
 ```isl
 let x = 24
-let greeting = "Hello"
+let greeting = 'Hello'
 ```
 
 Types will be inferred using the values provided, but can also be annotated explicitly:
 ```isl
 let x: integer = 24
-let greeting: string = "Hello"
+let greeting: string = 'Hello'
 ```
 
 **Variables can only be assigned once**:
@@ -76,7 +76,7 @@ x = 25 // Error: invalid reassignment of 'x'
 Variables are accessible from within both their declared scope and any of its nested scopes:
 ```isl
 let x = 1
-let greeting = "Hello"
+let greeting = 'Hello'
 
 if x > 0
 	print(greeting)
@@ -85,34 +85,34 @@ if x > 0
 Variables redeclared using an existing name in an inner scope will shadow the ones in the outer scope:
 ```isl
 let x = 1
-let greeting = "Hello"
+let greeting = 'Hello'
 
 if x > 0
-	let greeting = "Hi"
-	print(greeting) // Prints "Hi"
+	let greeting = 'Hi'
+	print(greeting) // Prints 'Hi'
 
-print(greeting) // Prints "Hello"
+print(greeting) // Prints 'Hello'
 ```
 
 Newly declared variable reusing an existing name will replace the previous one if redeclared in the same scope:
 ```isl
-let greeting = "Hello"
+let greeting = 'Hello'
 
 // This is permitted since the previous binding of `greeting` is not reachable anymore:
-let greeting = "Hi"
+let greeting = 'Hi'
 
-print(greeting) // Prints "Hi"
+print(greeting) // Prints 'Hi'
 ```
 
 Shadowing and redeclared variables must receive a type consistent with the previous one:
 ```isl
-let greeting = "Hello"
+let greeting = 'Hello'
 
 if x > 0
 	let greeting = 25 // Error: shadowing inner variable must be of same type as outer variable
 ```
 ```isl
-let greeting = "Hello"
+let greeting = 'Hello'
 let greeting = 25 // Error: redeclared variable must be of same type as its previous binding
 ```
 
@@ -123,9 +123,9 @@ Initialization can be deferred to a later code position, as long as all branches
 let greeting: string
 
 if x > 0
-	greeting = "Hello"
+	greeting = 'Hello'
 else
-	greeting = "Hi"
+	greeting = 'Hi'
 ```
 
 If a type is not specified, it would be automatically inferred as long as the assigned values share the same underlying type:
@@ -133,9 +133,9 @@ If a type is not specified, it would be automatically inferred as long as the as
 let greeting
 
 if x > 0
-	greeting = "Hello"
+	greeting = 'Hello'
 else
-	greeting = "Hi"
+	greeting = 'Hi'
 
 // Type inferred as string
 ```
@@ -145,7 +145,7 @@ This would not work:
 let greeting
 
 if x > 0
-	greeting = "Hello"
+	greeting = 'Hello'
 else
 	greeting = 24 // Error: incompatible types
 ```
@@ -166,7 +166,7 @@ Island has a few primitive data types:
 **Lists** are ordered collections of values, in which every element has the same type. They are defined within square brackets and have 1-based indexes:
 ```isl
 let numbers: List<integer> = [1, 2, 3, 4]
-let listOfLists: List<List<string>> = [["a", "b"], ["c", "d", "e"], ["f"]]
+let listOfLists: List<List<string>> = [['a', 'b'], ['c', 'd', 'e'], ['f']]
 
 let m1 = numbers[2] // m1 is 2
 let m2 = listOfLists[1][2] // m2 is 'b'
@@ -214,13 +214,13 @@ let l3 = l1[..2] // l3 is [100, 200]
 
 **Tuples** are ordered collections of fixed length in which each member may have a different type:
 ```isl
-let myTuple: (string, integer) = ("Hi", 24)
-let alteredTuple = myTuple with [2] = 42 // myTuple is ("Hi", 42)
+let myTuple: (string, integer) = ('Hi', 24)
+let alteredTuple = myTuple with [2] = 42 // myTuple is ('Hi', 42)
 ```
 
 Tuple members can be named:
 ```isl
-let myTuple: (greeting: string, someNumber: integer) = ("Hi", 24)
+let myTuple: (greeting: string, someNumber: integer) = ('Hi', 24)
 let alteredTuple = myTuple with someNumber = 42
 ```
 
@@ -233,16 +233,16 @@ let x = () // syntax error, `()` doesn't mean anything in Island
 **Dictionaries** are unordered collections where keys and values can be of any type:
 
 ```isl
-let fruits: Dictionary<string, integer> = { "apple": 55, "lemon": 95, "orange" : 31, "banana": 4 }
-let fruitValue = fruits["orange"] // fruitValue = 31
-let isFound1 = "orange" in fruits // isFound1 = true
-let isFound2 = "avocado" in fruits // isFound2 = false
+let fruits: Dictionary<string, integer> = { 'apple': 55, 'lemon': 95, 'orange' : 31, 'banana': 4 }
+let fruitValue = fruits['orange'] // fruitValue = 31
+let isFound1 = 'orange' in fruits // isFound1 = true
+let isFound2 = 'avocado' in fruits // isFound2 = false
 
-let alteredFruits = fruits with ["apple"] = 12, no ["orange"]
-let alteredFruits2 = fruits with { "apple": 12, no "orange" } // Equivalent to previous
+let alteredFruits = fruits with ['apple'] = 12, no ['orange']
+let alteredFruits2 = fruits with { 'apple': 12, no 'orange' } // Equivalent to previous
 
-let extendedFruits1 = alteredFruits | { "mango": 76 }
-let extendedFruits2 = { ...alteredFruits, "mango": 76 } // Same but with spread syntax
+let extendedFruits1 = alteredFruits | { 'mango': 76 }
+let extendedFruits2 = { ...alteredFruits, 'mango': 76 } // Same but with spread syntax
 
 // Two ways of defining empty dictionaries:
 let emptyDictionary: Dictionary<string, integer> = {}
@@ -251,16 +251,16 @@ let emptyDictionary = Dictionary<string, integer> {}
 
 **Sets** are unordered collections containing only unique elements:
 ```isl
-let fruits: Set<string> = { "apple", "lemon", "orange", "banana" }
-let fruitValue = fruits["orange"] // fruitValue = true
-let isFound1 = "orange" in fruits // isFound1 = true
-let isFound2 = "avocado" in fruits // isFound2 = false
+let fruits: Set<string> = { 'apple', 'lemon', 'orange', 'banana' }
+let fruitValue = fruits['orange'] // fruitValue = true
+let isFound1 = 'orange' in fruits // isFound1 = true
+let isFound2 = 'avocado' in fruits // isFound2 = false
 
-let alteredFruits = fruits with "berries", no "orange" // no need for { } here
-let alteredFruits2 = fruits with { "berries", no "orange" } // Equivalent to previous
+let alteredFruits = fruits with 'berries', no 'orange' // no need for { } here
+let alteredFruits2 = fruits with { 'berries', no 'orange' } // Equivalent to previous
 
-let extendedFruits1 = alteredFruits | "mango"
-let extendedFruits2 = { ...alteredFruits, "mango" } // Same but with spread syntax
+let extendedFruits1 = alteredFruits | 'mango'
+let extendedFruits2 = { ...alteredFruits, 'mango' } // Same but with spread syntax
 
 // Two ways of defining empty sets:
 let emptySet: Set<string> = {}
@@ -295,8 +295,8 @@ class Person
 	lastName: string
 	age: integer
 
-let person = Person("John", "Doe", 25)
-let (f, _, a) = person // f = "John", a = 25
+let person = Person('John', 'Doe', 25)
+let (f, _, a) = person // f = 'John', a = 25
 ```
 
 Lists allow for some additional unpacking patterns:
@@ -328,7 +328,7 @@ function sum3(x: integer, y: integer, z: integer) // Long syntax
 	return x + y + z
 
 let result = sum3(2, 3, 4)
-print("Result: {result}")
+print('Result: {result}')
 ```
 
 A **predicate** is an alternate syntax for a function that returns either `true` of `false`. Using `predicate` instead of `function` simply ensures the return type will always be `boolean`.
@@ -345,22 +345,22 @@ predicate areEqual(x: integer, y: integer) // Long syntax
 **Actions** extend functions and allow for _external_ side-effects. Actions can return values but can only be called from other actions (or the topmost scope):
 ```isl
 action printNameAndAge(name: string, age: integer)
-	print("Name: {name}, Age: {age}")
-	return "OK"
+	print('Name: {name}, Age: {age}')
+	return 'OK'
 
-let status = printNameAndAge("John Smith", 35)
-// Prints "Name: John Smith, Age: 35" and returns "OK"
+let status = printNameAndAge('John Smith', 35)
+// Prints 'Name: John Smith, Age: 35' and returns 'OK'
 ```
 
 Despite allowing for "impure" operations like writing or reading from a file, actions do not allow for side-effects _internal_ to the program itself, since all variables and values are always guaranteed to be immutable. This doesn't prevent, however, mutable state to be weakly "emulated" through, say, reading and writing to external memory:
 
 ```isl
-action readMutableState() => readFile("myFile.state")
+action readMutableState() => readFile('myFile.state')
 action writeMutableState(data: string)
-	writeFile("myFile.state", data)
+	writeFile('myFile.state', data)
 
 let initialData = readMutableState()
-writeMutableState(initialData | " changed!")
+writeMutableState(initialData | ' changed!')
 let modifiedData = readMutableState()
 ```
 
@@ -395,8 +395,8 @@ We will often collectively refer to functions, actions, and computed variables (
 ## Named and default arguments
 
 ```isl
-action printNameAndAge(name = "Anonymous", age = 0)
-	print("Name: {name}, Age: {age}")
+action printNameAndAge(name = 'Anonymous', age = 0)
+	print('Name: {name}, Age: {age}')
 
 printNameAndAge(age = 12) // prints Name: Anonymous, Age: 12
 printNameAndAge(_, 12) // prints Name: Anonymous, Age: 12
@@ -436,7 +436,7 @@ let negative = n: integer => -n // Single explicitly typed parameter
 let negative = n => -n // Single implicitly typed parameter
 
 // Since 'print' is an action 'printInQuotes' implicitly becomes a action as well
-let printInQuotes = s => print("'{s}'")
+let printInQuotes = s => print('"{s}"')
 ```
 
 ## Single parameter anonymous predicate syntax
@@ -468,7 +468,7 @@ In general, any expression involving the `it` keyword, that's assigned to a plac
 Methods can be overloaded:
 ```isl
 function f(a: integer, b: integer) => a * 2
-function f(a: integer, b: string) => "{a}: {b}"
+function f(a: integer, b: string) => '{a}: {b}'
 function f(a: boolean) => not a
 ```
 
@@ -483,7 +483,7 @@ Overloaded methods can be compacted to a shorter form:
 ```isl
 function f
 	(a: integer, b: integer) => a * 2
-	(a: integer, b: string) => "{a}: {b}"
+	(a: integer, b: string) => '{a}: {b}'
 	(a: boolean) => not a
 ```
 _(The usefulness of this syntax will become more apparent when refinement and assertion types are introduced in a later chapter, stay tuned!)_
@@ -548,7 +548,7 @@ The `arguments` keywords allows getting a tuple bundling all the arguments passe
 action printArguments(a: integer, b: integer, c: integer)
 	print(arguments)
 
-printArguments(1, 4, 5) // Prints "(1, 4, 5)"
+printArguments(1, 4, 5) // Prints '(1, 4, 5)'
 ```
 
 ## Partial application
@@ -563,12 +563,12 @@ action printThreeNumbers(a: integer, b: integer, c: integer)
 let print5AndTwoNumbers = printTwoNumbers(5, ...)
 // print5AndTwoNumbers has the signature print5AndTwoNumbers(b: integer, c: integer)
 
-print5AndTwoNumbers(9, -3) // prints "5 9 -3"
+print5AndTwoNumbers(9, -3) // prints '5 9 -3'
 
 let print5And3AndNumber = printTwoNumbers(5, 3, ...)
 // print5And3AndNumber has the signature print5And3AndNumber(c: integer)
 
-print5And3AndNumber(1) // prints "5 3 1"
+print5And3AndNumber(1) // prints '5 3 1'
 ```
 
 The `with` operator can be used to partially apply any subset of parameters, regardless of their declared order:
@@ -598,8 +598,8 @@ action printThreeNumbers(a: integer, b: integer, c: integer)
 
 action printThreeNumbers(a: integer, b: decimal, c: decimal)
 	print(a)
-	print("{b.roundToDecimals(3)}")
-	print("{c.roundToDecimals(3)}")
+	print('{b.roundToDecimals(3)}')
+	print('{c.roundToDecimals(3)}')
 
 let print5AndTwoNumbers = printThreeNumbers(5, ...) // Error! Ambiguous call. There are two matching overloads!
 
@@ -684,11 +684,11 @@ The most important differences between `when`-`otherwise` and `if`-`else if`-`el
 ```isl
 function nestedWhenExample(num: integer)
 	when num > 0
-		when num < 5 => "hey"
-		otherwise => "yo"
+		when num < 5 => 'hey'
+		otherwise => 'yo'
 	otherwise
-		when num == 0 => "no"
-		otherwise => "bye"
+		when num == 0 => 'no'
+		otherwise => 'bye'
 ```
 
 `when`-`otherwise` can also be written as an expression:
@@ -703,14 +703,14 @@ function gcd(a: integer, b: integer) =>
 This function uses a structure and a `when` statement block to convert an integer number on the range `1..999` to words:
 ```isl
 function numToWords(num: 1..999): string
-	let numberNames = { 0: "", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "thirteen", 13: "thirteen", 14: "fourteen", 15: "fifteen", 16: "sixteen", 17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty", 30: "thirty", 40: "fourty", 50: "fifty", 60: "sixty", 70: "seventy", 80: "eighty", 90: "ninety" }
+	let numberNames = { 0: '', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten', 11: 'eleven', 12: 'thirteen', 13: 'thirteen', 14: 'fourteen', 15: 'fifteen', 16: 'sixteen', 17: 'seventeen', 18: 'eighteen', 19: 'nineteen', 20: 'twenty', 30: 'thirty', 40: 'fourty', 50: 'fifty', 60: 'sixty', 70: 'seventy', 80: 'eighty', 90: 'ninety' }
 
 	when num <= 20 or (num < 100 and num mod 10 == 0) =>
 		numberNames[num]
 	when num < 100 =>
-		"{numToWords(num div 10)} {numToWords(num mod 10)} ".trimWhitespace()
+		'{numToWords(num div 10)} {numToWords(num mod 10)} '.trimWhitespace()
 	otherwise =>
-		"{numToWords(num div 100)} hundered {numToWords(num mod 100)}".trimWhitespace()
+		'{numToWords(num div 100)} hundered {numToWords(num mod 100)}'.trimWhitespace()
 ```
 
 ## Pattern matching
@@ -749,24 +749,24 @@ _(`any` matches any value, `here` contextually matches the corresponding element
 ```isl
 function tupleMatch(someTuple: (integer, string, boolean))
 	match someTuple
-		case (any, "Hi", any) => "Case 1"
-		case (here > 1 and here < 5, here.length > 2, any) => "Case 2"
-		case (here > 1, here[1] == "O", false) => "Case 3"
-		otherwise => "No match"
+		case (any, 'Hi', any) => 'Case 1'
+		case (here > 1 and here < 5, here.length > 2, any) => 'Case 2'
+		case (here > 1, here[1] == 'O', false) => 'Case 3'
+		otherwise => 'No match'
 
-let r1 = matchTuple((1, "Hi", true))    // returns "Case 1"
-let r2 = matchTuple((4, "Hello", true)) // returns "Case 2"
-let r3 = matchTuple((100, "OK", false)) // returns "Case 3"
-let r3 = matchTuple((100, "OK", true))  // returns "No match"
+let r1 = matchTuple((1, 'Hi', true))    // returns 'Case 1'
+let r2 = matchTuple((4, 'Hello', true)) // returns 'Case 2'
+let r3 = matchTuple((100, 'OK', false)) // returns 'Case 3'
+let r3 = matchTuple((100, 'OK', true))  // returns 'No match'
 ```
 
 Matched elements can be nested, and can be captured using the `let` keyword:
 ```isl
 function nestedTupleMatch(someNestedTuple: (integer, string, (boolean, string)))
 	match someNestedTuple
-		case (any, "Hi", (true, let name)) => "Case 1, {name}"
-		case (let num, "Hi", (true, any)) => "Case 2, {num}"
-		otherwise => "No match"
+		case (any, 'Hi', (true, let name)) => 'Case 1, {name}'
+		case (let num, 'Hi', (true, any)) => 'Case 2, {num}'
+		otherwise => 'No match'
 ```
 
 Matching over an object (as well as a tuple with named members) introduces its members into the `case` scope:
@@ -778,54 +778,54 @@ class Person
 
 function matchObject(person: Person)
 	match person
-		case firstName == "James" and lastName.length > 2 => "Case 1"
-		case firstName[-1] == "e" and age >= 30 and age <= 35 => "Case 2"
-		otherwise => "No match"
+		case firstName == 'James' and lastName.length > 2 => 'Case 1'
+		case firstName[-1] == 'e' and age >= 30 and age <= 35 => 'Case 2'
+		otherwise => 'No match'
 
-let r1 = matchObject(new Person("James", "Redd", 21)) // returns "Case 1"
-let r2 = matchObject(new Person("Jane", "Doe", 33)) // returns "Case 2"
-let r2 = matchObject(new Person("Jane", "Doe", 37)) // returns "No match"
+let r1 = matchObject(new Person('James', 'Redd', 21)) // returns 'Case 1'
+let r2 = matchObject(new Person('Jane', 'Doe', 33)) // returns 'Case 2'
+let r2 = matchObject(new Person('Jane', 'Doe', 37)) // returns 'No match'
 ```
 
 In case the concrete type of the target object may be one of several derived types, the **type can be matched** as well:
 ```isl
 function matchAnimal(animal: Animal)
 	match animal
-		case Dog where name == "Lucky" and owner.firstName == "Andy" => "Good dog, Andy!"
-		case Cat where age > 10 => "Old cat!"
-		case Horse where height > 180 => "Tall horse!"
-		otherwise => "Nothing interesting here"
+		case Dog where name == 'Lucky' and owner.firstName == 'Andy' => 'Good dog, Andy!'
+		case Cat where age > 10 => 'Old cat!'
+		case Horse where height > 180 => 'Tall horse!'
+		otherwise => 'Nothing interesting here'
 ```
 
 A secondary syntax uses curly brackets to define a matching structure, which can be nested any amount of times:
 ```isl
 function matchAnimal(animal: Animal)
 	match animal
-		case Dog { name == "Lucky", owner: { firstName == "Andy" } } => "Good dog, Andy!"
-		case Cat { age > 10 } => "Old cat!"
-		case Horse { height > 180 } => "Tall horse!"
-		otherwise => "Nothing interesting here"
+		case Dog { name == 'Lucky', owner: { firstName == 'Andy' } } => 'Good dog, Andy!'
+		case Cat { age > 10 } => 'Old cat!'
+		case Horse { height > 180 } => 'Tall horse!'
+		otherwise => 'Nothing interesting here'
 ```
 
 A third, terser matching syntax uses constructor-like notation, based on the order of declared members (note the varying count of elements in parentheses and the `...` element signifying the rest of the elements are ignored):
 ```isl
 function matchAnimal(animal: Animal)
 	match animal
-		case Dog("Lucky", Person("Andy", ...), ...) => "Good dog, Andy!"
-		case Cat(any, here > 10, ...) => "Old cat!"
-		case Horse(any, any, here > 180) => "Tall horse!"
-		otherwise => "Nothing interesting here"
+		case Dog('Lucky', Person('Andy', ...), ...) => 'Good dog, Andy!'
+		case Cat(any, here > 10, ...) => 'Old cat!'
+		case Horse(any, any, here > 180) => 'Tall horse!'
+		otherwise => 'Nothing interesting here'
 ```
 
 `match` can be applied to multiple variables, separated by commas:
 ```isl
 function matchAnimalAndPerson(animal: Animal, person: Person)
 	match animal, person
-		case Dog where name == "Lucky", Man where age < 18 => "Good dog and young man!"
-		case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
-		case Horse where height > 180, Person where hobby == "Horseriding" =>
-			"Tall horse and a true horseriding lover!"
-		otherwise => "Nothing interesting here"
+		case Dog where name == 'Lucky', Man where age < 18 => 'Good dog and young man!'
+		case Cat where age > 10, Woman where happinessLevel > 0.8 => 'Old cat and happy woman!'
+		case Horse where height > 180, Person where hobby == 'Horseriding' =>
+			'Tall horse and a true horseriding lover!'
+		otherwise => 'Nothing interesting here'
 ```
 
 Matching on multiple Boolean expressions allows to concisely specify a decision table:
@@ -845,15 +845,15 @@ function hasPromotions(repeatCustomer: boolean, hasMemberCard: boolean, orderAmo
 ```isl
 function matchAnimal(animal: Animal)
 	match animal
-		case Dog where name == "Lucky"
-			case barkingLoudness < 0.3 => "Quite dog lucky!"
-			case barkingLoudness > 0.7 => "Loud dog lucky!"
-			otherwise => "Nice dog lucky!"
+		case Dog where name == 'Lucky'
+			case barkingLoudness < 0.3 => 'Quite dog lucky!'
+			case barkingLoudness > 0.7 => 'Loud dog lucky!'
+			otherwise => 'Nice dog lucky!'
 		case Cat
-			case likesMilk => "Nice cat!"
-			otherwise => "A cat who doesn't like milk! Who knew?"
-		case Horse where height > 180 => "Tall horse!"
-		otherwise => "Nothing interesting here"
+			case likesMilk => 'Nice cat!'
+			otherwise => 'A cat who doesn't like milk! Who knew?'
+		case Horse where height > 180 => 'Tall horse!'
+		otherwise => 'Nothing interesting here'
 ```
 
 Matching over a list allows for the unpacking syntax to be used as a matching pattern:
@@ -907,21 +907,21 @@ If the outermost scope of a method consists only of a `match` statement (excludi
 
 ```isl
 function matchAnimalAndPerson(match animal: Animal, match person: Person)
-	case Dog where name == "Lucky", Man where age < 18 => "Good dog and young man!"
-	case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
-	case Horse where height > 180, Person where hobby == "Horseriding" =>
-		"Tall horse and a true horseriding lover!"
-	otherwise => "Nothing interesting here"
+	case Dog where name == 'Lucky', Man where age < 18 => 'Good dog and young man!'
+	case Cat where age > 10, Woman where happinessLevel > 0.8 => 'Old cat and happy woman!'
+	case Horse where height > 180, Person where hobby == 'Horseriding' =>
+		'Tall horse and a true horseriding lover!'
+	otherwise => 'Nothing interesting here'
 ```
 
 Observing the above carefully, it may be noticed the `: Animal` and `: Person` annotations are not strictly necessary, since the parameter types are being explicitly asserted at every case clause. When this is the case, the type annotations can be omitted and would be inferred by the compiler:
 ```isl
 function matchAnimalAndPerson(match animal, match person)
-	case Dog where name == "Lucky", Man where age < 18 => "Good dog and young man!"
-	case Cat where age > 10, Woman where happinessLevel > 0.8 => "Old cat and happy woman!"
-	case Horse where height > 180, Person where hobby == "Horseriding" =>
-		"Tall horse and a true horseriding lover!"
-	otherwise => Failure("Invalid match argument types!")
+	case Dog where name == 'Lucky', Man where age < 18 => 'Good dog and young man!'
+	case Cat where age > 10, Woman where happinessLevel > 0.8 => 'Old cat and happy woman!'
+	case Horse where height > 180, Person where hobby == 'Horseriding' =>
+		'Tall horse and a true horseriding lover!'
+	otherwise => Failure('Invalid match argument types!')
 
 	// Note the 'otherwise' clause must fail for the parameter types to be properly inferred!
 	//
@@ -937,12 +937,12 @@ function matchAnimalAndPerson(animal: Cat, person: Woman)
 function matchAnimalAndPerson(animal: Horse, person: Person)
 
 // With assertion types, the compiler infers:
-function matchAnimalAndPerson(animal: Dog where name == "Lucky",
+function matchAnimalAndPerson(animal: Dog where name == 'Lucky',
 							  person: Man where age < 18)
 function matchAnimalAndPerson(animal: Cat where age > 10,
 							  person: Woman where happinessLevel > 0.8)
 function matchAnimalAndPerson(animal: Horse where height > 180,
-							  person: Person where hobby == "Horseriding")
+							  person: Person where hobby == 'Horseriding')
 ```
 
 Even without the `match` modifier, parameter types can still be omitted and asserted in the method body using the `is` operator:
@@ -971,7 +971,7 @@ The compiler will try to ensure that matched cases include all possible values f
 ```isl
 function notExhaustive(someBoolean: boolean)
 	match someBoolean
-		case true => "OK!"
+		case true => 'OK!'
 		// Error! No handling of the case when someBoolean == false
 ```
 
@@ -1010,7 +1010,7 @@ function factorial(num: integer)
 
 It may seem, at first, like `i` and `result` are no different than mutable variables, since they are repeatedly modified at every iteration, however, they are not actually mutable because they are not real variables!
 
-Since Island loops act a lot like functions, `i` and `result` could be thought as being analogous to a function parameter and a return variable. Since the `continue` statement is only executed at the moment the loop is ready to proceed to its next iteration, it can be seen as if the loop is "restarting" with a different initial state. This is analogous to a function being repeatedly tail-recursively invoked with a different set of arguments.
+Since Island loops act a lot like functions, `i` and `result` could be thought as being analogous to a function parameter and a return variable. Since the `continue` statement is only executed at the moment the loop is ready to proceed to its next iteration, it can be seen as if the loop is 'restarting' with a different initial state. This is analogous to a function being repeatedly tail-recursively invoked with a different set of arguments.
 
 For comparison, here is equivalent code, translated to a tail-recursive function (reference code lines are in the comments):
 ```isl
@@ -1223,14 +1223,14 @@ stream multiplesOfTwo()
 			yield i
 
 for i in 1..100, m in multiplesOfTwo() // This will repeat 100 times
-	print("Num: {i}, Multiple: {m}'")
+	print('Num: {i}, Multiple: {m}'')
 
 // Prints:
-// "Num: 1, Multiple: 2"
-// "Num: 2, Multiple: 4"
-// "Num: 3, Multiple: 6"
+// 'Num: 1, Multiple: 2'
+// 'Num: 2, Multiple: 4'
+// 'Num: 3, Multiple: 6'
 // ....
-// "Num: 100, Multiple: 200"
+// 'Num: 100, Multiple: 200'
 ```
 
 A **stream object** is a stateless object, of the form:
@@ -1301,17 +1301,17 @@ Imagine you wanted to create a function that builds a URL string from an object 
 
 ```isl
 function urlTostring(url: Url): string
-	var urlstring = "" // There's no 'var' in Island - this is only meant for illustration
+	var urlstring = '' // There's no 'var' in Island - this is only meant for illustration
 
 	if url.isSecure
-		urlstring |= "https://"
+		urlstring |= 'https://'
 	else
-		urlstring |= "http://"
+		urlstring |= 'http://'
 
 	urlstring |= url.hostname
 
 	if url.port is not nothing
-		urlstring |= ":{url.port}"
+		urlstring |= ':{url.port}'
 
 	// ....
 
@@ -1327,15 +1327,15 @@ function urlTostring(url: Url): string
 	let urlstring1
 
 	if url.isSecure
-		urlstring1 = "https://"
+		urlstring1 = 'https://'
 	else
-		urlstring1 = "http://"
+		urlstring1 = 'http://'
 
 	let urlstring2 = urlstring1 | url.hostname
 
 	let urlstring3
 	if url.port is not nothing
-		urlstring3 = urlstring2 | ":{url.port}"
+		urlstring3 = urlstring2 | ':{url.port}'
 
 	// ....
 
@@ -1349,18 +1349,18 @@ OK, so how about using an inner stream method?
 function urlTostring(url: Url): string
 	stream buildstring()
 		if url.isSecure
-			yield "https://"
+			yield 'https://'
 		else
-			yield "http://"
+			yield 'http://'
 
 		yield url.hostname
 
 		if url.port is not nothing
-			yield ":{url.port}"
+			yield ':{url.port}'
 
 		// ....
 
-	return buildstring().JoinStrings("")
+	return buildstring().JoinStrings('')
 ```
 
 Looks a bit better! but a solution like this will only work for simple list concatenations, we want something more flexible that would generalize over to arbitrary computations of a similar nature.
@@ -1370,17 +1370,17 @@ The general pattern seems to be that every yielded value "builds" over the previ
 ```isl
 function urlTostring(url: Url): string
 	stream buildstring()
-		yield initial ""
+		yield initial ''
 
 		if url.isSecure
-			yield prior | "https://"
+			yield prior | 'https://'
 		else
-			yield prior | "http://"
+			yield prior | 'http://'
 
 		yield prior | url.hostname
 
 		if url.port is not nothing
-			yield prior | ":{url.port}"
+			yield prior | ':{url.port}'
 
 		// ....
 
@@ -1394,16 +1394,16 @@ However, this still doesn't look pretty (frankly, even more verbose than the pre
 We can take this pattern and make it more implicit by introducing the notion of a **named return variable**:
 
 ```isl
-function urlTostring(url: Url): (urlstring: string = "")
+function urlTostring(url: Url): (urlstring: string = '')
 	if url.isSecure
-		urlstring = urlstring | "https://"
+		urlstring = urlstring | 'https://'
 	else
-		urlstring = urlstring | "http://"
+		urlstring = urlstring | 'http://'
 
 	urlstring = urlstring | url.hostname
 
 	if url.port is not nothing
-		urlstring = urlstring | ":{url.port}"
+		urlstring = urlstring | ':{url.port}'
 
 	// ....
 
@@ -1433,16 +1433,16 @@ And finally, returning from the function implicitly returns the last value yield
 
 Now we can now allow the `resultVariable = resultVariable | something` pattern to be shortened to `resultVariable |= something`:
 ```isl
-function urlTostring(url: Url): (urlstring: string = "")
+function urlTostring(url: Url): (urlstring: string = '')
 	if url.isSecure
-		urlstring |= "https://"
+		urlstring |= 'https://'
 	else
-		urlstring |= "http://"
+		urlstring |= 'http://'
 
 	urlstring |= url.hostname
 
 	if url.port is not nothing
-		urlstring |= ":{url.port}"
+		urlstring |= ':{url.port}'
 
 	// ....
 
@@ -1503,8 +1503,8 @@ let l = [(for i in 1..6 where i mod 2 == 0, j in 1..9 where j mod 3 == 0) => i +
 
 Like in `for` loops, consuming streams of **different lengths** would end whenever the shorter of them ends:
 ```isl
-let l = [(for i in "a".."c", j in 1..6) => (i, j)]
-// l = [("a", 1), ("b", 2), ("c", 3)]
+let l = [(for i in 'a'..'c', j in 1..6) => (i, j)]
+// l = [('a', 1), ('b', 2), ('c', 3)]
 ```
 
 Stream expressions can be **nested**, by successively passing the `=>` symbol through multiple streams. This allows to further simplify the implementation for the combination enumeration example mentioned earlier:
@@ -1551,10 +1551,10 @@ function divides(x, y) => x mod y == 0
 
 stream fizzBuzz() =
 	(for i in 1..infinity) =>
-		when divides(i, 15): "FizzBuzz",
-		when divides(i, 3): "Fizz",
-		when divides(i, 5): "Buzz",
-		otherwise: "{i}"
+		when divides(i, 15): 'FizzBuzz',
+		when divides(i, 3): 'Fizz',
+		when divides(i, 5): 'Buzz',
+		otherwise: '{i}'
 ```
 
 Here's a very simple recursive quicksort implementation using list comprehensions, pattern matching, and the spread operator:
@@ -1664,18 +1664,18 @@ class Person with firstName: string, lastName: string, age: integer
 
 The `with` operator can be used to create a new object using the `Person` class as its template:
 ```isl
-let andy = Person with firstName = "Andy", lastName = "Williams", Age = 19
+let andy = Person with firstName = 'Andy', lastName = 'Williams', Age = 19
 ```
 A class may also be invoked like a constructor method, and would return a new object, whose fields receive the arguments passed to it, by their order of declaration:
 ```isl
-let andy = Person("Andy", "Williams", 19)
+let andy = Person('Andy', 'Williams', 19)
 ```
 
 One or more class fields may have default values:
 ```isl
 class Person
-	firstName = "Anonymous"
-	lastName = ""
+	firstName = 'Anonymous'
+	lastName = ''
 	age: integer
 ```
 
@@ -1703,10 +1703,10 @@ class Person
 
 	// Computed field (long syntax)
 	computed description()
-		return "{firstName} {lastName}, of {age} years of age"
+		return '{firstName} {lastName}, of {age} years of age'
 
 	// Computed field (short syntax)
-	description => "{firstName} {lastName}, of {age} years of age"
+	description => '{firstName} {lastName}, of {age} years of age'
 
 	// Indexer
 	this[match index]
@@ -1721,15 +1721,15 @@ class Person
 
 Member usage examples:
 ```isl
-let p = Person("Catherine", "Jones", 41)
+let p = Person('Catherine', 'Jones', 41)
 
 p.agePlusSomething(5) // returns 46
-p.printDescription() // prints "Catherine Jones, of 41 years of age"
-p.description // returns "Catherine Jones, of 41 years of age"
-p[1] // returns "Jones"
+p.printDescription() // prints 'Catherine Jones, of 41 years of age'
+p.description // returns 'Catherine Jones, of 41 years of age'
+p[1] // returns 'Jones'
 
 for m in p
-	print(m) // prints "Catherine" "Jones"
+	print(m) // prints 'Catherine' 'Jones'
 ```
 
 A class method can use the `this` object and the `with` operator to create a altered copy of its containing object:
@@ -1750,17 +1750,17 @@ class Group
 	sharedInterest: string
 
 let golfers = Group with
-	members = [Person("John", "Smith", 24), Person("Jane", "Doe", 42)]
-	sharedInterest = "Golf"
+	members = [Person('John', 'Smith', 24), Person('Jane', 'Doe', 42)]
+	sharedInterest = 'Golf'
 
 let deeplyAlteredGroup = golfers with
-	members[1].firstName = "Michael"
+	members[1].firstName = 'Michael'
 	members[2].age = 45
 ```
 
 The `with` operator also allows for merging syntax on objects, the following is equivalent:
 ```isl
-let deeplyAlteredGroup = golfers with { members: [{ firstName: "Michael" }, { age: 45 }] }
+let deeplyAlteredGroup = golfers with { members: [{ firstName: 'Michael' }, { age: 45 }] }
 ```
 
 ## Extension
@@ -1788,18 +1788,18 @@ class Person
 	lastName: string
 	age: integer
 
-	description => "{firstName} {lastName}, of {age} years of age"
+	description => '{firstName} {lastName}, of {age} years of age'
 	action printDescription() => print(description)
 
 class PersonWithHeight extends Person
 	height: decimal
 
-	description => "{base.description} and {height} meters tall"
+	description => '{base.description} and {height} meters tall'
 
-let james = PersonWithHeight("James", "Taylor", 19, 1.8)
+let james = PersonWithHeight('James', 'Taylor', 19, 1.8)
 
-james.printDescription() // Prints "James Taylor, of 19 years of age and 1.8 meters tall"
-(james as Person).printDescription() // Prints "James Taylor, of 19 years of age"
+james.printDescription() // Prints 'James Taylor, of 19 years of age and 1.8 meters tall'
+(james as Person).printDescription() // Prints 'James Taylor, of 19 years of age'
 ```
 
 If a class does not provide a body to one or more of its methods, it cannot be instantiated, however it can be used as a base class to a secondary class. This kind of class is called an **abstract class**:
@@ -1814,7 +1814,7 @@ abstract class AbstractPerson
 	action printDescription()
 
 class ConcretePerson extends AbstractPerson
-	description => "{firstName} {lastName}, of {age} years of age"
+	description => '{firstName} {lastName}, of {age} years of age'
 	action printDescription() => print(description)
 ```
 
@@ -1833,24 +1833,24 @@ class Employee extends Labeled
 action processLabeledObject(obj: Labeled)
 	obj.printLabel()
 
-let someEmployee = Employee with fullName = "John Doe", label = "abc123"
+let someEmployee = Employee with fullName = 'John Doe', label = 'abc123'
 
-processLabeledObject() // prints "abc123"
+processLabeledObject() // prints 'abc123'
 ```
 
 Note that since the `label` field doesn't have a default value it must be explicitly assigned when the object is created. However, in order to initialize a new instance of `Employee` using the constructor syntax (`Employee(....)`) the value for the `label` field must be passed using a named argument, since it doesn't have an inherent order in relation to `Employee`'s own fields:
 
 ```isl
-let someEmployee = Employee("John Doe", label = "abc123")
+let someEmployee = Employee('John Doe', label = 'abc123')
 ```
 Default implementations will be overridden if they are implemented by the extending type:
 ```isl
 class Employee extends Labeled
 	fullName: string
 
-	action printLabel() => print("Employee: {label}")
+	action printLabel() => print('Employee: {label}')
 
-processLabeledObject(Employee("John Doe", label = "abc123")) // prints "Employee: abc123"
+processLabeledObject(Employee('John Doe', label = 'abc123')) // prints 'Employee: abc123'
 ```
 
 If several extended features have methods with **conflicting names or signatures**, the overriding method declaration may specify to which feature it relates to:
@@ -1874,7 +1874,7 @@ class Example extends Runner, Processor
 When a an method is overridden in this way, it is not possible to directly call it through the extending class:
 
 ```isl
-let test = Example("New Example")
+let test = Example('New Example')
 
 test.start(15) // Which of the two actions should be invoked?
 ```
@@ -1897,12 +1897,12 @@ class ExampleClass extends FeatureA, FeatureB
 
 	// 'Example' has no field named 'index', instead it has:
 	FeatureA.index = 10 // default value for FeatureA field
-	FeatureB.index = "10" // default value for FeatureB field
+	FeatureB.index = '10' // default value for FeatureB field
 ```
 
 Initialization must prefix the field name with the feature it relates to:
 ```isl
-let test = ExampleClass("Something", FeatureA.index = 20, FeatureB.index = "20")
+let test = ExampleClass('Something', FeatureA.index = 20, FeatureB.index = '20')
 ```
 
 A secondary approach is to introduce an additional field and define the two feature's fields as computed fields that "route" back to it:
@@ -1919,7 +1919,7 @@ class ExampleClass extends FeatureA, FeatureB
 
 Now the object can be instantiated normally using the constructor syntax:
 ```isl
-let test = ExampleClass("Something", 20)
+let test = ExampleClass('Something', 20)
 ```
 
 Features may **extend any number of other features**. A feature may override one or more of its base feature's members. When a feature extends two or more features with conflicting member names, the resolution can be done with a similar approach to the one described above:
@@ -1946,7 +1946,7 @@ In this case, this means that `ExampleFeature` doesn't have its own `start` meth
 ```isl
 class ExampleClass extends ExampleFeature
 
-let x = ExampleClass("Test")
+let x = ExampleClass('Test')
 
 (x as Runner).start(13)
 // The invoked implementation of `start` is the one overriden by ExampleFeature,
@@ -1958,7 +1958,7 @@ let x = ExampleClass("Test")
 
 A **structure** is a simple object-like container, analogous to a dictionary, but with a fixed set of predefined fields and member types:
 ```isl
-let myStructure = { url: "https://example.com", speed: 9000 }
+let myStructure = { url: 'https://example.com', speed: 9000 }
 ```
 
  **Anonymous structure types** are types that describe a set of required object fields. For example, here's a function that would accept any object-like entity with the fields `url: string` and `speed: integer`
@@ -1978,7 +1978,7 @@ class SomeClass
 	weight: decimal
 	....
 
-let instanceOfSomeClass = SomeClass("SomeName", "https://example.com", 10000, 125.5)
+let instanceOfSomeClass = SomeClass('SomeName', 'https://example.com', 10000, 125.5)
 
 giveMeSomeStructure(instanceOfSomeClass)
 // This call compiles since SomeClass is assignable to the anonymous structure type
@@ -1989,7 +1989,7 @@ giveMeSomeStructure(instanceOfSomeClass)
 
 ```isl
 let s1 = { a: 1, b: false } // type of s1 is { a: integer, b: boolean }
-let s2 = s1 with new c = "Hi" // type of s2 is { a: integer, b: boolean, c: string }
+let s2 = s1 with new c = 'Hi' // type of s2 is { a: integer, b: boolean, c: string }
 let s3 = s2 with no b // type of s3 is { a: integer, c: string }
 
 // Note that if the assigned values are constants, like in the above example,
@@ -2002,7 +2002,7 @@ This behavior doesn't imply dynamic typing. Whenever a value is altered in this 
 
 **Structures may nest other structures**. The nested structures may be similarly modified:
 ```isl
-let s1 = { a: 1, b: { c: "Hello", d: false } }
+let s1 = { a: 1, b: { c: 'Hello', d: false } }
 // Type of s1 is { a: integer, b: { c: string, d: boolean } }
 
 let s2 = s1 with new b.e = 3.14
@@ -2086,9 +2086,9 @@ object Person extends Equatable<Person>
 
 function areEqual<T extends Equatable<T>>(a: T, b: T) => a == b
 
-print(areEqual(Point(1, 2), Point(1, 2))) // prints "true"
-print(areEqual(Person("John Doe", 24), Person("John Doe", 24))) // prints "true"
-print(areEqual(Point(1, 2), Person("John Doe", 24))) // Error: couldn't find a type for T
+print(areEqual(Point(1, 2), Point(1, 2))) // prints 'true'
+print(areEqual(Person('John Doe', 24), Person('John Doe', 24))) // prints 'true'
+print(areEqual(Point(1, 2), Person('John Doe', 24))) // Error: couldn't find a type for T
 ```
 
 Here's a monoid type feature (representing an associative binary operation with identity element):
@@ -2128,10 +2128,10 @@ class Person
 	age: integer
 
 class expansion Person
-	fullname => "{firstName} {lastName}"
+	fullname => '{firstName} {lastName}'
 
 object Person
-	anonymous = Person("Anonymous", "", 0)
+	anonymous = Person('Anonymous', '', 0)
 	haveSameFirstName(p1: Person, p2: Person) => p1.firstName == p2.firstName
 
 object expansion Person
@@ -2150,13 +2150,13 @@ class expansion Person
 	favoriteNumber: integer // ERROR: This will not work
 
 object Person
-	andy = Person("Andy", "Jones", 22)
+	andy = Person('Andy', 'Jones', 22)
 
 object expansion Person
-	angela = Person("Anegla", "Jones", 25) // But this will work
+	angela = Person('Anegla', 'Jones', 25) // But this will work
 
 object expansion Person
-	ben = Person("Ben", "Smith", 23) // And so will this
+	ben = Person('Ben', 'Smith', 23) // And so will this
 ```
 
 Class expansions can **extend features**, as well as override their default implementations:
@@ -2170,7 +2170,7 @@ feature Labeled
 
 class expansion Employee extends Labeled
 	label => fullName
-	action printLabel() => print("Great Employee: {label}")
+	action printLabel() => print('Great Employee: {label}')
 ```
 
 Expansions can **add members to features**, as long as they provide default values or implementations:
@@ -2201,15 +2201,15 @@ feature X
 	someField: string
 
 feature expansion X
-	someFunction() => "X!"
+	someFunction() => 'X!'
 
 feature Y
-	someFunction() => "Y!"
+	someFunction() => 'Y!'
 
 feature Z extends X, Y
 
 function test(z: Z)
-	return z.someFunction() // There is no conflict here, this is will always return "Y!"
+	return z.someFunction() // There is no conflict here, this is will always return 'Y!'
 ```
 
 ## Generics
@@ -2227,22 +2227,22 @@ class Pair<T>
 The unknown type parameter (named `T` in this example) can accept any type:
 ```isl
 let pairOfIntegers = Pair<integer>(1, 2)
-let pairOfstrings = Pair<string>("a", "b")
+let pairOfstrings = Pair<string>('a', 'b')
 let pairOfBooleans = Pair<boolean>(true, false)
 ```
 
 Including the `Pair` type itself:
 ```isl
-let pairOfPairs = Pair<Pair<string>>(Pair<string>("a", "b"), Pair<string>("c","d"))
+let pairOfPairs = Pair<Pair<string>>(Pair<string>('a', 'b'), Pair<string>('c','d'))
 ```
 
 The type argument e.g. `<integer>` is not required if it **can be inferred** from the constructor arguments, this simplifies the above to:
 
 ```isl
 let pairOfIntegers = Pair(1, 2)
-let pairOfstrings = Pair("a", "b")
+let pairOfstrings = Pair('a', 'b')
 let pairOfBooleans = Pair(true, false)
-let pairOfPairs = Pair(Pair("a", "b"), Pair("c","d"))
+let pairOfPairs = Pair(Pair('a', 'b'), Pair('c','d'))
 ```
 
 _(Note: Unlike C#, Java, TypeScript, and several other languages, the Island language does not allow both generic and non-generic types sharing a common identifier. This enables to safely omit the type argument with no chance of ambiguity)_
@@ -2252,7 +2252,7 @@ Methods can accept and infer type arguments as well:
 function firstOfPair<A>(p: Pair<A>) => p.a
 
 let firstInteger = firstOfPair(Pair(1, 2)) // returns 1
-let firststring = firstOfPair(Pair("a", "b")) // returns a
+let firststring = firstOfPair(Pair('a', 'b')) // returns a
 ```
 
 Type parameters can have **constraints**, which enforce a minimum assignability requirement:
@@ -2264,10 +2264,10 @@ class Person extends Named
 	age: integer
 
 function loveAffair<T extends Named>(a: T, b: T) =>
-	"{a.name} loves {b.name}"
+	'{a.name} loves {b.name}'
 
-let l = loveAffair(Person("Angela", 21), Person("Mike", 20))
-// l = "Angela loves Mike"
+let l = loveAffair(Person('Angela', 21), Person('Mike', 20))
+// l = 'Angela loves Mike'
 ```
 
 Note that applying a type as a constraint is subtly different than specifying the type directly, especially in the case where the type parameter is used in multiple places:
@@ -2277,7 +2277,7 @@ class Fruit extends Named
 	name: string
 	weight: decimal
 
-let l = loveAffair(Person("Angela", 21), Fruit("Apple", 1.5))
+let l = loveAffair(Person('Angela', 21), Fruit('Apple', 1.5))
 // Error! could not find a binding for type parameter T.
 ```
 
@@ -2287,10 +2287,10 @@ Alternatively, if the `Named` feature was used directly as `a` and `b`'s paramet
 
 ```isl
 function loveAffair2(a: Named, b: Named) =>
-	"{a.name} loves {b.name}"
+	'{a.name} loves {b.name}'
 
-let l = loveAffair2(Person("Angela", 21), Fruit("Apple", 1.5)) // Works!
-// l = "Angela loves Apple"
+let l = loveAffair2(Person('Angela', 21), Fruit('Apple', 1.5)) // Works!
+// l = 'Angela loves Apple'
 ```
 
 **Multiple constraints** may be applied to a type parameter:
@@ -2302,11 +2302,11 @@ class Fruit extends Named, Printable
 	name: string
 	weight: decimal
 
-	action printMe() => print("A {a.name} weighing {weight}kg")
+	action printMe() => print('A {a.name} weighing {weight}kg')
 
 action printNamedThing<T extends Named and Printable>(a: T) => a.printMe()
 
-printNamedThing(Fruit("Banana", 0.5)) // prints "A Banana weighing 0.5kg"
+printNamedThing(Fruit('Banana', 0.5)) // prints 'A Banana weighing 0.5kg'
 ```
 
 Type parameters can have **default values**:
@@ -2386,23 +2386,23 @@ If you attempted to assign a function of type `GiveMeCat` to a variable of type 
 ```isl
 let giveMeAnimal: (Animal) => string
 
-giveMeAnimal = (Cat) => "Hello cat!"
+giveMeAnimal = (Cat) => 'Hello cat!'
 
 // Because 'giveMeAnimal' accepts any animal, passing a dog as argument should work,
 // but would it make any sense?
-let str = giveMeAnimal(Dog()) // Would return "Hello cat!" ??!!
+let str = giveMeAnimal(Dog()) // Would return 'Hello cat!' ??!!
 ```
 
 However, if you assigned `GiveMeAnimal` to `GiveMeCat`, it would, surprisingly, make more sense:
 ```isl
 let giveMeCat: (Cat) => string
 
-giveMeCat = (Animal) => "Hello animal!" // Seems to work, but why?
+giveMeCat = (Animal) => 'Hello animal!' // Seems to work, but why?
 ```
 
-This phenomenon is called **contravariance** (substitution of general with specific) and the more "intuitive" substitution rule, mentioned in the context of plain variables, is called **covariance** (substitution of specific with general).
+This phenomenon is called **contravariance** (substitution of general with specific) and the more 'intuitive' substitution rule, mentioned in the context of plain variables, is called **covariance** (substitution of specific with general).
 
-It turns out that when thinking about functions: return types ("out" positions) are covariant, however, parameter types ("in" positions) are contravariant.
+It turns out that when thinking about functions: return types ('out' positions) are covariant, however, parameter types ('in' positions) are contravariant.
 
 Sometimes we may wish to constrain type parameters so that they can only be used in one of these positions. This is possible with the `in` and `out` modifiers:
 
@@ -2423,15 +2423,15 @@ class Person
 	gender: Gender
 	age: integer
 
-	titleAndLastName => "{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
-	fullName => "{firstName} {lastName}"
-	fullNameAndAge => "{fullName}, of {age} years of age"
+	titleAndLastName => '{when gender == Gender.Male: 'Mr.', otherwise: 'Ms.'} {lastName}'
+	fullName => '{firstName} {lastName}'
+	fullNameAndAge => '{fullName}, of {age} years of age'
 ```
 
-Say we wanted to derive a class for a person who must be male and whose last name must be "Smith". In the traditional object-oriented style this can be done by extending `Person` and fixing the `lastName` and `gender` fields to the constant values `"Smith"` and `Male`:
+Say we wanted to derive a class for a person who must be male and whose last name must be 'Smith'. In the traditional object-oriented style this can be done by extending `Person` and fixing the `lastName` and `gender` fields to the constant values `'Smith'` and `Male`:
 ```isl
 class MrSmith extends Person
-	final lastName = "Smith"
+	final lastName = 'Smith'
 	final gender = Gender.Male
 ```
 
@@ -2439,7 +2439,7 @@ A major limitation of this approach is that it can only work with values that ar
 
 This can be done using the `with` operator:
 ```isl
-let mrSmith = Person with lastName = "Smith", gender = Gender.Male
+let mrSmith = Person with lastName = 'Smith', gender = Gender.Male
 ```
 
 Because some of `mrSmith`'s fields (namely `firstName` and `age`) are missing (and don't have default values), a full instance of `Person` could not be constructed. Instead, the resulting value - `mrSmith` is not an object of type `Person`, but of the type `partial Person with lastName, gender`.
@@ -2450,14 +2450,14 @@ Wouldn't it be nice if we could call some of the partially constructed object's 
 class Person
 	....
 
-	titleAndLastName => "{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
-	fullName => "{firstName} {lastName}"
-	fullNameAndAge => "{fullName}, of {age} years of age"
+	titleAndLastName => '{when gender == Gender.Male: 'Mr.', otherwise: 'Ms.'} {lastName}'
+	fullName => '{firstName} {lastName}'
+	fullNameAndAge => '{fullName}, of {age} years of age'
 ```
 
 The computed field `titleAndLastName` can be called for `mrSmith`:
 ```isl
-print(mrSmith.titleAndLastName) // prints "Mr. Smith"
+print(mrSmith.titleAndLastName) // prints 'Mr. Smith'
 ```
 
 However trying to reference `fullName` would result in a compilation error, since it requires `firstName` to be initialized:
@@ -2478,10 +2478,10 @@ class Person
 
 We could continue adding more information to the object:
 ```isl
-mrSmith.firstName = "John"
+mrSmith.firstName = 'John'
 // The type of 'mrSmith' has now changed to 'partial Person with firstName, lastName, gender'
 
-print(mrSmith.fullName) // prints "John Smith"
+print(mrSmith.fullName) // prints 'John Smith'
 print(mrSmith.fullNameAndAge) // Error! fullNameAndAge uses member `age`, which is not defined for type `partial Person with firstName, lastName, gender`
 ```
 
@@ -2490,7 +2490,7 @@ Finally, when we add a value for `age`, the object becomes fully constructed:
 mrSmith.age = 28
 // mrSmith finally receives the type `Person`
 
-print(mrSmith.fullNameAndAge) // prints "John Smith, of 28 years of age"
+print(mrSmith.fullNameAndAge) // prints 'John Smith, of 28 years of age'
 ```
 
 An alternative, but more limited, way to achieve a similar effect is to partially apply the constructor call:
@@ -2521,25 +2521,25 @@ class Database
 
 For every new database object we wanted to create, we'd have to re-specify which server connection it uses:
 ```isl
-let myConnection = connectServer("localhost:5555", "admin", "1234")
+let myConnection = connectServer('localhost:5555', 'admin', '1234')
 
-let db1 = Database with connection = myConnection, name = "DB1"
-let db2 = Database with connection = myConnection, name = "DB2"
-let db3 = Database with connection = myConnection, name = "DB3"
+let db1 = Database with connection = myConnection, name = 'DB1'
+let db2 = Database with connection = myConnection, name = 'DB2'
+let db3 = Database with connection = myConnection, name = 'DB3'
 ```
 
 With a partially constructed object, the `connection` field can be fixed once and then the resulting object reused:
 ```isl
-let myConnection = connectServer("localhost:5555", "admin", "1234")
+let myConnection = connectServer('localhost:5555', 'admin', '1234')
 
 let databaseWithMyConnection = Database with connection = myConnection
 // The type of `databaseWithMyConnection` is `partial Database with connection`
 
 databaseWithMyConnection.verifyConnection() // Works!
 
-let db1 = databaseWithMyConnection with name = "DB1"
-let db2 = databaseWithMyConnection with name = "DB2"
-let db3 = databaseWithMyConnection with name = "DB3"
+let db1 = databaseWithMyConnection with name = 'DB1'
+let db2 = databaseWithMyConnection with name = 'DB2'
+let db3 = databaseWithMyConnection with name = 'DB3'
 ```
 
 In case some fields have default values but the desired behavior is to have those fields undefined on the partial object, their default values **can be "erased"** by explicitly applying the `no` modifier within the `with` expression:
@@ -2548,9 +2548,9 @@ In case some fields have default values but the desired behavior is to have thos
 class Person
 	firstName: string
 	lastName: string
-	planetResidence = "Earth"
+	planetResidence = 'Earth'
 
-let angelaFromUnknownPlanet = Person with firstName = "Angela", no planetResidence
+let angelaFromUnknownPlanet = Person with firstName = 'Angela', no planetResidence
 ```
 
 **Features can be partial** as well, however since features cannot be instantiated directly the `partial` type modifier is only effectively usable for specifying a subset of a feature's fields that are expected to be known. For instance:
@@ -2562,7 +2562,7 @@ feature Named
 	id: string
 
 action printThingName(thing: partial Named with name, id)
-	print("Name: {thing.name}, Id: {thing.id}")
+	print('Name: {thing.name}, Id: {thing.id}')
 ````
 
 # Concurrency, parallelism and lazy evaluation
@@ -2574,7 +2574,7 @@ Remember computed fields in a class?
 class Person
 	firstName: string
 	lastName: string
-	fullName => "{firstName} {lastName}"
+	fullName => '{firstName} {lastName}'
 ```
 
 `fullName` is only evaluated when it is called (and possibly the result is then stored for subsequent calls).
@@ -2690,7 +2690,7 @@ for (result1, result2) in spawn (heavyCalculations1(), heavyCalculations2())
 	wait result1, result2
 
 	// This will only execute once both result1 and result receive a value
-	print("Congratulations, we have new results!")
+	print('Congratulations, we have new results!')
 	....
 ```
 
@@ -2698,7 +2698,7 @@ For convenience, the `wait` keyword can also be integrated as a modifier to the 
 ```isl
 for (wait result1, wait result2) in spawn (heavyCalculations1(), heavyCalculations2())
 	// This will only execute when both result1 and result receive a value
-	print("Congratulations, we have new results!")
+	print('Congratulations, we have new results!')
 	....
 ```
 
@@ -2748,9 +2748,9 @@ In the case of a stream, the compiler may also choose to precompute one or more 
 
 `spawn` allows pure functions and streams to be easily parallelized. Since pure computations have no side-effects, there's no need for much careful considerations when applying it. The worst that can happen is that performance may be degraded due to excessive overhead, when managed inappropriately.
 
-When dealing with concurrency and parallelism involving side-effects, however, the situation becomes more subtle. If it was possible to freely 'spawn' actions, that would open up several potential issues:
+When dealing with concurrency and parallelism involving side-effects, however, the situation becomes more subtle. If it was possible to freely "spawn" actions, that would open up several potential issues:
 
-* If an action could be freely spawned to execute in a separate thread, would its execution be let to 'invisibly' continue forever? even long after execution has left the original caller's scope?
+* If an action could be freely spawned to execute in a separate thread, would its execution be let to "invisibly" continue forever? even long after execution has left the original caller's scope?
 * How would it be possible to conduct two-way communication with the spawned action? Perhaps by passing it a channel? but are free-form channels, which can be duplicated and moved everywhere, really a good fit for a safe and strict language like Island?
 
 For these reasons, instead of free-form threading and channeling, Island provides _delegates_ (no relation to C# delegates), which are worker-like action subroutines that are designed to follow a strict pattern of _structured concurrency and messaging_.
@@ -2762,7 +2762,7 @@ Here's a simple example:
 action MyDelegate(): (in: string, out: string)
 	repeat
 		let name <- in
-		out <- "Hello {name}!"
+		out <- 'Hello {name}!'
 ```
 
 The above delegate has both incoming and outgoing channels. An incoming one of type `string`, and an outgoing one, also of type `string`.
@@ -2774,11 +2774,11 @@ Calling `MyDelegate` returns an object of type `Delegate<string, string>`. This 
 ```isl
 let myDelegate = MyDelegate()
 
-myDelegate <- "Adam" // Sends "Adam" to the incoming channel
-let result1 <- myDelegate // Receives the result "Hello Adam!" from the outgoing channel
+myDelegate <- 'Adam' // Sends 'Adam' to the incoming channel
+let result1 <- myDelegate // Receives the result 'Hello Adam!' from the outgoing channel
 
-myDelegate <- "Tom" // Sends "Tom" to the incoming channel
-let result2 <- myDelegate // Receives the result "Hello Tom!" from the outgoing channel
+myDelegate <- 'Tom' // Sends 'Tom' to the incoming channel
+let result2 <- myDelegate // Receives the result 'Hello Tom!' from the outgoing channel
 ```
 
 A delegate's outgoing channel **may be consumed by a `for` loop**, in a manner similar to a stream:
@@ -2788,12 +2788,12 @@ delegate MyDelegate(): (out: string)
 	// It is, in a sense, very similar to a stream, only that it may also
 	// produce side-effects, by invoking actions or spawning further delegates.
 	for i in 1..infinity
-		greetingChan <- "Hello {i}"
+		greetingChan <- 'Hello {i}'
 
 for greeting in myDelegate()
 	print(greeting)
 
-// Prints "Hello 1", "Hello 2", "Hello 3", ....
+// Prints 'Hello 1', 'Hello 2', 'Hello 3', ....
 ```
 
 Similarly to how multiple parallel streams can be consumed using the `any` modifier, an incoming message can be consumed as soon as it's received from any of two or more delegates:
@@ -2814,16 +2814,16 @@ for match any inputEvent in (KeyEvents(), MouseEvents())
 
 In real-world applications, however, it is sometimes the case that event sources are required to be dynamically subscribed and unsubscribed from throughout the program's runtime. This can be achieved by iterating over a dynamic collection of delegates (in this example a dictionary) and altering the collection in progressive iterations of the loop:
 ```isl
-for eventSources = { "kEvents": KeyEvents() }, match any event in eventSources
+for eventSources = { 'kEvents': KeyEvents() }, match any event in eventSources
 	case KeyEvent
-		print("Keyboard event!")
-		print("Now listening to mouse events instead!")
+		print('Keyboard event!')
+		print('Now listening to mouse events instead!')
 
 		continue eventSources with
-			no ["kEvents"]
-			["mEvents"] = MouseEvents()
+			no ['kEvents']
+			['mEvents'] = MouseEvents()
 	case MouseEvent
-		print("Mouse event!")
+		print('Mouse event!')
 ```
 
 Channel type references can be used to disambiguate messages from different channels sharing the same base type:
@@ -2865,7 +2865,7 @@ delegate readTextFileInBackground(fileName: string): (out: string)
 	// 'return fileContent' can also be interchangably used here
 
 // Execution waits until a message is received
-let text <- wait readTextFileInBackground("data.txt")
+let text <- wait readTextFileInBackground('data.txt')
 
 // Note that at this point, the delegate is terminated immediately after it sends its
 // first message. If the delegate body included additional code after `out <- fileContent`,
@@ -2875,13 +2875,13 @@ let text <- wait readTextFileInBackground("data.txt")
 
 By default, messages are delivered asynchronously:
 ```isl
-myDelegate <- "Some data" // message will be buffered if receiver is busy
+myDelegate <- 'Some data' // message will be buffered if receiver is busy
 .... // any subsequent code is immediately executed
 ```
 
 To ensure the message has been successfully delivered before execution proceeds, the `wait` modifier can be similarly used:
 ```isl
-wait myDelegate <- "Some data" // execution will wait until message is delivered
+wait myDelegate <- 'Some data' // execution will wait until message is delivered
 .... // any subsequent code will only be run only after the message is accepted by the delegate
 ```
 
@@ -2891,8 +2891,8 @@ let myDelegate = MyDelegate()
 
 let myDelegate2 = myDelegate // Delegate object now only reachable via myDelegate2
 
-myDelegate2 <- "Nancy" // Works
-myDelegate <- "Nancy" // Fails at compile-time
+myDelegate2 <- 'Nancy' // Works
+myDelegate <- 'Nancy' // Fails at compile-time
 ```
 
 Whenever a delegate, or any of the secondary delegates it spawns, encounters an unhandled failure, the resulting **failure object will be immediately captured and propagated** to its outgoing channel. A convenient way to handle these failures is to add a `Failure` match case handler when messages are read via a `match` statement.
@@ -3049,27 +3049,27 @@ function something(x: integer where x mod 10 == 0): (result: integer where resul
 
 These capabilities enable overload resolution to include rudimentary `match`-like predicates:
 ```isl
-action doSomething(category: "Animal", isMammal: true, owner: Person where age >= 18)
-	print("Hello animal lover!")
+action doSomething(category: 'Animal', isMammal: true, owner: Person where age >= 18)
+	print('Hello animal lover!')
 
-action doSomething(category: "Animal", isMammal: false, owner: Person where age < 18)
-	print("Hello young animal lover!")
+action doSomething(category: 'Animal', isMammal: false, owner: Person where age < 18)
+	print('Hello young animal lover!')
 
-action doSomething(category: "Person", id: /[a..zA..Z]+/)
-	print("Hello random person!")
+action doSomething(category: 'Person', id: /[a..zA..Z]+/)
+	print('Hello random person!')
 ```
 
 Using the compact overloading syntax would resemble more of the `match`/`case` structure. The following is semantically equivalent:
 ```isl
 action doSomething
-	(category: "animal", isMammal: true, owner: Person where age >= 18)
-		print("Hello animal lover!")
+	(category: 'animal', isMammal: true, owner: Person where age >= 18)
+		print('Hello animal lover!')
 
-	(category: "animal", isMammal: false, owner: Person where age < 18)
-		print("Hello young animal lover!")
+	(category: 'animal', isMammal: false, owner: Person where age < 18)
+		print('Hello young animal lover!')
 
-	(category: "person", id: /[a..zA..Z]+/)
-		print("Hello random person!")
+	(category: 'person', id: /[a..zA..Z]+/)
+		print('Hello random person!')
 ```
 
 However, note that unlike `match` statements, overloading assumes the given argument set must satisfy one of the overloads, thus an analogous `otherwise` fallback is not needed. In case of a matching failure not caught during compile-time, a run-time error would be thrown.
@@ -3100,26 +3100,26 @@ let result = fibonacci(2)
 ```
 Would cause `result` to have the literal type `1` as the return value could be inferred at compile-time.
 
-Simple literal types like `"Animal"`, `5` or `true` can alternatively be stated without an identifier:
+Simple literal types like `'Animal'`, `5` or `true` can alternatively be stated without an identifier:
 
 This would further simplify a previous example to:
 ```isl
 action doSomething
-	("animal", true, owner: Person where age >= 18)
-		print("Hello animal lover!")
+	('animal', true, owner: Person where age >= 18)
+		print('Hello animal lover!')
 
-	("animal", false, owner: Person where age < 18)
-		print("Hello young animal lover!")
+	('animal', false, owner: Person where age < 18)
+		print('Hello young animal lover!')
 
-	("person", id: /[a..zA..Z]+/)
-		print("Hello random person!")
+	('person', id: /[a..zA..Z]+/)
+		print('Hello random person!')
 ```
 
 Having no identifiers, the first two parameters can still accept named arguments by being referenced by their index:
 
 ```isl
-doSomething([2] = false, owner = Person("Lea","Johnson", 16), [1] = "Animal")
-// prints "Hello young animal lover!"
+doSomething([2] = false, owner = Person('Lea','Johnson', 16), [1] = 'Animal')
+// prints 'Hello young animal lover!'
 ```
 
 ## Type aliases
@@ -3174,9 +3174,9 @@ Choice types can disambiguated at runtime, using a type assertion:
 let x: IntegerOrString = 3
 
 if x is integer
-	print("integer!")
+	print('integer!')
 else if x is string
-	print("string!")
+	print('string!')
 ```
 
 Or using pattern matching:
@@ -3185,9 +3185,9 @@ let x: IntegerOrString = 3
 
 match x
 	case integer
-		print("integer!")
+		print('integer!')
 	case string
-		print("string!")
+		print('string!')
 ```
 
 Choice types may **include any type**, including primitives, templates, features, other choice types or even refinement types:
@@ -3217,10 +3217,10 @@ One issue with this approach is that pattern matching to discriminate between a 
 ```isl
 function leafOrInternal<T>(match tree: BinaryTree<T>)
 	case T
-		return "leaf!"
+		return 'leaf!'
 
 	case (BinaryTree<T>?, BinaryTree<T>?)
-		return "internal!"
+		return 'internal!'
 ```
 
 Wouldn't it be nicer if we could give those two possibilities names, to ease on pattern matching? It would be also nice to declare the type in a more organized way.
@@ -3235,10 +3235,10 @@ variant BinaryTree<V>
 
 function leafOrInternal<T>(match tree: BinaryTree<T>)
 	case Leaf
-		return "leaf!"
+		return 'leaf!'
 
 	case Internal
-		return "internal!"
+		return 'internal!'
 ```
 
 Values of variant members can be assigned, matched and extracted using the `VariantMemberName(value)` syntax:
@@ -3276,19 +3276,19 @@ variant PersonOrCar
 	Car: (brand: string, maxSpeed: decimal)
 
 function getResponseString(match personOrCar: PersonOrCar)
-	case Person where name == "James" => "Hi James"
-	case Person where height >= 2.0 => "Tall person"
-	case Car where maxSpeed >= 200.0 => "Fast car"
-	otherwise => "Not interesting"
+	case Person where name == 'James' => 'Hi James'
+	case Person where height >= 2.0 => 'Tall person'
+	case Car where maxSpeed >= 200.0 => 'Fast car'
+	otherwise => 'Not interesting'
 ```
 
 Same as above using the constructor-style syntax:
 ```isl
 function getResponseString(match personOrCar: PersonOrCar)
-	case Person("James", ...) => "Hi James"
-	case Person(any, here >= 2.0, ...) => "Tall person"
-	case Car(any, here >= 200, ...) => "Fast car"
-	otherwise => "Not interesting"
+	case Person('James', ...) => 'Hi James'
+	case Person(any, here >= 2.0, ...) => 'Tall person'
+	case Car(any, here >= 200, ...) => 'Fast car'
+	otherwise => 'Not interesting'
 ```
 
 Members may individually include their own set of type parameters (this is related to the notion of a **generalized algebraic data type**):
@@ -3298,12 +3298,12 @@ variant PairOrTriple
 	Triple<V>: (x: V, y: V, z: V)
 
 function matchPairOrTriple(match pairOrTriple: PairOrTriple)
-	case Pair<string>("James", any) => "Hi James"
-	case Pair<string>("XYZ", "123") => "123"
-	case Pair<integer>(1, here > 100) => "Good"
-	case Triple<integer>(any, any, 55) => "55"
-	case Triple<boolean>(any, false, true) => "OK!"
-	otherwise => "Not interesting"
+	case Pair<string>('James', any) => 'Hi James'
+	case Pair<string>('XYZ', '123') => '123'
+	case Pair<integer>(1, here > 100) => 'Good'
+	case Triple<integer>(any, any, 55) => '55'
+	case Triple<boolean>(any, false, true) => 'OK!'
+	otherwise => 'Not interesting'
 ```
 
 Variant types can be **extended**:
@@ -3422,12 +3422,12 @@ An **enumeration** is a type expressing a choice between a set of identifiers as
 enumeration StatusCode with Waiting, OK, Failed
 
 action alertStatus (match status: StatusCode)
-	case Waiting => print("Still waiting..")
-	case OK => print("Everything is OK!")
-	case Failed => print("Damn, failed :(")
+	case Waiting => print('Still waiting..')
+	case OK => print('Everything is OK!')
+	case Failed => print('Damn, failed :(')
 ```
 
-Enumerations are special forms of variant types where each member must receive a unique type (which can also be a literal type like `4`, `"hello"` or `true`).
+Enumerations are special forms of variant types where each member must receive a unique type (which can also be a literal type like `4`, `'hello'` or `true`).
 
 Here is `StatusCode` equivalently expressed as its underlying variant type:
 ```isl
@@ -3456,10 +3456,10 @@ enumeration HttpStatusCode
 Enumerations can have members of types other than `integer`, however, in this case all member values have to be explicitly specified:
 ```isl
 enumeration Direction
-	Up = "UP"
-	Down = "DOWN"
-	Left = "LEFT"
-	Right = "RIGHT"
+	Up = 'UP'
+	Down = 'DOWN'
+	Left = 'LEFT'
+	Right = 'RIGHT'
 ```
 
 ## The `nothing` type and the `?` operator
@@ -3484,7 +3484,7 @@ let x = computeSomething(-1) // what type and value does 'x' receive?
 Actions that don't return any value can be optionally annotated as returning `nothing`:
 ```isl
 action printHelloWorld(): nothing // `nothing` here acts like `void` in the C family of languages
-	print("Hello World!")
+	print('Hello World!')
 ```
 
 Trying the read the result of a method returning only `nothing` (either annotated as such or not) will fail, since the `nothing` type doesn't contain any useful information by itself:
@@ -3492,7 +3492,7 @@ Trying the read the result of a method returning only `nothing` (either annotate
 let x = printHelloWorld() // Error: printHelloWorld() returns only `nothing`
 ```
 
-The `nothing` type is designed such that there is very little you can do with it. However, it is at times a very useful tool when defining optional parameters or capturing "soft" failures when returning from methods.
+The `nothing` type is designed such that there is very little you can do with it. However, it is at times a very useful tool when defining optional parameters or capturing 'soft' failures when returning from methods.
 
 The question mark symbol (`?`) would modify a type to become a choice type including `nothing` as one of its options. It would work on any type, including a type that already is a choice type, for example:
 
@@ -3516,13 +3516,13 @@ class Person
 	address: Address or nothing
 	petNames: List<string> or nothing
 
-let person = Person with name = "Jimmy Jones", address = nothing, petNames = nothing
+let person = Person with name = 'Jimmy Jones', address = nothing, petNames = nothing
 
 let houseNumber = person.address?.houseNumber // houseNumber = nothing
 let firstPetName = person.petNames?[1] // firstPetName = nothing
 ```
 
-_Some notes on possible confusion with terminology used by other languages: In Island the unit type is called `nothing` and the bottom type is called `never` (introduced in a following chapter). In Scala the unit type is called `Unit` and the bottom type `Nothing`. However Haskell uses the term `Nothing` in its option type to represent the option of having "No value", which is closer to the semantics intended here._
+_Some notes on possible confusion with terminology used by other languages: In Island the unit type is called `nothing` and the bottom type is called `never` (introduced in a following chapter). In Scala the unit type is called `Unit` and the bottom type `Nothing`. However Haskell uses the term `Nothing` in its option type to represent the option of having 'No value', which is closer to the semantics intended here._
 
 ## The `any` type
 
@@ -3532,12 +3532,12 @@ Note this is not the same as a dynamic type, because it requires an explicit typ
 
 ```isl
 function whatIsThis(match x: any)
-	case integer => "integer!"
-	case decimal => "decimal!"
-	case string => "string!"
-	case boolean => "boolean!"
-	case List<boolean> => "list of booleans!"
-	otherwise => "I don't know?"
+	case integer => 'integer!'
+	case decimal => 'decimal!'
+	case string => 'string!'
+	case boolean => 'boolean!'
+	case List<boolean> => 'list of booleans!'
+	otherwise => 'I don't know?'
 ```
 
 Assigning from a value having the `any` type could also be done using an explicit cast:
@@ -3548,7 +3548,7 @@ let y: integer = x as integer
 
 However assigning a value of the wrong type would produce a compile or runtime error:
 ```isl
-let x: any = "hello"
+let x: any = 'hello'
 let y: integer = x as integer // Error
 ```
 
@@ -3651,7 +3651,7 @@ let r: myFunc.p1.return // r gets the type List<string>
 Referring to the types of companion object members is possible through the `(object Type)` syntax:
 ```isl
 object Person
-	bestPerson: string = "Cleopatra"
+	bestPerson: string = 'Cleopatra'
 
 let best: (object Person).bestPerson // best receives the type string
 ```
@@ -3708,7 +3708,7 @@ The failure type possesses a special "vanishing" quality when included inside of
 
 ```isl
 function divide(x: integer, y: integer)
-	when y == 0 => Failure("Divide by zero!")
+	when y == 0 => Failure('Divide by zero!')
 	otherwise => x / y
 
 let r1 = divide(10, someInt) // `r1` gets type integer (or Failure<string>)
@@ -3723,14 +3723,14 @@ Note that if the result of the operation is immediately unpacked, the failure ca
 ```isl
 function getKeyOrFail(key: integer, dict: { string: (age: integer, bestFriend: string) })
 	when key in dict => dict[key]
-	otherwise => Failure("Key '{key}' not found!")
+	otherwise => Failure('Key '{key}' not found!')
 
-let someDictionary = { "Linda": (25, "Mary"),  "Alan": (34, "Anton") }
+let someDictionary = { 'Linda': (25, 'Mary'),  'Alan': (34, 'Anton') }
 
-let (age, bestFriend) = getKeyOrFail("James", someDictionary)
+let (age, bestFriend) = getKeyOrFail('James', someDictionary)
 
 if age is Failure
-	print("Couldn't find 'James' in the dictionary!: {age as Failure<string>}")
+	print('Couldn't find 'James' in the dictionary!: {age as Failure<string>}')
 ```
 
 ## Using `try`..`detect` (action scopes only)
@@ -3740,7 +3740,7 @@ The second approach, available only in action scopes (due to its reliance on sid
 ```isl
 action readLineFromFile(f: File)
 	if not f.exists
-		fail IOFailure("File not found")
+		fail IOFailure('File not found')
 
 	return f.ReadLine()
 
@@ -3781,16 +3781,16 @@ For instance, we'll look at a regular expression that captures a phone number pa
 ```isl
 let PhoneNumberRegExp = /^[\+]?[ ]?([0-9][0-9]?[0-9]?)[ ]?\(([0-9][0-9][0-9])\)[ ]?([0-9][0-9][0-9])\-([0-9][0-9][0-9][0-9])$/
 
-// Example matching string: "+1 (534) 953-6345"
+// Example matching string: '+1 (534) 953-6345'
 match str
-	case PhoneNumberRegExp of ("1", "800", any, let lineNumber)
+	case PhoneNumberRegExp of ('1', '800', any, let lineNumber)
 		....
 ```
 
 With a pattern method, we could instead write:
 ```isl
 match str
-	case PhoneNumberPattern of ("1", "800", any, let lineNumber)
+	case PhoneNumberPattern of ('1', '800', any, let lineNumber)
 		....
 ```
 
@@ -3836,7 +3836,7 @@ The `try`... `else try`...`else` block enables a limited form of **transactional
 Here's an illustrative example which will recognize and parse a date with any one of `'/'`, `'-'` or `'.'` as separator characters:
 ```isl
 pattern Date() of (day, month, year) in string
-	// Will recognize a date like "21/5/1999" or "13-7-2020"
+	// Will recognize a date like '21/5/1999' or '13-7-2020'
 	day = accept IntegerNumber(1, 31)
 
 	try
@@ -3933,16 +3933,16 @@ The `expect` keyword acts similarly to `accept`, only without advancing the curr
 For example in order to define a pattern that parses the content of a simplified HTML `<title>` element:
 ```isl
 pattern TitleXMLElement() in string
-	accept "<title>"
+	accept '<title>'
 
 	repeat
 		try
-			expect "</title>"
+			expect '</title>'
 			break // break out of the loop without advancing the read position
 		else try
 			accept Letter
 
-	accept "</title>" // since the stream position has not advanced, this should always succeed
+	accept '</title>' // since the stream position has not advanced, this should always succeed
 ```
 
 More generally, this approach can be used to define a pattern which would accept anything until a stop pattern is encountered. This example relies on a higher-order pattern, which is introduced in the next section:
@@ -3991,8 +3991,8 @@ pattern MyPattern() of (value, ok) in string
 
 	accept end
 
-recognizeThis("42 Yes", MyPattern, (42, true)) // returns true
-recognizeThis("10 No", MyPattern, (20, false)) // returns false
+recognizeThis('42 Yes', MyPattern, (42, true)) // returns true
+recognizeThis('10 No', MyPattern, (20, false)) // returns false
 ```
 
 Here's an implementation of the `Repeated` pattern mentioned in a previous section. It defines a higher-order pattern accepting an abstract pattern of polymorphic type.
@@ -4020,14 +4020,14 @@ pattern Repeated<T>(p: AnyPattern<T>, times: integer) of (results: List<T> = [])
 
 Since pattern methods may reject some inputs, it is not possible to directly unpack via a pattern, say, with this kind of hypothetical syntax:
 ```isl
-let str = "5/11/1972"
+let str = '5/11/1972'
 
 Date of let (day, month, year) = str // What would be assigned if the string is rejected?
 ```
 
-Instead, the `matches` operator, which was mentioned in a previous chapter, allows to conditionally "unpack" through the pattern, as well as safely handle the case where the input is rejected:
+Instead, the `matches` operator, which was mentioned in a previous chapter, allows to conditionally 'unpack' through the pattern, as well as safely handle the case where the input is rejected:
 ```isl
-let str = "5/11/1972"
+let str = '5/11/1972'
 
 if str matches Date of let (day, month, year)
 	....
@@ -4085,16 +4085,16 @@ pattern CompositeNumber(primeFactors, isHighlyComposite) in integer
 
 action printPrimalityInfo(match someNumber: integer)
 	case PrimeNumber
-		print("Prime!")
+		print('Prime!')
 	case CompositeNumber of (let factors, false)
-		print("Composite! with prime factors {factors}")
+		print('Composite! with prime factors {factors}')
 	// (CompositeNumber pattern doesn't need to be recomputed since previous result is cached)
 	case CompositeNumber of (let factors, true)
-		print("Highly composite! with prime factors {factors}")
+		print('Highly composite! with prime factors {factors}')
 
-printPrimalityInfo(97) // prints "Prime!"
-printPrimalityInfo(100) // prints "Composite! with prime factors 2, 5"
-printPrimalityInfo(60) // prints "Highly composite! with prime factors 2, 3, 5"
+printPrimalityInfo(97) // prints 'Prime!'
+printPrimalityInfo(100) // prints 'Composite! with prime factors 2, 5'
+printPrimalityInfo(60) // prints 'Highly composite! with prime factors 2, 3, 5'
 ```
 
 Now there may be times where we wish to apply this kind of simple unary pattern matching to input types that are conventionally interpreted as streams, like `string`s, `List`s or even abstract `Stream< >` objects. For these cases, `accept all` enables the entire input to be captured all at once:
@@ -4104,8 +4104,8 @@ pattern FirstCharacterSameAsLast() of (first, last) in string
 		// Accept when string is empty
 		accept end
 
-		first = ""
-		last = ""
+		first = ''
+		last = ''
 	else try
 		[first, ..., last] = accept all // The entire string is consumed here
 
@@ -4133,9 +4133,9 @@ Here's the classic parent-siblings example expressed in Island's logic programmi
 ```isl
 class Family
 	relation Parent
-		fact ("Alice", "James")
-		fact ("Alice", "Angela")
-		fact ("Tom", "John")
+		fact ('Alice', 'James')
+		fact ('Alice', 'Angela')
+		fact ('Tom', 'John')
 
 	relation Siblings
 		rule (sibiling1: string, sibling2: string)
@@ -4149,31 +4149,31 @@ let family = Family()
 // Getting its first result would require stepping once through the stream
 // The 'exists' expansion property returns true if a stream yields at least one value
 // The 'first' expansion property returns the first value yielded
-family.Parent("Alice", ?).exists // returns true
-family.Parent("Alice", "Angela").exists // returns true
-family.Parent("Alice", "Angela").first // returns ("Alice", "Angela")
-family.Parent("Alice", "John").exists // returns false
-family.Parent(?, "John").exists // returns true
-family.Parent(?, "John").first?.parent // returns "Tom"
+family.Parent('Alice', ?).exists // returns true
+family.Parent('Alice', 'Angela').exists // returns true
+family.Parent('Alice', 'Angela').first // returns ('Alice', 'Angela')
+family.Parent('Alice', 'John').exists // returns false
+family.Parent(?, 'John').exists // returns true
+family.Parent(?, 'John').first?.parent // returns 'Tom'
 
 for (sibling1, sibling2) in family.Siblings(?, ?)
-	print("({sibling1}, {sibling2})")
+	print('({sibling1}, {sibling2})')
 
-// prints "(James, Angela)", "(Angela, James)"
+// prints '(James, Angela)', '(Angela, James)'
 ```
 _(Note that the order of `sibling1` and `sibling2` is significant for the inference engine - since it has no way to know the `Sibling` relation is symmetric - the results included what appears like duplicates, in the next example we'll apply `.distinctUnorderedPairs()` on the result sequence to filter out the duplicates)_
 
 A relation's fact database may be non-destructively altered using the `with` operator, applied over the containing object:
 ```isl
 let alteredFamlily = family with
-	Parent("Alice", "Lea")
-	Parent("Alice", "Chris")
-	no Parent("Alice", "James")
+	Parent('Alice', 'Lea')
+	Parent('Alice', 'Chris')
+	no Parent('Alice', 'James')
 
 for (sibling1, sibling2) in alteredFamlily.Siblings(?, ?).distinctUnorderedPairs()
-	print("({sibling1}, {sibling2})")
+	print('({sibling1}, {sibling2})')
 
-// prints "(Angela, Lea)", "(Angela, Chris)", "(Lea, Chris)"
+// prints '(Angela, Lea)', '(Angela, Chris)', '(Lea, Chris)'
 ```
 
 Here is factorial defined as a relation:
@@ -4187,13 +4187,13 @@ relation Factorial
 		Factorial(previousNumber, let previousFactorial)
 		Product(number, previousFactorial, result)
 
-print(Factorial(5, ?).first) // Prints "(5, 120)"
-print(Factorial(5, ?).first.result) // Prints "120"
+print(Factorial(5, ?).first) // Prints '(5, 120)'
+print(Factorial(5, ?).first.result) // Prints '120'
 
 // Since Factorial is a relation we could potentially query for any one of its parameters
 // Here we'll query which number has the factorial of 5040
-print(Factorial(?, 5040).first) // Prints "(7, 5040)"
-print(Factorial(?, 5040).first?.number) // Prints "7"
+print(Factorial(?, 5040).first) // Prints '(7, 5040)'
+print(Factorial(?, 5040).first?.number) // Prints '7'
 ```
 
 ## Relation predicates, functions and streams
@@ -4285,31 +4285,31 @@ relation FizzBuzz
 		InRange(index, 1, infinity)
 
 		if Divides(index, 15)
-			Equals(output, "FizzBuzz")
+			Equals(output, 'FizzBuzz')
 		else if Divides(index, 3)
-			Equals(output, "Fizz")
+			Equals(output, 'Fizz')
 		else if Divides(index, 5)
-			Equals(output, "Buzz")
+			Equals(output, 'Buzz')
 		else
-			Equals(output, "{index}")
+			Equals(output, '{index}')
 
-FizzBuzz(30, "Buzz").exists // returns false
+FizzBuzz(30, 'Buzz').exists // returns false
 FizzBuzz(30, ?).exists // returns true
-FizzBuzz(30, ?).first?.output // returns "FizzBuzz"
-FizzBuzz(30, "FizzBuzz").exists // returns true
+FizzBuzz(30, ?).first?.output // returns 'FizzBuzz'
+FizzBuzz(30, 'FizzBuzz').exists // returns true
 
 for (_, str) in FizzBuzz(?, ?)
 	print(str)
 
-	// prints "1", "2", "Fizz", "4", "Buzz", "Fizz" ....
+	// prints '1', '2', 'Fizz', '4', 'Buzz', 'Fizz' ....
 ```
 
 `if` blocks also handle cases where the conditional cannot be resolved:
 
-For example, in the case where `FizzBuzz(?, "Fizz")` is queried, since `index` isn't bound to anything on the `if` conditional, the inference engine unconditionally evaluates the branch, as well as any other unresolvable conditional branches, which in this example includes all of them (the `otherwise` branch is considered unresolvable as well):
+For example, in the case where `FizzBuzz(?, 'Fizz')` is queried, since `index` isn't bound to anything on the `if` conditional, the inference engine unconditionally evaluates the branch, as well as any other unresolvable conditional branches, which in this example includes all of them (the `otherwise` branch is considered unresolvable as well):
 
 ```isl
-for (index, _) in FizzBuzzer.FizzBuzz(?, "Fizz")
+for (index, _) in FizzBuzzer.FizzBuzz(?, 'Fizz')
 	print(index)
 
 	// prints 3, 6, 9, 12, 18, 21, ....
@@ -4332,12 +4332,12 @@ Abs(?, 65).first?.number // returns -65
 
 // This will query for any two numbers where the second is the absolute value of the first:
 for (number, abs) in Abs(?, ?)
-	print("({number}, {abs})")
+	print('({number}, {abs})')
 
-	// prints "(0, 0)", "(-1, 1)", "(1, -1)", "(-2, 2)", ....
+	// prints '(0, 0)', '(-1, 1)', '(1, -1)', '(-2, 2)', ....
 
 	// (As a heuristic, the inference engine alternates between the unresolvable conditional
-	// branches to avoid getting "trapped" in case one of them produces an infinite
+	// branches to avoid getting 'trapped' in case one of them produces an infinite
 	// amount of results)
 ```
 
@@ -4522,7 +4522,7 @@ context BasicKinematics
 	speed => distance / time
 ```
 
-A context may be instantiated similarly to a class, though unlike a class, it has no minimal set of required members. All of its properties are effectively 'optional', in a sense, as they may be either provided or inferred using one or more of its mapping rules (or alternatively, they may not be knowable at all - yet the instantiation would still be perfectly valid).
+A context may be instantiated similarly to a class, though unlike a class, it has no minimal set of required members. All of its properties are effectively "optional", in a sense, as they may be either provided or inferred using one or more of its mapping rules (or alternatively, they may not be knowable at all - yet the instantiation would still be perfectly valid).
 
 We'll instantiate the `BasicKinematics` context with values for `distance` and `time`:
 ```isl
@@ -4619,7 +4619,7 @@ let kinematics = BasicKinematics with time = 5.0, speed.milesPerHour = 15.0
 let distance = kinematics.distance
 ```
 
-The notion of providing a value to a nested property like `speed.milesPerHour` may seem a bit strange at first since it isn't something we're used to do with classes and objects, but remember that the embedded context really does become an integral part of the parent context, and that contexts, unlike classes, don't have a predefined set of required members, so a notation like `speed.milesPerHour = 15.0` may make more sense, as there's no need to think of `Speed` as needing to be 'constructed' as an independent entity.
+The notion of providing a value to a nested property like `speed.milesPerHour` may seem a bit strange at first since it isn't something we're used to do with classes and objects, but remember that the embedded context really does become an integral part of the parent context, and that contexts, unlike classes, don't have a predefined set of required members, so a notation like `speed.milesPerHour = 15.0` may make more sense, as there's no need to think of `Speed` as needing to be "constructed" as an independent entity.
 
 ## Default property values
 
@@ -4627,18 +4627,18 @@ Properties may be set with default values. Default values must be knowable at co
 
 ```isl
 context Person
-	name = "Anonymous" // type of 'name' is inferred to 'string'
+	name = 'Anonymous' // type of 'name' is inferred to 'string'
 	age: integer
 
-let person1 = Person with age = 20 // 'person1.name' gets te default value "Anonymous"
-let person2 = Person with name = "Ines", age = 20 // 'person2.name' gets the value "Ines"
+let person1 = Person with age = 20 // 'person1.name' gets te default value 'Anonymous'
+let person2 = Person with name = 'Ines', age = 20 // 'person2.name' gets the value 'Ines'
 ```
 
 A property specifying a default value cannot be the target of a mapping rule:
 
 ```isl
 context Person
-	name = "Anonymous"
+	name = 'Anonymous'
 	age: integer
 	nickname: string
 
@@ -4676,7 +4676,7 @@ context AbsoluteValue
 	result given input => input // Having no precondition is interpreted as a fallback case
 ```
 
-An ad-hoc precondition like `given input < 0` implicitly introduces a Boolean property and an associated mapping rule that computes its truth-value. The second rule (`given input`) does not include a predicate, and acts as a fallback to 'absorb' the case when `input` is known but no other rule has been successfully matched to it.
+An ad-hoc precondition like `given input < 0` implicitly introduces a Boolean property and an associated mapping rule that computes its truth-value. The second rule (`given input`) does not include a predicate, and acts as a fallback to "absorb" the case when `input` is known but no other rule has been successfully matched to it.
 
 Using an alternative syntax, the precondition can be refactored out to resemble the appearance of a conditional (though in fact it is not really a "true" conditional, since it doesn't introduce its own scope). This may be chosen for stylistic reasons, but will also be useful in the case where there are multiple rules sharing one or more identical preconditions:
 
@@ -4705,7 +4705,7 @@ context PhoneNumber
 	given str matches PhoneNumberPattern of let (area, num)
 		isValid, areaCode, number => true, area, num
 	given str
-		isValid, areaCode, number => false, "", ""
+		isValid, areaCode, number => false, '', ''
 ```
 
 A second example defines a context that extracts the first and last elements of a list using a pattern expression:
@@ -4759,7 +4759,7 @@ let distance = getDistance(SimpleKinematics.Time = 54,
 
 ## Recursive instantiation and embedding
 
-So far, we've only dealt with very simple problems that did not require much algorithmic "depth". Say now we want to approach a slightly more complex computations, like the factorial.
+So far, we've only dealt with very simple problems that did not require much algorithmic 'depth'. Say now we want to approach a slightly more complex computations, like the factorial.
 
 Based on the syntax we've introduced so far. We could write something like:
 
@@ -4777,7 +4777,7 @@ context Factorial
 
 			return output
 	given input
-		result => Failure("Input must be nonnegative")
+		result => Failure('Input must be nonnegative')
 ```
 
 Well, that might work, but wouldn't it be nicer if we could write it in a manner that is more idiomatic of the knowledge-driven style? One approach would be to recursively create an instance of `Factorial` within the body of the mapping rule itself:
@@ -4794,7 +4794,7 @@ context Factorial
 			let previousFactorial = Factorial with input = this.input - 1
 			return input * previousFactorial.result
 	given input
-		result => Failure("Input must be nonnegative")
+		result => Failure('Input must be nonnegative')
 ```
 
 This approach is called **recursive instantiation**, and works quite similarly to how functions may invoke themselves, or class members create an instance of their own class.
@@ -4817,7 +4817,7 @@ context Factorial
 		previousFactorial.input => input - 1
 		result => input * previousFactorial.result
 	given input
-		result => Failure("Input must be nonnegative")
+		result => Failure('Input must be nonnegative')
 ```
 
 But how? why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become materialized. A context instance represents a knowledge scope _possibly_ accommodating information artifacts of various semantic identities (some of which may actually lie outside the realm of the context's own schema, as you'll see on future sections). It is not primarily intended as a data structure or as an assortment of value-bound methods.
@@ -4833,7 +4833,7 @@ given input > 1
 	previousFactorial.input => input - 1
 ```
 
-Informally, what this mapping rule says is that _"when input is greater than one, the input of the previous factorial is same as this one, minus one"_.
+Informally, what this mapping rule says is that _'when input is greater than one, the input of the previous factorial is same as this one, minus one'_.
 
 There's a second reference to `previousFactorial` in the subsequent mapping rule:
 ```isl
@@ -4842,7 +4842,7 @@ given input > 1
 	result => input * previousFactorial.result
 ```
 
-This one says that _"when input is greater than one, the result of this factorial is the input multiplied by the result of the previous factorial"_.
+This one says that _'when input is greater than one, the result of this factorial is the input multiplied by the result of the previous factorial'_.
 
 Together these rules help form a declarative description of how the factorial can be computed, without the need to define explicit control flow or even ordering of operations.
 
@@ -4869,7 +4869,7 @@ Here are natural language translations of the mapping rules included in `Quickso
 given items == []
 	sortedItems => []
 ```
-means: _"When the input is an empty list, the sorted items list is empty as well"_.
+means: _'When the input is an empty list, the sorted items list is empty as well'_.
 
 and
 ```isl
@@ -4877,7 +4877,7 @@ given items
 	....
 	sortedItems => smallerThanPivot.sortedItems | greaterOrEqualToPivot.sortedItems
 ```
-means: _"When the input item list is nonempty, the sorted items list is a concatenation of the sorted versions of the items that are smaller than the pivot and greater or equal to the pivot"_.
+means: _'When the input item list is nonempty, the sorted items list is a concatenation of the sorted versions of the items that are smaller than the pivot and greater or equal to the pivot'_.
 
 and
 ```isl
@@ -4954,7 +4954,7 @@ let sortContext = <publisher.com/lib/sort.isl#Sort> with items = [5, 2, 3, 4, 1]
 let result = sortContext.sortedItems // `result` gets the value [1, 2, 3, 4, 5]
 ```
 
-Notice what happened here: we've created an instance of a supposedly "abstract" context, which only defined two properties: `items` and `sortedItems` and no mapping rules of its own, and yet the compiler was able to find a way to transform between these properties, without the code mentioning any reference to a concrete implementation.
+Notice what happened here: we've created an instance of a supposedly 'abstract' context, which only defined two properties: `items` and `sortedItems` and no mapping rules of its own, and yet the compiler was able to find a way to transform between these properties, without the code mentioning any reference to a concrete implementation.
 
 It is as if, in an object-oriented language, you'd create an instance of an abstract class and then "magically" expect its virtual methods to work when you call them directly. It might sound strange at first, but that's not a far-fetched analogy.
 
@@ -5203,7 +5203,7 @@ context Person
 context Example
 	personInfo: Person with firstName, age
 
-let validInstance = Example with personInfo = (Person with firstName = "Miguel", age = 57) // Okay
+let validInstance = Example with personInfo = (Person with firstName = 'Miguel', age = 57) // Okay
 let invalidInstance = Example with personInfo = (Person with age = 34) // Fails to compile
 ```
 
@@ -5245,13 +5245,13 @@ let speed = kinematics.speed
 A **property that has a default value cannot be late-initialized**. To remedy this, the default value must be explicitly removed using the `no` operator. For example:
 ```isl
 context Person
-	name = "Anonymous"
+	name = 'Anonymous'
 	age: integer
 
-let person = Person with age = 20 // 'person.name' gets the default value "Anonymous"
+let person = Person with age = 20 // 'person.name' gets the default value 'Anonymous'
 
 // This is invalid! 'name' property has already been set to the default value:
-person.name = "Anja"
+person.name = 'Anja'
 ```
 
 However:
@@ -5259,7 +5259,7 @@ However:
 let person = Person with age = 20, no name // 'person.name' gets no value
 
 // Now this works:
-person.name = "Anja"
+person.name = 'Anja'
 ```
 
 ## Anonymous contexts
@@ -5296,18 +5296,18 @@ context
 	age: integer
 
 	given age >= 18
-		greeting => "Hello {name} of {age} years of age!"
+		greeting => 'Hello {name} of {age} years of age!'
 	given age
-		greeting => "Hello young {name} of {age} years of age!"
+		greeting => 'Hello young {name} of {age} years of age!'
 
-name = "Luna" // This assigns directly into the anonymous instance's 'name' property.
+name = 'Luna' // This assigns directly into the anonymous instance's 'name' property.
 
 if ....
 	age = 46
-	print(greeting) // prints "Hello Luna of 46 years of age!"
+	print(greeting) // prints 'Hello Luna of 46 years of age!'
 else
 	age = 15 // This branch must also assign a value for the 'age' property
-	print(greeting) // prints "Hello young Luna of 15 years of age!"
+	print(greeting) // prints 'Hello young Luna of 15 years of age!'
 ```
 
 ## Role coupling and semantic indexing
@@ -5348,7 +5348,7 @@ So, in a sense, if we didn't care about exposing `unstringified` as a property, 
 ```isl
 context StringifiedNumberSquared
 	stringified: StringifiedNumber.stringified
-	StringifiedNumber.number =:= NumberSquare.number // This is called a "coupling rule"
+	StringifiedNumber.number =:= NumberSquare.number // This is called a 'coupling rule'
 	squared: NumberSquare.squared
 ```
 So how and why this works?
@@ -5359,7 +5359,7 @@ However, it is still possible to query its value via any of the roles it represe
 
 ```isl
 let valueOfAnonymousProperty = StringifiedNumberSquared[StringifiedNumber.number] given
-	StringifiedNumberSquared.stringified = "5.32"
+	StringifiedNumberSquared.stringified = '5.32'
 
 // valueOfAnonymousProperty gets the value 5.32 of type 'double'
 ```
@@ -5369,7 +5369,7 @@ For comparison, if we had instead queried for `StringifiedNumber.number` directl
 
 ```isl
 let valueOfAnonymousProperty = StringifiedNumber.number given
-	StringifiedNumberSquared.stringified = "5.32"
+	StringifiedNumberSquared.stringified = '5.32'
 
 // Error: no mapping rules were found to compute the desired information
 ```
@@ -5379,7 +5379,7 @@ We'll get a compilation failure since the reference to `StringifiedNumber.number
 Alternatively, semantic indexing can also be applied on the instance directly:
 
 ```isl
-let instance = StringifiedNumberSquared with stringified = "5.32"
+let instance = StringifiedNumberSquared with stringified = '5.32'
 let valueOfAnonymousProperty = instance[StringifiedNumber.number]
 
 // valueOfAnonymousProperty gets the value 5.32
@@ -5399,7 +5399,7 @@ context BasicKinematics
 
 We would like to add a second speed property that measures in miles per hour. However, this time, let's say we can't directly edit the context declaration, as it was provided by an external source.
 
-There's no trivial way to 'extend' `BasicKinematics` via OO-like "subtyping", since it is not a class.
+There's no trivial way to "extend" `BasicKinematics` via OO-like "subtyping", since it is not a class.
 
 However, contexts do support expansion, so we can add the property we want by using an expansion declaration that will only be visible from within our own code. Here are a number of solutions based on different approaches:
 
@@ -5699,17 +5699,17 @@ So far, we've tried to design convenient loops and comprehensions that abstract 
 The `recurse` keyword acts a lot like `continue` by allowing to only state the alterations needed for a recursive call, relative to the method's received argument set. In this example the return value is a named tuple, who's members double as parameters by being declared with the `param` keyword:
 
 ```isl
-function repeatAandB(match count: integer): (param r1 = "", param r2 = "")
+function repeatAandB(match count: integer): (param r1 = '', param r2 = '')
 	case 0 => return
-	otherwise => recurse count -= 1, r1 |= "a", r2 |= "b"
+	otherwise => recurse count -= 1, r1 |= 'a', r2 |= 'b'
 
-let (r1, r2) = repeatAandB(4) // r1 = "aaaa", r2 = "bbbb"
+let (r1, r2) = repeatAandB(4) // r1 = 'aaaa', r2 = 'bbbb'
 ```
 _(Technical note: for convenience `return` can be used both as a statement and expression in a `case` and `when` clause body)_
 
 Note that by modifying the returned tuple members with the `param` keyword, they act like any other parameter and can be passed arguments when the method is called:
 ```isl
-let (r1, r2) = repeatAandB(4, r1 = "Hello ", r2 = "World ") // r1 = "Hello aaaa", r2 = "World bbbb"
+let (r1, r2) = repeatAandB(4, r1 = 'Hello ', r2 = 'World ') // r1 = 'Hello aaaa', r2 = 'World bbbb'
 ```
 
 With these features, combined with named return variables, we can further simplify the recursive binary search code from a previous chapter:
@@ -5733,9 +5733,9 @@ function binarySearch(values: List<integer>, target: integer)
 Comparisons are always done by value and traverse deep structural hierarchies:
 
 ```isl
-let t1 = (1, "Hi", true, [5, 4, 3, 2])
-let t2 = (1, "Hi", true, [5, 4, 3, 2])
-let t3 = (1, "Hi", true, [5, 4, 3, 1])
+let t1 = (1, 'Hi', true, [5, 4, 3, 2])
+let t2 = (1, 'Hi', true, [5, 4, 3, 2])
+let t3 = (1, 'Hi', true, [5, 4, 3, 1])
 
 print(t1 == t2) // prints true
 print(t2 == t3) // prints false
@@ -5749,7 +5749,7 @@ print(t2 == t3) // prints false
 
 ---
 
-Using the `stream` keyword only for pure generators. Based on this logic, a 'stream' of data read from a file isn't eligible to be called a 'stream'?
+Using the `stream` keyword only for pure generators. Based on this logic, a "stream" of data read from a file isn't eligible to be called a "stream"?
 
 ---
 
@@ -5813,7 +5813,7 @@ This work would not have been possible without ideas adapted or inspired by othe
 
 ## Who wrote this?
 
-Hi, I'm a software developer who loves designing programming languages!
+Hi, my name is Rotem Dan. I'm A software developer who loves designing programming languages!
 
 ## Feedback for this document
 
