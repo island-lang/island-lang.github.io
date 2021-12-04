@@ -408,7 +408,7 @@ printNameAndAge(_, 12) // prints Name: Anonymous, Age: 12
 
 ```isl
 // This function accepts an argument of type 'function'
-function giveMeFunction(f: integer => integer)
+function giveMeFunction(f: (integer) => integer)
 	return f(10) + 1
 ```
 
@@ -443,7 +443,7 @@ let printInQuotes = s => print('"{s}"')
 
 Consider this higher-order function that accepts a list of integers and a single-parameter filtering predicate:
 ```isl
-function findInList(items: List<integer>, filteringPredicate: integer => boolean)
+function findInList(items: List<integer>, filteringPredicate: (integer) => boolean)
 	....
 
 let numbers = [1, 2, 3, 4, 5, 6]
@@ -494,7 +494,7 @@ Function and action types can be written in several ways:
 
 ```isl
 // Short form (unnamed parameters):
-let f: integer => string
+let f: (integer) => string
 let f: (integer, boolean) => string
 let a: action (string) => (integer, integer)
 
