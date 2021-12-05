@@ -36,7 +36,7 @@ A new form of declarative programming, called **knowledge-driven programming**, 
 
 * **All variables and values should be strictly immutable**. I.e. both variables (locally and globally scoped) and values (primitive and compound objects, including any of their fields) must maintain their initial value, forever.
 * Adapt common imperative constructs like loops, objects and generators, while maintaining strict adherence to full immutability.
-* Maintain a strict separation between pure and side-effect scopes (e.g. `function` vs `action`).
+* Maintain a strict separation between pure and effect scopes (`function` vs `action`).
 * Types should be inferred whenever possible.
 * Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and assertion types, compile-time contracts).
 * Allow for easy and effective concurrency (lightweight threads, asynchronous generators, automatic parallelization, structured concurrency, deterministic dataflows).
@@ -342,7 +342,7 @@ predicate areEqual(x: integer, y: integer) // Long syntax
 
 ## Actions
 
-**Actions** extend functions and allow for _external_ side-effects. Actions can return values but can only be called from other actions (or the topmost scope):
+**Actions** extend functions and allow for _external_ effects. Actions can return values but can only be called from other actions (or the topmost scope):
 ```isl
 action printNameAndAge(name: string, age: integer)
 	print('Name: {name}, Age: {age}')
@@ -439,11 +439,11 @@ let negative = n => -n // Single implicitly typed parameter
 let printInQuotes = s => print('"{s}"')
 ```
 
-## Single parameter anonymous predicate syntax
+## Single parameter anonymous function syntax
 
-Consider this higher-order function that accepts a list of integers and a single-parameter filtering predicate:
+Consider this higher-order function that accepts a list of integers and a single-parameter predicate:
 ```isl
-function findInList(items: List<integer>, filteringPredicate: (integer) => boolean)
+function findFirst(items: List<integer>, selectionPredicate: (integer) => boolean)
 	....
 
 let numbers = [1, 2, 3, 4, 5, 6]
@@ -451,15 +451,28 @@ let numbers = [1, 2, 3, 4, 5, 6]
 
 Instead of passing a full anonymous predicate as an argument, e.g.:
 ```isl
-let evenNumbers = findInList(numbers, number => number mod 2 == 0)
+let evenNumbers = findFirst(numbers, number => number > 3)
 ```
 
-The predicate can be shortened to an even more terse syntax where the `it` keyword represents its parameter value:
+The predicate can be shortened to a simpler expression where the `it` keyword represents its parameter value:
 ```isl
-let evenNumbers = findInList(numbers, it mod 2 == 0)
+let evenNumbers = findFirst(numbers, it > 3)
 ```
 
-In general, any expression involving the `it` keyword, that's assigned to a placeholder where expected type is a single-parameter predicate, would be interpreted as an anonymous predicate (the `it` keyword is also employed for pattern matching, as we'll see in a future chapter, but the two applications are distinct).
+The same can be done for a function expecting a function accepting any type parameter, as long as there is only one:
+```isl
+function transform(items: List<integer>, transformer: (integer) => integer)
+	....
+
+let doubledNumbers = transform(numbers, x => x * 2)
+```
+
+Function call can be simplified to:
+```isl
+let doubledNumbers = transform(numbers, it * 2)
+```
+
+In general, any expression involving the `it` keyword, that's assigned to a placeholder where expected type is a single-parameter function, would be interpreted as an anonymous function (the `it` keyword is also employed for pattern matching, as we'll see in a future chapter, but the two applications are distinct).
 
 ## Method overloading
 
@@ -1477,10 +1490,10 @@ With a named return variable, a previous example can be made simpler:
 function combinationsOf2(min: integer, max: integer): (result: List<(integer, integer)> = [])
 	for x in min..max
 		for y in min..max
-			result |= [(x, y)]
+			result |= (x, y)
 ```
 
-## List and stream comprehensions
+## List comprehensions
 
 **List comprehensions** allow building a list from `for`-like expressions.
 
@@ -1526,7 +1539,9 @@ Comprehensions may be **accumulative**, and make use of the `initial` and `prior
 let sumsOfNaturalsUpTo5 = [(for initial = 1, i in 2..5) => prior + i]  // [1, 3, 6, 10, 15]
 ```
 
-**Stream comprehensions** use identical syntax, excluding the brackets, but create a stream method instead:
+## Stream comprehensions
+
+**Stream comprehensions** use syntax identical to stream comprehensions, excluding the brackets, and create a stream method instead:
 
 ```isl
 let squaresOfEvenNumbers = (for i in 1..infinity where i mod 2 == 0) => i^2
@@ -1557,39 +1572,28 @@ stream fizzBuzz() =
 		otherwise: '{i}'
 ```
 
-Here's a very simple recursive quicksort implementation using list comprehensions, pattern matching, and the spread operator:
-```isl
-function quicksort(match items: List<integer>)
-	case [] => []
-	otherwise
-		let pivot = items[items.length div 2]
-		let left = quicksort([(for x in items where x < pivot) => x])
-		let right = quicksort([(for x in items where x >= pivot) => x])
-		return [...left, ...right]
-```
-
 Here's a simple bounded sieve of Eratosthenes using a `for` loop and a list comprehension:
 ```isl
 stream primesTo(max: integer)
 	for n in 2..max, nonprimes: Set<integer> = {}
-		if not nonprimes.includes(n)
+		if not n in nonprimes
 			yield n
 
 			let multiplesOfN = [(for initial = n^2 while prior < max) => prior + n]
-			continue nonprimes = nonprimes.union(multiplesOfN)
+			continue nonprimes |= multiplesOfN
 ```
 
 Wouldn't it be nice to make an infinite-length (unbounded) stream which enumerates all prime numbers? This can be achieved by, for each prime encountered, storing a stream enumerating its multiples, and at each step incrementally advancing the collected streams as needed:
 ```isl
 stream primes()
 	// Generates the integer sequence n^2, n^2 + n, n^2 + n + n, n^2 + n + n + n, ...
-	stream multiplesOfN(n: integer) =
+	stream multiplesOf(n: integer) =
 		(for initial = n^2) => prior + n
 
 	// For n in 2..infinity
 	// At each step, advance each stream until a value greater than or equal to n is reached
 	for n in 2..infinity, nonprimeStreams: List<Stream<integer>> = []
-	advance nonprimeStreams = [(for i in nonprimeStreams) => i.skipUntil(it >= n)]
+	advance nonprimeStreams = [(for s in nonprimeStreams) => s.skipUntil(it >= n)]
 
 		// Search the stream object collection for a stream that reached exactly n
 		if not nonprimeStreams.includes(it.value == n)
@@ -1598,7 +1602,7 @@ stream primes()
 
 			// Create a new (infinite-length) stream for the multiples of the prime just found
 			// and append it to the collection
-			continue nonprimeStreams |= multiplesOfN(n)
+			continue nonprimeStreams |= multiplesOf(n)
 ```
 
 List and stream comprehensions allow to easily implement common higher-order sequence processing functions like, `map`, `flatMap`, `filter`, `reduce` and `zip`, evaluated either eagerly (through list comprehensions) or lazily (through stream comprehensions). The generality of these operations requires type parameters, which would be introduced in a future chapter:
@@ -1624,6 +1628,76 @@ stream reduce<E, R>(valueStream: Stream<E>, accumulator: (R, E) => R, initialRes
 
 _Note the use of `=` and not `=>` when defining a method using a stream comprehension. Stream comprehensions are expressions that evaluate to stream methods, not values. We don't want a call to `map()` to return a method, but a stream object. Using the equals operation binds the parameters of the declared function into the comprehension, composing a new function, which returns a stream object when called._
 
+## Query comprehensions
+
+Here's a simple recursive quicksort implementation using pattern matching and list comprehensions:
+```isl
+function quicksort(match items: List<integer>)
+	case [] => []
+	otherwise
+		let pivot = items[items.length div 2]
+		let leftItems = quicksort([(for x in items where x < pivot) => x])
+		let rightItems = quicksort([(for x in items where x >= pivot) => x])
+		return leftItems | rightItems
+```
+
+Notice the two list comprehensions of the pattern `[(for x in items where <some condition>) => x]` employ a single auxiliary variable `x` only to represent the value selected by the loop. Using an abbreviated syntax, involving the `it` keyword, `quicksort` can be simplified to:
+```isl
+function quicksort(match items: List<integer>)
+	case [] => []
+	otherwise
+		let pivot = items[items.length div 2]
+		let leftItems = quicksort([items where it < pivot])
+		let rightItems = quicksort([items where it >= pivot])
+		return leftItems | rightItems
+```
+
+The expression:
+```isl
+[items where it < pivot]
+```
+is an example of a **query comprehension**, which is a simpler, more limited form of a list or stream comprehension.
+
+Let's see how it works:
+
+`items` is a list of integers, which can also be interpreted as a stream. The stream is then filtered by a predicate specified by a `where` clause. The predicate is written in an abbreviated form using the `it` keyword. Finally, like in stream comprehensions, the surrounding brackets indicate the resulting stream should be converted to a list.
+
+It is equivalent to:
+```isl
+items.filter(item => item < pivot).toList()
+```
+
+Or using the abbreviated `it` syntax:
+```isl
+items.filter(it < pivot).toList()
+```
+
+Since we've now got a short and easy-to-read syntax for `filter`. Wouldn't it be nice to have one for `map` as well?
+
+Say I wanted to map a list of integers to their doubled values. With a list comprehension I can write:
+```isl
+let numbers = [1, 2, 3, 4, 5]
+let numbersDoubled = [(for n in numbers) => n * 2]
+```
+
+but with a query comprehension I'll write:
+```isl
+let numbersDoubled = [numbers select it * 2]
+```
+
+`where` and a `select` can be combined. This will filter for the even numbers, and then double the result:
+```isl
+let evenNumbersDoubled = [numbers where it mod 2 == 0 select it * 2]
+```
+
+Which is equivalent to:
+```isl
+items.filter(n => n mod 2 == 0).map(n => n * 2).toList()
+```
+or
+```isl
+items.filter(it mod 2 == 0).map(it * 2).toList()
+```
 
 ## For-loops as methods
 
@@ -2744,11 +2818,11 @@ for a in spawn someStream()
 
 In the case of a stream, the compiler may also choose to precompute one or more future elements ahead of time (that is, in parallel to the execution of the loop body), since doing so would have no impact on the program's behavior (aside from possible slight increase in memory use).
 
-## Delegates and structured side-effect concurrency
+## Delegates and structured effect concurrency
 
 `spawn` allows pure functions and streams to be easily parallelized. Since pure computations have no side-effects, there's no need for much careful considerations when applying it. The worst that can happen is that performance may be degraded due to excessive overhead, when managed inappropriately.
 
-When dealing with concurrency and parallelism involving side-effects, however, the situation becomes more subtle. If it was possible to freely "spawn" actions, that would open up several potential issues:
+When dealing with concurrency and parallelism involving effects, however, the situation becomes more subtle. If it was possible to freely "spawn" actions, that would open up several potential issues:
 
 * If an action could be freely spawned to execute in a separate thread, would its execution be let to "invisibly" continue forever? even long after execution has left the original caller's scope?
 * How would it be possible to conduct two-way communication with the spawned action? Perhaps by passing it a channel? but are free-form channels, which can be duplicated and moved everywhere, really a good fit for a safe and strict language like Island?
@@ -3669,7 +3743,7 @@ Sometimes we wish to be more specific and provide a more detailed report on what
 Consider this case:
 ```isl
 function divide(x: integer, y: integer)
-	return x / y
+	return x div y
 
 let r = divide(10, 0) // What should be the type of `r`?
 ```
@@ -3678,7 +3752,7 @@ One approach would be to return `nothing` when `y` is 0:
 ```isl
 function divide(x: integer, y: integer): integer?
 	when y == 0 => nothing
-	otherwise => x / y
+	otherwise => x div y
 
 let r1 = divide(10, someInt) // `r1` gets type integer or nothing
 let r2 = divide(10, 0) // `r2` gets type nothing
@@ -3709,7 +3783,7 @@ The failure type possesses a special "vanishing" quality when included inside of
 ```isl
 function divide(x: integer, y: integer)
 	when y == 0 => Failure('Divide by zero!')
-	otherwise => x / y
+	otherwise => x div y
 
 let r1 = divide(10, someInt) // `r1` gets type integer (or Failure<string>)
 let r2 = divide(10, 0) // `r2` gets type Failure<string>
@@ -4072,7 +4146,7 @@ pattern EvenNumber() in integer =
 We can extend conventional pattern methods to support this as well, but that would mean there would only one `accept` or `reject` statement allowed (since there is only one input value):
 
 ```isl
-pattern FollowingNumbers() of (first, second) in (integer, integer)
+pattern SuccessiveNumbers() of (first, second) in (integer, integer)
 	(first, second) = accept if it[2] == it[1] + 1
 ```
 
@@ -4859,8 +4933,8 @@ context Quicksort
 		sortedItems => []
 	given items
 		pivot => items[items.length div 2] // 'pivot' declaration is combined with a mapping rule
-		smallerThanPivot.items => [(i in items where i < pivot) => i]
-		greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
+		smallerThanPivot.items => [items where it < pivot]
+		greaterOrEqualToPivot.items => [items where it >= pivot]
 		sortedItems => smallerThanPivot.sortedItems | greaterOrEqualToPivot.sortedItems
 ```
 
@@ -4883,8 +4957,8 @@ and
 ```isl
 given items
 	....
-	smallerThanPivot.items => [(i in items where i < pivot) => i]
-	greaterOrEqualToPivot.items => [(i in items where i >= pivot) => i]
+	smallerThanPivot.items =>  [items where it < pivot]
+	greaterOrEqualToPivot.items => [items where it >= pivot]
 ```
 
 means: _"The items fed to the 'smaller than pivot' context are the input items, filtered to the ones that are smaller than the pivot. Similarly, the 'greater or equal to the pivot' context is fed the items that are greater or equal to the pivot"_.
@@ -5709,7 +5783,8 @@ _(Technical note: for convenience `return` can be used both as a statement and e
 
 Note that by modifying the returned tuple members with the `param` keyword, they act like any other parameter and can be passed arguments when the method is called:
 ```isl
-let (r1, r2) = repeatAandB(4, r1 = 'Hello ', r2 = 'World ') // r1 = 'Hello aaaa', r2 = 'World bbbb'
+let (r1, r2) = repeatAandB(4, r1 = 'Hello ', r2 = 'World ')
+// r1 = 'Hello aaaa', r2 = 'World bbbb'
 ```
 
 With these features, combined with named return variables, we can further simplify the recursive binary search code from a previous chapter:
@@ -5787,6 +5862,19 @@ context Example
 		return something
 ```
 
+Overload block syntax also feels a bit too sparse to me, especially when the overload bodies are written as statement blocks:
+```isl
+action doSomething
+	(category: 'animal', isMammal: true, owner: Person where age >= 18)
+		print('Hello animal lover!')
+
+	(category: 'animal', isMammal: false, owner: Person where age < 18)
+		print('Hello young animal lover!')
+
+	(category: 'person', id: /[a..zA..Z]+/)
+		print('Hello random person!')
+```
+
 ## Built-in types
 
 * Should `integer` be infinite or finite precision? How about having `integer<64>`, `integer<32>` etc.?
@@ -5809,18 +5897,18 @@ context Example
 
 ## Influences
 
-This work would not have been possible without ideas inspired by or built-upon the collective design effort invested in many contemporary and past languages. In particular:
+This work would not have been possible without ideas inspired by or built-upon the collective design effort invested towards many contemporary and past languages. In particular:
 
-* **C#**: expansions (called "extension everything" by the designers), computed fields (properties), `in` and `out` type modifiers, disambiguation of conflicting inherited interface members by prefixing, type cast and assertion syntax.
-* **TypeScript**: class member syntax, anonymous method syntax, type annotation syntax, generics syntax, type alias syntax, method type syntax, optional type syntax, `this` type semantics, join (intersection) types, `any` type, `never` type.
-* **JavaScript**: `arguments` keyword, array syntax, destructuring and rest parameter syntax.
-* **Python**: indent-based blocks, generators and comprehensions, range syntax.
+* **TypeScript**: class member syntax, anonymous method syntax, type annotation syntax, generics syntax, type alias syntax, method type syntax, optional type syntax, `this` type semantics, join (intersection) types, `any` type, `never` type, type cast and assertion syntax.
+* **C#**: expansions (called "extension everything" by the C# designers), some query syntax (LINQ), computed fields (properties), `in` and `out` type modifiers, disambiguation of conflicting inherited members by type prefixing.
+* **JavaScript**: array syntax, destructuring and rest parameter syntax, `arguments` keyword.
+* **Python**: indent-based blocks, generators and comprehensions.
 * **Haskell**: type features (type classes), variant types (tagged unions).
 * **Scala**: companion objects.
 * **Kotlin**: `it` keyword.
 * **Oz**, **Go**: concurrency, messaging.
 * **Pascal**: `div` and `mod` keywords.
-* **Prolog**, **Datalog**: logic programming.
+* **Prolog**, **Datalog**, **Oz**: (functional-) logic programming.
 
 ## Who wrote this?
 
