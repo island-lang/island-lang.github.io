@@ -6,8 +6,10 @@ $topHeadingShadowColor: rgb(218, 218, 218);
 
 $topHeadingIslandWordColor:rgb(36, 133, 36);
 
-$topSubheadingColor: rgba(204, 122, 255, 0.795);
-$topSubheadingShadowColor: rgb(218, 218, 218);
+$topSubheadingColor: rgb(61, 61, 61);// rgba(204, 122, 255, 0.795);
+$topSubheadingShadowColor: rgb(145, 145, 145);
+
+$topSubheading2Color: rgb(77, 77, 77);
 
 $lastModifiedTextColor: rgb(122, 122, 122);
 $lastModifiedShadowColor: rgb(209, 209, 209);
@@ -24,7 +26,7 @@ $boxBorderWidth: 1px;
 $boxBorderColor: rgb(228, 228, 228);
 $boxBorderRadius: 0.6rem;
 $boxShadowRadius: 0.0rem;
-$boxShadowColor: rgb(238, 238, 238);
+$boxShadowColor: rgb(209, 209, 209);
 
 $contentBorderRadius: 1.35rem;
 $contentMaxWidth: 52rem;
@@ -79,6 +81,7 @@ body {
 
 		@include boxBorder();
 		border-radius: $contentBorderRadius;
+		box-shadow: 0rem 0rem 0.2rem $boxShadowColor;
 	}
 }
 
@@ -107,12 +110,12 @@ h1 {
 		text-align: center;
 
 		margin-top: 1em;
-		margin-bottom: 1em;
+		margin-bottom: 0.75em;
 		border: none;
 
 		span#top-heading-island-word {
 			color: $topHeadingIslandWordColor;
-			text-shadow: 0.0ch 0.0ch 0.1ch $topHeadingShadowColor;
+			text-shadow: 0.0ch 0.0ch 0.15ch $topHeadingShadowColor;
 		}
 	}
 }
@@ -132,6 +135,22 @@ h2 {
 		text-align: center;
 
 		margin-top: 0em;
+		margin-bottom: 1.25em;
+		border: none;
+	}
+
+	&#top-subheading-2 {
+		font-size: 1.15em;
+		font-weight: 700;
+		//text-transform: capitalize;
+		//letter-spacing: 0.02ch;
+		color: $topSubheading2Color;
+
+		line-height: 1.4em;
+		text-align: center;
+		font-style: normal;
+
+		margin-top: 0em;
 		margin-bottom: 3em;
 		border: none;
 	}
@@ -144,6 +163,7 @@ h2 {
 	margin-top: 1.25em;
 	padding-bottom: 0.16em;
 	border-bottom: 1px solid $boxBorderColor;
+
 }
 
 h3 {
@@ -272,6 +292,19 @@ footer {
 		text-shadow: 0.0ch 0.0ch 0.2ch $lastModifiedShadowColor;
 
 		margin: 0rem;
+	}
+}
+
+span
+{
+	&#email-address-1::before {
+		content: "rotemdan"
+	}
+	&#email-address-2::before {
+		content: "@gmail"
+	}
+	&#email-address-3::before {
+		content: ".com"
 	}
 }
 

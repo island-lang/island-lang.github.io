@@ -1,5 +1,6 @@
 <h1 id='top-heading'>The <span id='top-heading-island-word'>Island</span> Programming Language</h1>
-<h2 id='top-subheading'>(Work In Progress)</h2>
+<h2 id='top-subheading'>Designed by Rotem Dan</h2>
+<h2 id='top-subheading-2'>(Work In Progress)</h2>
 
 **Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming, as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
 
@@ -16,7 +17,7 @@ A new form of declarative programming, called **knowledge-driven programming**, 
 
 ## Design philosophy
 
-* **Programming should be made accessible to every person who wishes to learn it**. A language designer's role is to try to make the language as friendly and approachable as possible. This doesn't mean that abstractions like generics, higher order methods, or other advanced features should be avoided. Instead, try to make the core of the language beginner-friendly, and more advanced features as transparent and unobtrusive as possible, such that users could gradually become familiar with more and more of them as they develop their skills.
+* **Programming should be made accessible to every person who wishes to learn it**. A language designer's role is to try to make the language as friendly and approachable as possible. This doesn't mean that powerful abstractions like generics, higher order methods, or other advanced features should be avoided. Instead, try to make the core of the language beginner-friendly, and more advanced features as transparent and unobtrusive as possible, such that users could gradually become familiar with more and more of them as they develop their skills.
 * **A programming language doesn't have to look like math or logic formulas**. The vast majority of real-world programming tasks have weak, if any, resemblance to abstract mathematics. Most programmers would benefit more from comprehensive, domain-specific language features that simplify common tasks, than minimalistic, math-like syntax that is possibly "mathematically beautiful" but either very difficult to understand or becomes unusably complicated even when confronted with routine real-world problems.
 * Many **common programming traps can be prevented right at the design stage**, either by stricter syntax and semantics, or better tooling and documentation. It is a part of the designer's responsibility to ensure that their language doesn't invite trivial mistakes that frustrate programmers and waste their time.
 * Many **mundane programming tasks can already be made partially, or fully automated**, or for the very least, drastically simplified. Machine-learning based tools like [GitHub Copilot](https://copilot.github.com/) are extremely powerful. However, a significant portion of their contribution is to introduce boilerplate or cut-and-paste code that might be better avoided or replaced with unambiguous, universal semantic references that would enable safe and convenient code reuse, of the kind proposed on the [chapter discussing knowledge-driven programming](#universal-identifiers).
@@ -28,22 +29,32 @@ A new form of declarative programming, called **knowledge-driven programming**, 
 * **[Stateless loops](#loops)** (or alternatively **structured loops**) are an approach to iterative control flow that attempts to unify the best of both the imperative and functional idioms. Stateless loops are written in a sequential style but are bound by a strict structure that ensures they can be trivially reduced to tail-recursive functional iteration.
 * **[Accumulative generators](#accumulative-streams-and-named-return-variables)**, as well as **accumulative generator comprehensions** enhance the declarative expressiveness of the language by abstracting over the notion of the "prior" output of a generator. **Named return variables** provide a safe and restricted form of mutability by enabling the return value to be "accumulated" in a write-only fashion, analogous to an accumulative generator.
 * **[Partial and gradually constructed objects](#fixed-fields-and-partially-constructed-objects)** enable the instantiation of classes with one or more missing fields, such that some of the object's functionality becomes inaccessible. The language models this "partial" instantiation through special types that explicitly specify which of its fields are known and which are not.
-* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that provided general means to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in expression syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input, and be written as polymorphic or higher-order abstractions.
+* **[Abstract pattern recognizers](#patterns-and-parsers)** are special methods that provide means to specify the recognition and capture of patterns that go well beyond the capabilities of the built-in expression syntax, as well as traditional regular expressions. They can capture arbitrary patterns within any type of input, and be written as polymorphic or higher-order abstractions.
 * **[Class-embedded relations](#logic-programming)** enable logic-programming style relations to be encapsulated within immutable container objects. Relations can be defined using a diverse mixture of programming approaches: rules, predicates, functions and generators.
 * **[Knowledge-driven programming](#knowledge-driven-programming)** is a form of declarative programming where information entities are given precise semantics via universally referenceable schemas, and computations are synthesized at compile-time, by composing chains of inference rules that derive unknown information entities from known ones.
 
 ## Technical goals and constraints
 
-* **All variables and values should be strictly immutable**. I.e. both variables (locally and globally scoped) and values (primitive and compound objects, including any of their fields) must maintain their initial value, forever.
+* **All variables and values should be strictly immutable**. I.e. both variables (locally and globally scoped) and values (primitive and compound objects, including any of their fields) must maintain their initially assigned value, forever.
 * Adapt common imperative constructs like loops, objects and generators, while maintaining strict adherence to full immutability.
 * Maintain a strict separation between pure and effect scopes (`function` vs `action`).
-* Types should be inferred whenever possible.
+* Types should be inferred whenever possible. Most programs should include only a few explicit type annotations.
 * Allow for strong static analysis (static and strong typing, advanced type inference, flow analysis, generics and type classes, non-nullable, algebraic, refinement and assertion types, compile-time contracts).
-* Allow for easy and effective concurrency (lightweight threads, asynchronous generators, automatic parallelization, structured concurrency, deterministic dataflows).
-* Maintain a look-and-feel that's not completely "alien"-looking. It should loosely resemble popular imperative languages like Python, TypeScript, C#, Swift etc.
-* Aim for maximum simplicity and readability (good syntax does make a difference!). Aim for low-ambiguity, consistent syntax that reads like plain English (but don't overdo it for its own sake).
-* Clean syntax: avoid unnecessary punctuation like `;`, `:`, `{`, `}`, `(`, `)` and cryptic-looking symbols like `$`, `*`, `#`, `^` etc..
-* Expressive, rather than minimalist, syntax. No special emphasis on cutting down on special keywords (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
+* Allow for easy and effective concurrency (lightweight threads, asynchronous generators, automatic parallelization, structured concurrency).
+
+## Syntactic standards
+
+* Maintain a look-and-feel that's not completely "alien"-looking for the average programmer. It should loosely resemble popular imperative languages like Python, TypeScript and C#.
+* Aim for maximum simplicity and readability (great syntax does make a difference!). Aim for low-ambiguity, consistent syntax that reads somewhat like plain English (but don't overdo it for its own sake).
+* Clean syntax: avoid employing unnecessary punctuation like `;`, `:`, `{`, `}`, `(`, `)` and cryptic-looking symbols like `$`, `*`, `&`, `#`, `^` etc. Instead, prefer short words like `and`, `or`, `it`, `here` whenever appropriate.
+* No noisy double character operators like `++`, `&&`, `$$`, `!!`, they make the code look too cryptic.
+* No abbreviated keywords like `fun` instead of `function`, `int` instead of `integer` etc. These abbreviations don't save that much on typing and many users find them confusing or alienating.
+* Keywords should be carefully named: what does `def` mean in Python? `cons` in Haskell? Even worse: `car` and `cdl` in LISP? Put extra effort to find the best possible term that most closely matches the semantics of what it is intended to represent.
+* Always provide a way to name things: parameters, methods, types, return values, etc. A scalable language aimed towards professional programming tasks _must_ provide naming facilities. It is not an option. Without naming it'd be mostly a "toy" language suitable only for small-to-medium projects.
+* No unnecessary extra keywords or characters for the programmer to write, like `then` after `if` in Pascal, `where` after `class` in Haskell, colons (`:`) to signal a block start in Python, `end` to end blocks in many languages.
+* Try to keep consistent locality relationships between clauses and symbols. Orientational metaphors like "data flows from the left to right" should be respected as much as possible.
+* Expressive, rather than minimalist, syntax. Don't be afraid to introduce new special keywords if deemed necessary (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
+
 
 ## Implementation state
 
@@ -1562,14 +1573,25 @@ function factorial(num: 0..infinity)
 
 Here's the infamous "Fizz-Buzz" problem implemented using a stream comprehension and a `when` expression:
 ```isl
-function divides(x, y) => x mod y == 0
+predicate divides(x, y) => x mod y == 0
 
 stream fizzBuzz() =
-	(for i in 1..infinity) =>
-		when divides(i, 15): 'FizzBuzz',
-		when divides(i, 3): 'Fizz',
-		when divides(i, 5): 'Buzz',
+	(for n in 1..infinity) =>
+		when divides(n, 15): 'FizzBuzz',
+		when divides(n, 3): 'Fizz',
+		when divides(n, 5): 'Buzz',
 		otherwise: '{i}'
+```
+
+Here's a slightly more more efficient version, this time using a match expression instead:
+```isl
+stream fizzBuzz() =
+	(for n in 1..infinity) =>
+		match divides(n, 3), divides(n, 5):
+			case true, true: 'FizzBuzz',
+			case true, false: 'Fizz',
+			case false, true: 'Buzz',
+			otherwise: '{i}'
 ```
 
 Here's a simple bounded sieve of Eratosthenes using a `for` loop and a list comprehension:
@@ -1656,7 +1678,7 @@ The expression:
 ```isl
 [items where it < pivot]
 ```
-is an example of a **query comprehension**, which is a simpler, more limited form of a list or stream comprehension.
+is an example of a **query comprehension**, which is a simpler, but more limited form of a list or stream comprehension.
 
 Let's see how it works:
 
@@ -4735,7 +4757,9 @@ context AbsoluteValue
 	result given inputIsNegative == true => input * -1.0
 	result given inputIsNegative == false => input
 ```
-`inputIsNegative` will receive `true` if `input` is greater or equal to 0 and `false` otherwise. Consequently, `result` will receive `input * -1` if `inputIsNegative` is true, and `input` otherwise. An alternate value for `result`, for the case where `inputIsNegative == false`, is mandatory, since the compiler must provide the unconditional guarantee that `result` is always knowable when `input` is known.
+`inputIsNegative` will receive `true` if `input` is greater or equal to 0 and `false` otherwise. Consequently, `result` will receive `input * -1` if `inputIsNegative` is true, and `input` otherwise.
+
+An alternate rule for `result`, for the case where `inputIsNegative == false`, ensures the compiler can unconditionally determine that `result` is always knowable when `input` is known. When such a complementary rule is not provided, the property may become _conditionally knowable_ and only be used within constrained circumstances. This variation is covered at a later section about _conditionally knowable properties_.
 
 You may now realize that the ability to define simple preconditions on the truth-value of Boolean properties opens up the possibility for arbitrarily complex preconditions, since the Boolean property's mapping rules may potentially involve highly sophisticated computations.
 
@@ -4829,6 +4853,43 @@ let distance = getDistance(time = 54, speed = 75)
 // Or alternatively, using full semantic identity references:
 let distance = getDistance(SimpleKinematics.Time = 54,
 						   SimpleKinematics.speed.kilometersPerHour = 75)
+```
+
+## Pseudo-functions
+
+Mappers help make contexts more usable by enabling them to be applied via function-like method calls. However, in many cases, the opposite may also be useful. We may want to describe more trivial computations by a simpler, function-like syntax.
+
+**Pseudo-functions** provide syntactic sugar to enable contexts to be declared via compact function-like declarations:
+
+For example:
+```isl
+function context AddNumbers(num1: integer, num2: integer): (sum: integer)
+    sum = num1 + num2
+```
+
+Would be desugared to:
+```isl
+context AddNumbers
+	num1: integer
+	num2: integer
+	sum: integer => num1 + num2
+
+	mapper this(num1, num2) => sum
+```
+
+If the return variable name is not given, it can still be referenced via the default `out` property. For example:
+
+```isl
+function context MultiplyByTwo(num: integer) => num * 2
+```
+
+Would be desugared to:
+```isl
+context MultiplyByTwo
+	num: integer
+	out: integer => num * 2
+
+	mapper this(num) => out
 ```
 
 ## Recursive instantiation and embedding
@@ -5376,12 +5437,159 @@ context
 
 name = 'Luna' // This assigns directly into the anonymous instance's 'name' property.
 
-if ....
+if someCondition
 	age = 46
 	print(greeting) // prints 'Hello Luna of 46 years of age!'
 else
 	age = 15 // This branch must also assign a value for the 'age' property
 	print(greeting) // prints 'Hello young Luna of 15 years of age!'
+```
+
+## Conditionally knowable properties
+
+Let's look more closely at the previous section's example. Notice the two mapping rules that define the value of `age`:
+
+```isl
+given age >= 18
+	greeting => 'Hello {name} of {age} years of age!'
+given age
+	greeting => 'Hello young {name} of {age} years of age!'
+```
+
+Together these rules ensure that `greeting` is knowable whenever `age` is knowable. Now what if we take away the second rule, meaning that `greeting` would only be knowable in the case where `age >= 18`?:
+
+```isl
+given age >= 18
+	greeting => 'Hello {name} of {age} years of age!'
+
+// No other rules exist :(
+```
+
+Now we have to somehow ensure that `age >= 18` before `greeting` can be safely accessed. But how is it possible to achieve that? requiring a 'guard'-like `if` statement? declaring an assertion type?
+
+```isl
+age = getAgeFromSomewhere()
+
+if age == 18 or age == 19 or age - 10 >= age / 2
+	print(greeting) // is 'greeting' always knowable?
+```
+
+The thing is, with the exception of 'toy' examples like the above, which may be solved using an of-the-shelf proof assistant (albeit by expending slightly excessive computational effort), it is not very easy for the compiler to statically ensure that some arbitrary user-provided predicate formula logically entails the expected one (here `age >= 18`).. So, sadly, that's not really a viable option, at least not in general.. :(
+
+**But wait!** maybe that's not really needed! The compiler already knows what the target precondition is, right? so why not let it test for it _by itself_?!
+```isl
+age = getAge()
+
+case
+	print(greeting)
+otherwise
+	print('I don''t know what to do?!')
+```
+
+What is going on here?? Looks like a skeletal `match` body with a `case` clause having no conditions attached? Is this some sort of an April fool's joke?
+
+Well, actually no, it's not a joke!
+
+The compiler already knows what is the precondition for `greeting` to be knowable, so it simply fills it automatically. You can think of `case` as meaning `case ???` where `???` represents a "hole".
+
+```isl
+age = getAge()
+
+case ??? // the compiler automatically fills in 'age >= 18' in place of ???
+	print(greeting)
+otherwise
+	print('I don't know what to do?!')
+```
+
+This example wasn't very illustrative since it only had one case. Here's a different one:
+
+Say the user inputs a string. The string may either be:
+1. A phone number.
+2. A license plate number.
+3. A credit card number.
+
+In each case I want to extract a different piece of information:
+1. Extract the country code.
+2. Extract the plate's prefix characters.
+3. Extract the card's four last characters.
+
+I'll define an anonymous context containing the required properties and mapping rules, but add no fallback for the case where the user's input is invalid:
+```isl
+context
+	userInput: string
+
+	phoneCountryCode: string
+	licensePlatePrefixChars: string
+	creditCardLastChars: string
+
+	given userInput matches PhoneNumber of (let countryCode, ...)
+		phoneCountryCode = countryCode
+	given userInput matches LicensePlate of (let prefixChars, ...)
+		licensePlatePrefixChars = prefixChars
+	given userInput matches CreditCard of (_, _, _, let fourLastChars)
+		creditCardLastChars = lastFourChars
+
+	// No fallback is given for the case where 'userInput' doesn't match
+	// any of the other rules.
+```
+
+Now I want the program to print a different prompt for the different cases where each piece of information is known, so I'll write:
+```isl
+userInput = readUserInput()
+
+case
+	print('Your phone area code is {phoneCountryCode}')
+case
+	print('Your license plate prefix characters are {licensePlatePrefixChars}')
+case
+	print('Your credit card''s last chracters are {creditCardLastChars}')
+otherwise
+	print('Your input was invalid!')
+```
+
+For each case block, the compiler synthesized a condition that represents the minimal amount of information needed to ensure that all the properties referenced within it are knowable. It is possible, however, that two or more cases may both be satisfied at the same time, in this scenario, the first one listed will be selected.
+
+## Pattern contexts
+
+By now, it may start to become evident that pattern recognizers could be highly effective tools for knowledge-driven programming. In the previous section, we've seen how matching can be partially "automated" when patterns are given as preconditions. We can also take it a step further, and reference patterns directly via their own dedicated contexts.
+
+A **pattern context**, analogous to a `function context`, is a pattern recognizer where its parameters and return values are interpreted as part of a context. For example:
+
+```isl
+pattern context PhoneNumberPattern()
+					of (countryCode: string, areaCode: string, prefix: string, lineNumber: string)
+					in string
+	<.... recognizer body ....>
+```
+
+would be translated to something like:
+
+```isl
+context PhoneNumberPattern
+	in: string // This property represents for the recognizer's input stream
+
+	// Each of the recognizer output values gets its own property:
+	countryCode: string
+	areaCode: string
+	prefix: string
+	lineNumber: string
+
+	// This (illustrative) rule implements the recognizer body:
+	given in
+		countryCode, areaCode, prefix, lineNumber =>
+			<.... recognizer body ....>
+```
+_(note this is only an illustrative translation, since mapping rule bodies can't directly specify recognizer code)_
+
+So now we can greatly simplify the previous section's context definition by treating its patterns as contexts and binding to their input and output properties via roles:
+
+```isl
+context
+	userInput: PhoneNumberPattern.in, LicensePlatePattern.in, CreditCardPattern.in
+
+	phoneCountryCode: PhoneNumberPattern.countryCode
+	licensePlatePrefixChars: LicensePlatePattern.prefixChars
+	creditCardLastChars: CreditCardPattern.lastFourChars
 ```
 
 ## Role coupling and semantic indexing
@@ -5497,30 +5705,6 @@ context expansion BasicKinematics
 	speedInOtherUnits: Speed
 	speedInOtherUnits.metersPerSecond => speed
 ```
-
-## Pseudo-functions
-
-In many cases, it becomes unwieldy to spell out bulky context declarations only to describe trivial operations. **Pseudo-functions** provide a handy syntactic sugar to enable simpler contexts to be written as compact function-like declarations:
-
-For example:
-```isl
-function context AddNumbers(num1: integer, num2: integer): (sum: integer)
-    sum = num1 + num2
-```
-
-Would be desugared to:
-```isl
-context AddNumbers
-	num1: integer
-	num2: integer
-	sum: integer => num1 + num2
-
-	mapper this(num1, num2) => sum
-```
-
-Note that pseudo-functions must specify named return variables, since their return value (or values, if there are more than one) is directly translated into a property.
-
-Also, pseudo-functions can't include preconditions on their parameters, though they can annotate their parameters and return values with semantic links or roles.
 
 ## Stream properties
 
@@ -5875,6 +6059,22 @@ action doSomething
 		print('Hello random person!')
 ```
 
+---
+
+The `it` keyword doesn't feel like the best possible fit for the query comprehension syntax:
+```isl
+let evenNumbersDoubled = [numbers where it mod 2 == 0 select it * 2]
+```
+
+Seems like `it` should represent `numbers` itself not an element of it.
+
+Using `item` looks nicer:
+```isl
+let evenNumbersDoubled = [numbers where item mod 2 == 0 select item * 2]
+```
+
+but I'm not sure if I want to make it a reserved keyword.
+
 ## Built-in types
 
 * Should `integer` be infinite or finite precision? How about having `integer<64>`, `integer<32>` etc.?
@@ -5910,15 +6110,18 @@ This work would not have been possible without ideas inspired by or built-upon t
 * **Pascal**: `div` and `mod` keywords.
 * **Prolog**, **Datalog**, **Oz**: (functional-) logic programming.
 
-## Who wrote this?
-
-My name is **Rotem Dan**. I'm a software developer who loves designing programming languages!
-
 ## Feedback for this document
 
 The repository is located at [github.com/island-lang/island-lang.github.io](https://github.com/island-lang/island-lang.github.io)
 
 Feel free to ask questions, report errors or make constructive suggestions.
+
+## Who wrote this?
+
+My name is **Rotem Dan**. I'm a software developer who loves designing programming languages!
+
+You can contact me via email at <span id="email-address-1"><span id="email-address-2"><span id="email-address-3">.
+
 
 ## Copyrights
 

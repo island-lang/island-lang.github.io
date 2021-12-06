@@ -37,8 +37,9 @@ body {
     border-width: 1px;
     border-color: #e4e4e4;
     border-radius: 0.6rem;
-    box-shadow: 0rem 0rem 0rem #eeeeee;
+    box-shadow: 0rem 0rem 0rem #d1d1d1;
     border-radius: 1.35rem;
+    box-shadow: 0rem 0rem 0.2rem #d1d1d1;
   }
 }
 
@@ -64,12 +65,12 @@ h1#top-heading {
   text-shadow: 0ch 0ch 0ch #dadada;
   text-align: center;
   margin-top: 1em;
-  margin-bottom: 1em;
+  margin-bottom: 0.75em;
   border: none;
 }
 h1#top-heading span#top-heading-island-word {
   color: #248524;
-  text-shadow: 0ch 0ch 0.1ch #dadada;
+  text-shadow: 0ch 0ch 0.15ch #dadada;
 }
 
 h2 {
@@ -79,9 +80,20 @@ h2 {
 h2#top-subheading {
   font-size: 1.45em;
   font-weight: 800;
-  color: rgba(204, 122, 255, 0.795);
+  color: #3d3d3d;
   line-height: 1.4em;
   text-align: center;
+  margin-top: 0em;
+  margin-bottom: 1.25em;
+  border: none;
+}
+h2#top-subheading-2 {
+  font-size: 1.15em;
+  font-weight: 700;
+  color: #4d4d4d;
+  line-height: 1.4em;
+  text-align: center;
+  font-style: normal;
   margin-top: 0em;
   margin-bottom: 3em;
   border: none;
@@ -208,7 +220,7 @@ nav.table-of-contents {
   border-width: 1px;
   border-color: #e4e4e4;
   border-radius: 0.6rem;
-  box-shadow: 0rem 0rem 0rem #eeeeee;
+  box-shadow: 0rem 0rem 0rem #d1d1d1;
 }
 
 footer {
@@ -228,9 +240,19 @@ footer #last-modified {
   margin: 0rem;
 }
 
+span#email-address-1::before {
+  content: "rotemdan";
+}
+span#email-address-2::before {
+  content: "@gmail";
+}
+span#email-address-3::before {
+  content: ".com";
+}
+
 @font-face {
   font-family: "Fira Code";
-  src: url("../fonts/FiraCode/woff2/FiraCode-Light.woff2") format("woff2"), url("../fonts/FiraCode/woff/FiraCode-Light.woff") format("woff1");
+  src: url("../fonts/FiraCode/woff2/FiraCode-Light.woff2") format("woff2"), url("../fonts/FiraCode/woff/FiraCode-Light.woff") format("woff");
   font-weight: 300;
   font-style: normal;
 }
