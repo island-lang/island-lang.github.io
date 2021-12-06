@@ -52,7 +52,7 @@ A new form of declarative programming, called **knowledge-driven programming**, 
 * Keywords should be carefully named: what does `def` mean in Python? `cons` in Haskell? Even worse: `car` and `cdl` in LISP? Put extra effort to find the best possible term that most closely matches the semantics of what it is intended to represent.
 * Always provide a way to name things: parameters, methods, types, return values, etc. A scalable language aimed towards professional programming tasks _must_ provide naming facilities. It is not an option. Without naming it'd be mostly a "toy" language suitable only for small-to-medium projects.
 * No unnecessary extra keywords or characters for the programmer to write, like `then` after `if` in Pascal, `where` after `class` in Haskell, colons (`:`) to signal a block start in Python, `end` to end blocks in many languages.
-* Try to keep consistent locality relationships between clauses and symbols. Orientational metaphors like "data flows from the left to right" should be respected as much as possible.
+* Try to keep consistent locality relationships between clauses and symbols. Orientational metaphors like "data flows from the left to the right" should be respected as much as possible.
 * Expressive, rather than minimalist, syntax. Don't be afraid to introduce new special keywords if deemed necessary (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
 
 
@@ -2849,7 +2849,7 @@ When dealing with concurrency and parallelism involving effects, however, the si
 * If an action could be freely spawned to execute in a separate thread, would its execution be let to "invisibly" continue forever? even long after execution has left the original caller's scope?
 * How would it be possible to conduct two-way communication with the spawned action? Perhaps by passing it a channel? but are free-form channels, which can be duplicated and moved everywhere, really a good fit for a safe and strict language like Island?
 
-For these reasons, instead of free-form threading and channeling, Island provides _delegates_ (no relation to C# delegates), which are worker-like action subroutines that are designed to follow a strict pattern of _structured concurrency and messaging_.
+For these reasons, instead of free-form threading and channeling, Island provides _delegates_ (no relation to C# or Kotlin delegates), which are worker-like action subroutines that are designed to follow a strict pattern of _structured concurrency and messaging_.
 
 A **delegate method** (analogous to a stream method) is an action which once called, returns a **delegate object** (analogous to a stream object) that can be used for two-way communication with it via an embedded channel.
 
@@ -4022,7 +4022,7 @@ pattern TwinPrimesSequence() in Stream<IntegerPair>
 
 ## Lookahead
 
-Sometimes it is useful to "peek" on one or more upcoming members of the stream without advancing its position.
+Sometimes it is useful to "peek" on one or more upcoming elements of the stream without advancing its position.
 
 The `expect` keyword acts similarly to `accept`, only without advancing the current position in the stream.
 
@@ -4193,7 +4193,7 @@ printPrimalityInfo(100) // prints 'Composite! with prime factors 2, 5'
 printPrimalityInfo(60) // prints 'Highly composite! with prime factors 2, 3, 5'
 ```
 
-Now there may be times where we wish to apply this kind of simple unary pattern matching to input types that are conventionally interpreted as streams, like `string`s, `List`s or even abstract `Stream< >` objects. For these cases, `accept all` enables the entire input to be captured all at once:
+Now there may be times where we wish to apply this kind of simple unary pattern matching to input types that are conventionally interpreted as streams, like `string`s, `List`s or even abstract `Stream< >` objects. For these cases, `accept all` enables the entire (or remaining) input to be captured all at once:
 ```isl
 pattern FirstCharacterSameAsLast() of (first, last) in string
 	try
@@ -4759,7 +4759,7 @@ context AbsoluteValue
 ```
 `inputIsNegative` will receive `true` if `input` is greater or equal to 0 and `false` otherwise. Consequently, `result` will receive `input * -1` if `inputIsNegative` is true, and `input` otherwise.
 
-An alternate rule for `result`, for the case where `inputIsNegative == false`, ensures the compiler can unconditionally determine that `result` is always knowable when `input` is known. When such a complementary rule is not provided, the property may become _conditionally knowable_ and only be used within constrained circumstances. This variation is covered at a later section about _conditionally knowable properties_.
+An alternate rule for `result`, for the case where `inputIsNegative == false`, ensures the compiler can unconditionally determine that `result` is always knowable when `input` is known. When such a complementary rule is not provided, the property may become _conditionally knowable_ and only be used within constrained circumstances (this variation is covered at a later section about _conditionally knowable properties_).
 
 You may now realize that the ability to define simple preconditions on the truth-value of Boolean properties opens up the possibility for arbitrarily complex preconditions, since the Boolean property's mapping rules may potentially involve highly sophisticated computations.
 
@@ -4795,12 +4795,12 @@ Preconditions may match patterns as well as capture their component parts.
 
 This example defines a context which recognizes and parses a phone number pattern, specified by a regular expression, where the parsed `area` and `number` components are introduced as variables into the body of the rule:
 ```isl
-let PhoneNumberPattern = /^{[0-9][0-9][0-9]}\-{[0-9]+}$/
+let PhoneNumberRegExp = /^{[0-9][0-9][0-9]}\-{[0-9]+}$/
 
 context PhoneNumber
 	str: string
 
-	given str matches PhoneNumberPattern of let (area, num)
+	given str matches PhoneNumberRegExp of let (area, num)
 		isValid, areaCode, number => true, area, num
 	given str
 		isValid, areaCode, number => false, '', ''
@@ -5447,7 +5447,7 @@ else
 
 ## Conditionally knowable properties
 
-Let's look more closely at the previous section's example. Notice the two mapping rules that define the value of `age`:
+Let's look more closely at the previous section's example. Notice the two mapping rules that define the value of `greeting`:
 
 ```isl
 given age >= 18
@@ -5474,7 +5474,7 @@ if age == 18 or age == 19 or age - 10 >= age / 2
 	print(greeting) // is 'greeting' always knowable?
 ```
 
-The thing is, with the exception of 'toy' examples like the above, which may be solved using an of-the-shelf proof assistant (albeit by expending slightly excessive computational effort), it is not very easy for the compiler to statically ensure that some arbitrary user-provided predicate formula logically entails the expected one (here `age >= 18`).. So, sadly, that's not really a viable option, at least not in general.. :(
+The thing is, with the exception of 'toy' examples like the above, which may be solved using an of-the-shelf proof assistant (albeit by expending a slightly excessive amount of computational effort), it is not very easy for the compiler to statically ensure that some arbitrary user-provided predicate formula logically entails the expected one (here `age >= 18`).. So, sadly, that's not really a viable option, at least not in general.. :(
 
 **But wait!** maybe that's not really needed! The compiler already knows what the target precondition is, right? so why not let it test for it _by itself_?!
 ```isl
@@ -5498,7 +5498,7 @@ age = getAge()
 case ??? // the compiler automatically fills in 'age >= 18' in place of ???
 	print(greeting)
 otherwise
-	print('I don't know what to do?!')
+	print('I don''t know what to do?!')
 ```
 
 This example wasn't very illustrative since it only had one case. Here's a different one:
