@@ -5226,11 +5226,11 @@ context Shape
 	area: decimal
 
 context Circle
-    area: decimal => Pi * (radius ** 2)
+    area: decimal => Pi * (radius^2)
     radius: decimal
 
 context Square
-    area: decimal => side ** 2
+    area: decimal => side^2
     side: decimal
 ```
 
@@ -5245,11 +5245,11 @@ context Shape
 	area: decimal
 
 context Circle
-    area: Shape.area => Pi * (radius ** 2)
+    area: Shape.area => Pi * (radius^2)
     radius: decimal
 
 context Square
-    area: Shape.area => side ** 2
+    area: Shape.area => side^2
     side: decimal
 ```
 
@@ -5271,7 +5271,7 @@ let twoShapes = TwoShapes with
 let totalArea = twoShapes.totalArea // Is this always computable?
 ```
 
-I assigned a placeholder for a `Shape` with instances of `Circle` and `Square`, despite the fact there are no formal relationship between these types!
+I assigned a placeholder for a `Shape` with instances of `Circle` and `Square`, despite the fact there are no formal relationships between these types!
 
 Both `Circle` and `Square` have `area` properties that embrace the semantics of the `area` property of `Shape`, so it makes sense that they can substitute for it. However, it might sound surprising but this relationship wasn't strictly necessary to enable the substitution. Fundamentally, there are no fixed hierarchies, **any context type can be assigned to any other context type**.
 
@@ -5470,15 +5470,15 @@ Now we have to somehow ensure that `age >= 18` before `greeting` can be safely a
 ```isl
 age = getAgeFromSomewhere()
 
-if age == 18 or age == 19 or age - 10 >= age / 2
+if age == 18 or age - 9 > age / 2
 	print(greeting) // is 'greeting' always knowable?
 ```
 
-The thing is, with the exception of 'toy' examples like the above, which may be solved using an of-the-shelf proof assistant (albeit by expending a slightly excessive amount of computational effort), it is not very easy for the compiler to statically ensure that some arbitrary user-provided predicate formula logically entails the expected one (here `age >= 18`).. So, sadly, that's not really a viable option, at least not in general.. :(
+The thing is, with the exception of 'toy' examples like the above, which may be solved using an "off-the-shelf" theorem prover (though with some amount of extra computational effort), it is not very easy for the compiler to statically ensure that some arbitrary user-provided formula logically entails the expected one (here `age >= 18`).. So, sadly, that's not really a viable option, at least not in general.. :(
 
-**But wait!** maybe that's not really needed! The compiler already knows what the target precondition is, right? so why not let it test for it _by itself_?!
+**But wait a minute!** maybe that's not really needed! The compiler already knows what the target precondition is, right? so why not let it test for it _by itself_?
 ```isl
-age = getAge()
+age = getAgeFromSomewhere()
 
 case
 	print(greeting)
@@ -5486,11 +5486,11 @@ otherwise
 	print('I don''t know what to do?!')
 ```
 
-What is going on here?? Looks like a skeletal `match` body with a `case` clause having no conditions attached? Is this some sort of an April fool's joke?
+What is going on here?? Looks like a skeletal `match` body with a `case` clause having no conditions attached? Is this some sort of an April fools' joke?
 
 Well, actually no, it's not a joke!
 
-The compiler already knows what is the precondition for `greeting` to be knowable, so it simply fills it automatically. You can think of `case` as meaning `case ???` where `???` represents a "hole".
+The compiler already knows what is the set of conditions required for `greeting` to be knowable, so it simply fills them automatically. You can think of `case` as meaning `case ???` where `???` represents a "hole".
 
 ```isl
 age = getAge()
@@ -5511,7 +5511,7 @@ Say the user inputs a string. The string may either be:
 In each case I want to extract a different piece of information:
 1. Extract the country code.
 2. Extract the plate's prefix characters.
-3. Extract the card's four last characters.
+3. Extract the card's four last digits.
 
 I'll define an anonymous context containing the required properties and mapping rules, but add no fallback for the case where the user's input is invalid:
 ```isl
@@ -5520,14 +5520,14 @@ context
 
 	phoneCountryCode: string
 	licensePlatePrefixChars: string
-	creditCardLastChars: string
+	creditCardLastDigits: string
 
-	given userInput matches PhoneNumber of (let countryCode, ...)
+	given userInput matches PhoneNumberPattern of (let countryCode, ...)
 		phoneCountryCode = countryCode
-	given userInput matches LicensePlate of (let prefixChars, ...)
+	given userInput matches LicensePlatePattern of (let prefixChars, ...)
 		licensePlatePrefixChars = prefixChars
-	given userInput matches CreditCard of (_, _, _, let fourLastChars)
-		creditCardLastChars = lastFourChars
+	given userInput matches CreditCardPattern of (_, _, _, let fourLastDigits)
+		creditCardLastDigits = fourLastDigits
 
 	// No fallback is given for the case where 'userInput' doesn't match
 	// any of the other rules.
@@ -5538,16 +5538,75 @@ Now I want the program to print a different prompt for the different cases where
 userInput = readUserInput()
 
 case
-	print('Your phone area code is {phoneCountryCode}')
+	print('Your phone number''s country code is {phoneCountryCode}')
 case
 	print('Your license plate prefix characters are {licensePlatePrefixChars}')
 case
-	print('Your credit card''s last chracters are {creditCardLastChars}')
+	print('Your credit card''s last digits are {creditCardLastDigits}')
 otherwise
 	print('Your input was invalid!')
 ```
 
-For each case block, the compiler synthesized a condition that represents the minimal amount of information needed to ensure that all the properties referenced within it are knowable. It is possible, however, that two or more cases may both be satisfied at the same time, in this scenario, the first one listed will be selected.
+For each `case` block, the compiler synthesized a condition that represents the weakest possible assertion required to ensure that all the properties referenced within it are knowable.
+
+It is possible, however, that two or more cases may both be satisfied at the same time. In this scenario, the first one listed will be selected. It's also possible that due to lack of care or awareness, the conditions inferred wouldn't correctly represent the intention the programmer had in mind.
+
+To help guard against issues of this kind, the editor experience will automatically visualize the inferred conditions for each case, so that the programmer can get immediate feedback and adjust accordingly.
+
+If the programmer wishes to append **custom preconditions** of their own to a particular case, they can use the `expect` statement:
+
+```isl
+userInput = readUserInput()
+
+case
+	expect userInput.length >= 8
+	print('Your phone number''s country code is {phoneCountryCode}')
+case
+	....
+```
+
+Case statement blocks **can be nested**. Nested cases may be required if a new value is assigned via an effect, such as reading a value from user input:
+
+```isl
+context
+	firstUserInput: string
+	secondUserInput: string
+
+	continentCategory: Continent
+
+	given firstUserInput matches PhoneNumberPattern of (let countryCode, ...)
+		phoneCountryCode = countryCode
+
+	given secondUserInput matches ContinentPattern of (let continent)
+		continentCategory => continent
+
+firstUserInput = readUserInput()
+
+case
+	print('Your phone country code is {phoneCountryCode}')
+
+	print('Which continent are you from?')
+	secondUserInput = readUserInput()
+
+	// This nested case block is required since the outer one can't assert on the
+	// value of 'secondUserInput' as it is acquired via an effect within the body
+	// of the case itself:
+	case
+		expect continentCategory == Continent.Asia
+		print('Hello asian!')
+	case
+		expect continentCategory == Continent.Europe
+		print('Hello european!')
+	otherwise
+		....
+case
+	....
+case
+	....
+otherwise
+	....
+```
+
 
 ## Pattern contexts
 
@@ -5579,7 +5638,7 @@ context PhoneNumberPattern
 		countryCode, areaCode, prefix, lineNumber =>
 			<.... recognizer body ....>
 ```
-_(note this is only an illustrative translation, since mapping rule bodies can't directly specify recognizer code)_
+_(note this is only an illustrative translation, since mapping rule bodies can't directly contain recognizer code)_
 
 So now we can greatly simplify the previous section's context definition by treating its patterns as contexts and binding to their input and output properties via roles:
 
@@ -5981,7 +6040,7 @@ function binarySearch(values: List<integer>, target: integer)
 		else
 			match values[mid]
 				case target => return
-				case _ < target => recurse low = mid + 1
+				case it < target => recurse low = mid + 1
 				otherwise => recurse high = mid - 1
 
 	return iterate()
@@ -6118,7 +6177,7 @@ Feel free to ask questions, report errors or make constructive suggestions.
 
 ## Who wrote this?
 
-My name is **Rotem Dan**. I'm a software developer who loves designing programming languages!
+Hi, my name is Rotem Dan (IPA: ˈʁɒːtem ˈdän). I'm a software developer who loves designing programming languages!
 
 You can contact me via email at <span id="email-address-1"><span id="email-address-2"><span id="email-address-3">.
 
