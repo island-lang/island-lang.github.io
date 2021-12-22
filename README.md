@@ -5549,7 +5549,7 @@ otherwise
 
 For each `case` block, the compiler synthesized a condition that represents the weakest possible assertion required to ensure that all the properties referenced within it are knowable.
 
-It is possible, however, that two or more cases may both be satisfied at the same time. In this scenario, the first one listed will be selected. It's also possible that due to lack of care or awareness, the conditions inferred wouldn't correctly represent the intention the programmer had in mind.
+It is possible, however, that two or more cases may both be satisfied at the same time. In this scenario, the first one listed will be selected (or compiler error emitted, if detection was trivial enough). It's also possible that due to lack of care or awareness, the conditions inferred wouldn't correctly represent the intention the programmer had in mind.
 
 To help guard against issues of this kind, the editor experience will automatically visualize the inferred conditions for each case, so that the programmer can get immediate feedback and adjust accordingly.
 
@@ -5573,7 +5573,7 @@ context
 	secondUserInput: string
 
 	given firstUserInput matches PhoneNumberPattern of (any, let areaCode, ...)
-		phoneAreaCode = areaCode
+		phoneAreaCode => areaCode
 
 	given secondUserInput matches ContinentPattern of (let continent)
 		continentCategory => continent
@@ -6050,6 +6050,33 @@ let modifiedNums = nums with [indexStream] = [900, 600, 300]
 let indicesToRemove = [4, 5, 7]
 let modifiedNums2 = modifiedNums with no [indicesToRemove]
 // modifiedNums2 = [10, 20, 300, 600, 80, 900]
+```
+
+## Array operations
+
+_(This is a sketch)_
+
+Numeric lists of the same length can be used like vectors. They can be added, subtracted and multiplied with each other:
+
+```isl
+let list1 = [1, 2, 3]
+let list2 = [2, 3, 4]
+let list3 = list1 * list2 // list3 = [2, 6, 12]
+```
+Numbers (scalars) can be operated with lists:
+```isl
+let list1 = [1, 2, 3] + 5 // list1 = [6, 7, 8]
+let list1 = [1, 2, 3] * 0.5 // list1 = [0.5, 1, 1.5]
+```
+Operations on multidimensional lists follow matrix multiplication conventions:
+```isl
+
+```
+
+Similarly length Boolean typed lists can be used with `and`, `or`, `not` operation:
+```isl
+let b1 = [true, false, true] and [false, true, true] // b1 = [false, false, true]
+let b2 = not [false, false, true] // b2 = [true, true, false]
 ```
 
 ## Recursion sugar and the `param` modifier
