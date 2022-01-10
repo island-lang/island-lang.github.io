@@ -58,7 +58,7 @@ A new form of declarative programming, called **knowledge-driven programming**, 
 
 ## Implementation state
 
-The language is currently at an early, design-only stage. A basic parser and compiler have been developed, mostly for the purpose of validating a limited subset of its features (in particular its parsing complexity and the practical efficiency of its looping constructs).
+A working, but experimental compiler has been developed (with JavaScript as a target). It currently supports only a small subset of language features and is used mostly for testing and validation of syntactic and semantic constructs.
 
 # Fundamentals
 
@@ -6255,4 +6255,4 @@ You can contact me via email at <span id="email-address-1"><span id="email-addre
 ## Copyrights
 
 Copyright © Rotem Dan<br />
-2017 - 2021
+2017 - 2022
