@@ -1,5 +1,4 @@
-<h1 id="top-heading">The <span id="top-heading-island-word">Island</span> Programming Language</h1>
-<h2 id="top-subheading">Designed by Rotem Dan</h2>
+<h1 id="top-heading">The <span id="top-heading-highlighted-word">Island</span> Programming Language</h1>
 <h2 id="top-subheading-2">(Work In Progress)</h2>
 
 **Island** (originally standing for **I**mmutable, **s**equentia**l** **a**nd **n**on-**d**estructive) is a multiparadigm general-purpose programming language fusing aspects of functional, imperative and  object-oriented programming, as well as incorporating various forms of declarative programming (logic, pattern-driven and knowledge-driven).
@@ -55,11 +54,6 @@ A new form of declarative programming, called **knowledge-driven programming**, 
 * Try to keep consistent locality relationships between clauses and symbols. Orientational metaphors like "data flows from the left to the right" should be respected as much as possible.
 * Expressive, rather than minimalist, syntax. Don't be afraid to introduce new special keywords if deemed necessary (use context-sensitive awareness to allow identifier names to be used even if they conflict with a keyword that's reserved elsewhere).
 
-
-## Implementation state
-
-A working, but experimental compiler has been developed (with JavaScript as a target). It currently supports only a small subset of language features and is used mostly for testing and validation of syntactic and semantic constructs.
-
 # Fundamentals
 
 ## Variables and assignment
@@ -91,6 +85,7 @@ let greeting = "Hello"
 
 if x > 0
 	print(greeting)
+end
 ```
 
 Variables redeclared using an existing name in an inner scope will shadow the ones in the outer scope:
@@ -101,6 +96,7 @@ let greeting = "Hello"
 if x > 0
 	let greeting = "Hi"
 	print(greeting) // Prints "Hi"
+end
 
 print(greeting) // Prints "Hello"
 ```
@@ -121,6 +117,7 @@ let greeting = "Hello"
 
 if x > 0
 	let greeting = 25 // Error: shadowing inner variable must be of same type as outer variable
+end
 ```
 ```isl
 let greeting = "Hello"
@@ -137,6 +134,7 @@ if x > 0
 	greeting = "Hello"
 else
 	greeting = "Hi"
+end
 ```
 
 If a type is not specified, it would be automatically inferred as long as the assigned values share the same underlying type:
@@ -147,6 +145,7 @@ if x > 0
 	greeting = "Hello"
 else
 	greeting = "Hi"
+end
 
 // Type inferred as string
 ```
@@ -159,6 +158,7 @@ if x > 0
 	greeting = "Hello"
 else
 	greeting = 24 // Error: incompatible types
+end
 ```
 
 ## Primitive data types
@@ -305,6 +305,7 @@ class Person
 	firstName: string
 	lastName: string
 	age: integer
+end
 
 let person = Person("John", "Doe", 25)
 let (f, _, a) = person // f = "John", a = 25
@@ -337,6 +338,7 @@ function sum2(x: integer, y: integer) => x + y // Short syntax
 
 function sum3(x: integer, y: integer, z: integer) // Long syntax
 	return x + y + z
+end
 
 let result = sum3(2, 3, 4)
 print("Result: {result}")
@@ -349,6 +351,7 @@ predicate areEqual(x: integer, y: integer) => x == y // Short syntax
 
 predicate areEqual(x: integer, y: integer) // Long syntax
 	return x == y
+end
 ```
 
 ## Actions
@@ -357,7 +360,9 @@ predicate areEqual(x: integer, y: integer) // Long syntax
 ```isl
 action printNameAndAge(name: string, age: integer)
 	print("Name: {name}, Age: {age}")
+
 	return "OK"
+end
 
 let status = printNameAndAge("John Smith", 35)
 // Prints "Name: John Smith, Age: 35" and returns "OK"
@@ -367,8 +372,10 @@ Despite allowing for "impure" operations like writing or reading from a file, ac
 
 ```isl
 action readMutableState() => readFile("myFile.state")
+
 action writeMutableState(data: string)
 	writeFile("myFile.state", data)
+end
 
 let initialData = readMutableState()
 writeMutableState(initialData | " changed!")
@@ -398,7 +405,9 @@ let b = 3
 computed c()
 	let a1 = a + 1
 	let a2 = b + 1
+
 	return a1 * a2
+end
 ```
 
 We will often collectively refer to functions, actions, and computed variables (and later include class computed fields and indexers) as **methods**, which is just another name for subroutines.
@@ -408,6 +417,7 @@ We will often collectively refer to functions, actions, and computed variables (
 ```isl
 action printNameAndAge(name = "Anonymous", age = 0)
 	print("Name: {name}, Age: {age}")
+end
 
 printNameAndAge(age = 12) // prints Name: Anonymous, Age: 12
 printNameAndAge(_, 12) // prints Name: Anonymous, Age: 12
@@ -421,6 +431,7 @@ printNameAndAge(_, 12) // prints Name: Anonymous, Age: 12
 // This function accepts an argument of type 'function'
 function giveMeFunction(f: (integer) => integer)
 	return f(10) + 1
+end
 ```
 
 A **lexical closure** allows a method to capture data from its environment:
@@ -430,8 +441,10 @@ A **lexical closure** allows a method to capture data from its environment:
 function outerFunction(x: integer): (integer) => integer
 	function innerFunction(y: integer)
 		return x + y // x is captured from the outer scope
+	end
 
 	return innerFunction
+end
 ```
 
 In general, a function accepting another function as argument is called a **higher-order function**.
@@ -456,6 +469,7 @@ Consider this higher-order function that accepts a list of integers and a single
 ```isl
 function findFirst(items: List<integer>, selectionPredicate: (integer) => boolean)
 	....
+end
 
 let numbers = [1, 2, 3, 4, 5, 6]
 ```
@@ -474,6 +488,7 @@ The same can be done for a function expecting a function accepting any type para
 ```isl
 function transform(items: List<integer>, transformer: (integer) => integer)
 	....
+end
 
 let doubledNumbers = transform(numbers, x => x * 2)
 ```
@@ -509,6 +524,7 @@ function f
 	(a: integer, b: integer) => a * 2
 	(a: integer, b: string) => "{a}: {b}"
 	(a: boolean) => not a
+end
 ```
 _(The usefulness of this syntax will become more apparent when refinement and assertion types are introduced in a later chapter, stay tuned!)_
 
@@ -571,6 +587,7 @@ The `arguments` keywords allows getting a tuple bundling all the arguments passe
 ```isl
 action printArguments(a: integer, b: integer, c: integer)
 	print(arguments)
+end
 
 printArguments(1, 4, 5) // Prints "(1, 4, 5)"
 ```
@@ -583,6 +600,7 @@ action printThreeNumbers(a: integer, b: integer, c: integer)
 	print(a)
 	print(b)
 	print(c)
+end
 
 let print5AndTwoNumbers = printTwoNumbers(5, ...)
 // print5AndTwoNumbers has the signature print5AndTwoNumbers(b: integer, c: integer)
@@ -619,11 +637,13 @@ action printThreeNumbers(a: integer, b: integer, c: integer)
 	print(a)
 	print(b)
 	print(c)
+end
 
 action printThreeNumbers(a: integer, b: decimal, c: decimal)
 	print(a)
 	print("{b.roundToDecimals(3)}")
 	print("{c.roundToDecimals(3)}")
+end
 
 let print5AndTwoNumbers = printThreeNumbers(5, ...) // Error! Ambiguous call. There are two matching overloads!
 
@@ -638,6 +658,7 @@ type PartialIntFunc = (integer, ...) => integer
 
 function applyFirstArgument(f: PartialIntFunc, value: integer): PartialIntFunc
 	return f(value, ...)
+end
 
 function sum(a: integer, b: integer) => a + b
 
@@ -672,6 +693,7 @@ The Island language provides an optional way to explicitly mark those weaker sco
 ```isl
 view action getCurrentTime()
 	....
+end
 ```
 
 `view` actions can only call other view actions, as well as functions. They cannot call regular (strong) actions.
@@ -690,6 +712,8 @@ function abs(num: integer)
 		return -num
 	else
 		return num
+	end
+end
 ```
 
 The similar, but more declarative **`when `-` otherwise`** syntax, uses `=>` to directly return a value from an enclosing method:
@@ -698,6 +722,7 @@ function abs(num: integer)
 	when num == 0 => 0   // Equivalent to 'if num == 0 ..'
 	when num < 0 => -num // Equivalent to 'else if num < 0 ..'
 	otherwise => num     // Equivalent to 'else ..'
+end
 ```
 The most important differences between `when`-`otherwise` and `if`-`else if`-`else` are:
 * It can only be used in `function` (pure computation) contexts.
@@ -713,6 +738,8 @@ function nestedWhenExample(num: integer)
 	otherwise
 		when num == 0 => "no"
 		otherwise => "bye"
+	end
+end
 ```
 
 `when`-`otherwise` can also be written as an expression:
@@ -735,6 +762,7 @@ function numToWords(num: 1..999): string
 		"{numToWords(num div 10)} {numToWords(num mod 10)} ".trimWhitespace()
 	otherwise =>
 		"{numToWords(num div 100)} hundered {numToWords(num mod 100)}".trimWhitespace()
+end
 ```
 
 ## Pattern matching
@@ -753,6 +781,8 @@ function abs1(num: integer)
 			return -num
 		otherwise
 			return num
+	end
+end
 
 // (short statement form, '=>' returns a value from the enclosing method)
 function abs2(num: integer)
@@ -760,6 +790,8 @@ function abs2(num: integer)
 		case 0 => 0
 		case it < 0 => -num
 		otherwise => num
+	end
+end
 
 // (expression form)
 let absOfVal = match num:
@@ -777,6 +809,8 @@ function tupleMatch(someTuple: (integer, string, boolean))
 		case (here > 1 and here < 5, here.length > 2, any) => "Case 2"
 		case (here > 1, here[1] == "O", false) => "Case 3"
 		otherwise => "No match"
+	end
+end
 
 let r1 = matchTuple((1, "Hi", true))    // returns "Case 1"
 let r2 = matchTuple((4, "Hello", true)) // returns "Case 2"
@@ -791,6 +825,8 @@ function nestedTupleMatch(someNestedTuple: (integer, string, (boolean, string)))
 		case (any, "Hi", (true, let name)) => "Case 1, {name}"
 		case (let num, "Hi", (true, any)) => "Case 2, {num}"
 		otherwise => "No match"
+	end
+end
 ```
 
 Matching over an object (as well as a tuple with named members) introduces its members into the `case` scope:
@@ -799,12 +835,15 @@ class Person
 	firstName: string
 	lastName: string
 	age: integer
+end
 
 function matchObject(person: Person)
 	match person
 		case firstName == "James" and lastName.length > 2 => "Case 1"
 		case firstName[-1] == "e" and age >= 30 and age <= 35 => "Case 2"
 		otherwise => "No match"
+	end
+end
 
 let r1 = matchObject(new Person("James", "Redd", 21)) // returns "Case 1"
 let r2 = matchObject(new Person("Jane", "Doe", 33)) // returns "Case 2"
@@ -819,6 +858,8 @@ function matchAnimal(animal: Animal)
 		case Cat where age > 10 => "Old cat!"
 		case Horse where height > 180 => "Tall horse!"
 		otherwise => "Nothing interesting here"
+	end
+end
 ```
 
 A secondary syntax uses curly brackets to define a matching structure, which can be nested any amount of times:
@@ -829,6 +870,8 @@ function matchAnimal(animal: Animal)
 		case Cat { age > 10 } => "Old cat!"
 		case Horse { height > 180 } => "Tall horse!"
 		otherwise => "Nothing interesting here"
+	end
+end
 ```
 
 A third, terser matching syntax uses constructor-like notation, based on the order of declared members (note the varying count of elements in parentheses and the `...` element signifying the rest of the elements are ignored):
@@ -839,6 +882,8 @@ function matchAnimal(animal: Animal)
 		case Cat(any, here > 10, ...) => "Old cat!"
 		case Horse(any, any, here > 180) => "Tall horse!"
 		otherwise => "Nothing interesting here"
+	end
+end
 ```
 
 `match` can be applied to multiple variables, separated by commas:
@@ -850,6 +895,8 @@ function matchAnimalAndPerson(animal: Animal, person: Person)
 		case Horse where height > 180, Person where hobby == "Horseriding" =>
 			"Tall horse and a true horseriding lover!"
 		otherwise => "Nothing interesting here"
+	end
+end
 ```
 
 Matching on multiple Boolean expressions allows to concisely specify a decision table:
@@ -863,8 +910,10 @@ function hasPromotions(repeatCustomer: boolean, hasMemberCard: boolean, orderAmo
 		case true, true, true , false => (freeShipping: true, discountPercent: 0.05)
 		case true, true, true , true  => (freeShipping: true, discountPercent: 0.10)
 		otherwise                     => (freeShipping: false, discountPercent: 0)
+	end
+end
 ```
-
+<!--
 `match` cases can be **nested** without needing to introduce a new `match` declaration. The nested `case` clauses receive the enclosing match target value, as well as any type or conditional assertions that were made by its ancestors:
 ```isl
 function matchAnimal(animal: Animal)
@@ -873,12 +922,20 @@ function matchAnimal(animal: Animal)
 			case barkingLoudness < 0.3 => "Quite dog lucky!"
 			case barkingLoudness > 0.7 => "Loud dog lucky!"
 			otherwise => "Nice dog lucky!"
+		end
+
 		case Cat
 			case likesMilk => "Nice cat!"
 			otherwise => "A cat who doesn't like milk! Who knew?"
+		end
+
 		case Horse where height > 180 => "Tall horse!"
+
 		otherwise => "Nothing interesting here"
+	end
+end
 ```
+-->
 
 Matching over a list allows for the unpacking syntax to be used as a matching pattern:
 ```isl
@@ -904,6 +961,8 @@ function matchList(myList: List<integer>)
 
 		// Find the first member of the list that's greater than 5:
 		case [..., let v > 5, ...]
+	end
+end
 ```
 
 Using similar syntax, list-typed method parameters can be pattern-matched as well:
@@ -914,6 +973,7 @@ function minimumValue
 
 	([head, ...tail]: List<integer>, currentMinimum = infinity) =>
 		minimumValue(tail, minimum(head, currentMinimum))
+end
 ```
 
 ## Matched parameters
@@ -925,6 +985,8 @@ function funcName(param1: ...., param2: ....)
 		case ....
 		case ....
 		otherwise ....
+	end
+end
 ```
 
 If the outermost scope of a method consists only of a `match` statement (excluding any `let`s, nested method or type declarations), the `match paramX, ....` statement can be omitted and instead integrate directly into the function declaration, by modifying the matched parameters with the `match` keyword:
@@ -936,6 +998,7 @@ function matchAnimalAndPerson(match animal: Animal, match person: Person)
 	case Horse where height > 180, Person where hobby == "Horseriding" =>
 		"Tall horse and a true horseriding lover!"
 	otherwise => "Nothing interesting here"
+end
 ```
 
 Observing the above carefully, it may be noticed the `: Animal` and `: Person` annotations are not strictly necessary, since the parameter types are being explicitly asserted at every case clause. When this is the case, the type annotations can be omitted and would be inferred by the compiler:
@@ -951,6 +1014,7 @@ function matchAnimalAndPerson(match animal, match person)
 	//
 	// Having a non-failing 'otherwise' clause would mean that the function
 	// could possibly accept any type for 'animal' and 'person' and still succeed!
+end
 ```
 
 The `matchAnimalAndPerson` function type is inferred to include several overloads, corresponding to each valid type combination case. Variants with and without assertion types (introduced in a later chapter) are shown:
@@ -977,16 +1041,21 @@ function testXY(x, y)
 			when x > y and x > 0 => 1
 			when x < y or y == 0 => -1
 			otherwise => 0
+		end
+
 		when y is decimal
 			when x > y and x > 0 => 1.0
 			when x < y or y == 0.0 => -1.0
 			otherwise => 0.0
+		end
+	end
 
 	// (The omitted 'otherwise' clauses are interpreted as fail cases)
 
-// Inferred signature:
-// function testXY(x: integer, y: integer)
-// function testXY(x: integer, y: decimal)
+	// Inferred signature:
+	// function testXY(x: integer, y: integer)
+	// function testXY(x: integer, y: decimal)
+end
 ```
 
 ## Exhaustiveness checking
@@ -997,6 +1066,8 @@ function notExhaustive(someBoolean: boolean)
 	match someBoolean
 		case true => "OK!"
 		// Error! No handling of the case when someBoolean == false
+	end
+end
 ```
 
 ## Single pattern matching
@@ -1026,10 +1097,13 @@ Here's the factorial operation, implemented using a `for` loop:
 function factorial(num: integer)
 	for i = 1, out result = 1
 		if i <= num
-		 	// The continue statement defines the next values of 'result' and 'i':
+			// The continue statement defines the next values of 'result' and 'i':
 			continue result = result * i, i = i + 1
+		end
+	end
 
 	return result
+end
 ```
 
 It may seem, at first, like `i` and `result` are no different than mutable variables, since they are repeatedly modified at every iteration, however, they are not actually mutable because they are not real variables!
@@ -1048,10 +1122,14 @@ function factorial(num: integer)
 		else
 			// (implicitly returns)
 			return result
+		end
+	end
 
 	// return result
 	let iterationResult = iterate()
+
 	return iterationResult
+end
 ```
 
 The `for` loop syntax also allows to define a continuation condition using a `while` clause and a set of predefined alterations using an `advance` clause, which are applied after any alterations in a `continue` statement within the loop body. The `factorial` function can be rewritten to:
@@ -1062,8 +1140,10 @@ function factorial(num: integer)
 	// for (int i = 1, result = 1; i <= num; i += 1)
 	for i = 1, out result = 1 while i <= num advance i += 1
 		continue result *= i
+	end
 
 	return result
+end
 ```
 
 Loops can be aborted with the `break` keyword, which also allows for alterations of `out` variables:
@@ -1074,8 +1154,11 @@ function boundedFactorial(num: integer)
 			continue result *= i
 		else
 			break result = nothing
+		end
+	end
 
 	return result
+end
 ```
 
 Here's a binary search implemented using a `for` loop and pattern matching, formatted to allow for better readability:
@@ -1091,8 +1174,11 @@ function binarySearch(values: List<integer>, target: integer)
 				continue low = mid + 1
 			otherwise
 				continue high = mid - 1
+		end
+	end
 
 	return nothing
+end
 ```
 
 Here's equivalent code translated to a tail-recursive function (original code in comments):
@@ -1114,11 +1200,14 @@ function binarySearch(values: List<integer>, target: integer)
 				otherwise
 					// continue high = mid - 1
 					return iterate(low = low, high = mid - 1)
+			end
 		else
-			// return nothing
 			return nothing
+		end
+	end
 
 	return iterate()
+end
 ```
 
 Loops can be **nested**:
@@ -1131,10 +1220,13 @@ function combinationsOf2(min: integer, max: integer)
 		while y <= max
 		advance y += 1
 			continue row |= [(x, y)]
+		end
 
 		continue result |= row
+	end
 
 	return result
+end
 
 print(combinationsOf2(0, 1)) // prints [(0, 0), (0, 1), (1, 0), (1, 1)]
 ```
@@ -1146,11 +1238,14 @@ function combinationsOf2(min: integer, max: integer): List<(integer, integer)>
 		function iterateY(y = min, row: List<(integer, integer)> = [])
 			when y <= max => iterateY(y = y + 1, row = row | [(x, y)])
 			otherwise => row
+		end
 
 		when x <= max => iterateX(x = x + 1, result = result | iterateY())
 		otherwise => result
+	end
 
 	return iterate()
+end
 ```
 
 However, directly returning from an inner loop would be more tricky to express in recursive form. For example, the following function, which iterates to find a value in a square matrix:
@@ -1164,8 +1259,12 @@ function findFirstInSquareMatrix(matrix: List<List<integer>>, value: integer): (
 		advance y += 1
 			if matrix[x][y] == value
 				return (x, y)
+			end
+		end
+	end
 
 	return nothing
+end
 ```
 Would be roughly translated to:
 ```isl
@@ -1176,14 +1275,17 @@ function findFirstInSquareMatrix(matrix: List<List<integer>>, value: integer): (
 				when matrix[x][y] == value => (x, y)
 				otherwise => iterateY(y = y + 1)
 			otherwise => nothing
+		end
 
 		let result = iterateY()
 
 		when result is not nothing => result
 		when x < matrix.length => iterateX(x = x + 1)
 		otherwise => nothing
+	end
 
 	return iterateX()
+end
 ```
 
 A **local method may capture a variable declared within a loop body**, however, such a function cannot be passed outside of the loop scope:
@@ -1192,7 +1294,10 @@ function invalidReturnedFunction(): (integer) => integer
 	for i = 1 advance i += 1
 		let multiplyBy = (m: integer) => i * m // This is okay
 		let x = multiplyBy(3) // This is also okay
+
 		return localFunction // But this is invalid
+	end
+end
 ```
 _(`multiplyBy` is considered referentially transparent, if seen from within the scope of each loop iteration)_
 
@@ -1202,6 +1307,7 @@ let x
 
 for i = 1 advance i += 1
 	x = i * 2 // This is invalid
+end
 ```
 
 ## Shorthand `with` expressions in `continue` and `break` statements
@@ -1211,6 +1317,7 @@ It is common in `continue` and `break` statements to use `with` to alter one or 
 ```isl
 for someTuple = (a: 1, b: 2)
 	continue someTuple = someTuple with (a += 2, b -= 5)
+end
 ```
 
 Instead of writing `someTuple = someTuple with ...`, the `with` operator can be shortened to:
@@ -1218,6 +1325,7 @@ Instead of writing `someTuple = someTuple with ...`, the `with` operator can be 
 ```isl
 for someTuple = (a: 1, b: 2)
 	continue someTuple with (a += 2, b -= 5)
+end
 ```
 
 # Streams
@@ -1232,9 +1340,12 @@ Stream methods produce values using the `yield` statement. Streams can be consum
 stream naturalNumbers()
 	for i = 1 advance i += 1
 		yield i
+	end
+end
 
 for i in naturalNumbers() // Loops forever
 	print(i)
+end
 
 // Prints 1, 2, 3, 4, 5, ....
 ```
@@ -1245,9 +1356,13 @@ stream multiplesOfTwo()
 	for i in 1..infinity
 		if i mod 2 == 0
 			yield i
+		end
+	end
+end
 
 for i in 1..100, m in multiplesOfTwo() // This will repeat 100 times
 	print("Num: {i}, Multiple: {m}")
+end
 
 // Prints:
 // "Num: 1, Multiple: 2"
@@ -1263,6 +1378,7 @@ class Stream<T>
 	value: T? // The '?' means 'value' may be of type 'nothing'
 	ended: boolean
 	function next(): Stream<T>
+end
 ```
 
 Calling `next()` returns a new stream object, and would cause the previous one to be disposed (any attempt to access it would cause a runtime error).
@@ -1270,6 +1386,8 @@ Calling `next()` returns a new stream object, and would cause the previous one t
 stream numsInRange(min: integer, max: integer)
 	for i in min..max
 		yield i
+	end
+end
 
 let step0 = numsInRange(1, 3)
 
@@ -1291,8 +1409,12 @@ function combinationsOf2(min: integer, max: integer)
 		for x in min..max
 			for y in min..max
 				yield (x, y)
+			end
+		end
+	end
 
 	return enumerateCombinations().toList()
+end
 ```
 
 (_Note calling `toList()` on an infinite stream would never terminate and may rapidly consume all machine memory!_).
@@ -1302,17 +1424,23 @@ A stream can yield the content of another stream using `yield stream`:
 stream a()
 	for x in 1..5
 		yield x
+	end
+end
 
 stream b()
 	for x in 9..12
 		yield x
+	end
+end
 
 stream c()
 	yield stream a // no need for parentheses if stream method has no parameters
 	yield stream b
+end
 
 for value in c
 	print(value)
+end
 
 // prints 1, 2, 3, 4, 5, 9, 10, 11, 12
 ```
@@ -1331,15 +1459,18 @@ function urlTostring(url: Url): string
 		urlstring |= "https://"
 	else
 		urlstring |= "http://"
+	end
 
 	urlstring |= url.hostname
 
 	if url.port is not nothing
 		urlstring |= ":{url.port}"
+	end
 
 	// ....
 
 	return urlstring
+end
 ```
 
 Unfortunately Island doesn't support the `var` keyword, so how could we approach this?
@@ -1354,16 +1485,19 @@ function urlTostring(url: Url): string
 		urlstring1 = "https://"
 	else
 		urlstring1 = "http://"
+	end
 
 	let urlstring2 = urlstring1 | url.hostname
 
 	let urlstring3
 	if url.port is not nothing
 		urlstring3 = urlstring2 | ":{url.port}"
+	end
 
 	// ....
 
 	return urlstringX
+end
 ```
 
 That looks, well, pretty bad. Couldn't we do better than that?
@@ -1376,15 +1510,19 @@ function urlTostring(url: Url): string
 			yield "https://"
 		else
 			yield "http://"
+		end
 
 		yield url.hostname
 
 		if url.port is not nothing
 			yield ":{url.port}"
+		end
 
 		// ....
+	end
 
 	return buildstring().JoinStrings("")
+end
 ```
 
 Looks a bit better! but a solution like this will only work for simple list concatenations, we want something more flexible that would generalize over to arbitrary computations of a similar nature.
@@ -1400,15 +1538,18 @@ function urlTostring(url: Url): string
 			yield prior | "https://"
 		else
 			yield prior | "http://"
+		end
 
 		yield prior | url.hostname
 
 		if url.port is not nothing
 			yield prior | ":{url.port}"
-
+		end
 		// ....
+	end
 
 	return buildstring().last()
+end
 ```
 
 We'll call this an **accumulative stream**.
@@ -1423,15 +1564,18 @@ function urlTostring(url: Url): (urlstring: string = "")
 		urlstring = urlstring | "https://"
 	else
 		urlstring = urlstring | "http://"
+	end
 
 	urlstring = urlstring | url.hostname
 
 	if url.port is not nothing
 		urlstring = urlstring | ":{url.port}"
+	end
 
 	// ....
 
 	// No need to return anything, since the return variable(s) have been explicitly declared
+end
 ```
 
 But wait a minute! you said Island didn't have `var`, and here you're using `urlstring` like it was mutable? what's going on?
@@ -1462,15 +1606,18 @@ function urlTostring(url: Url): (urlstring: string = "")
 		urlstring |= "https://"
 	else
 		urlstring |= "http://"
+	end
 
 	urlstring |= url.hostname
 
 	if url.port is not nothing
 		urlstring |= ":{url.port}"
+	end
 
 	// ....
 
 	// No need to return anything, urlstring is returned by default
+end
 ```
 And here you go! looks like reasonable code.
 
@@ -1492,6 +1639,9 @@ function shuffle(values: List<integer>, seed: integer): (suffledValues = values)
 		suffledValues = suffledValues with
 			[i] = suffledValues[randIndex]
 			[randIndex] = suffledValues[i]
+		end
+	end
+end
 ```
 
 Since `suffledValues` can only be read for the purpose of modifying itself, there is no need for the `with` operation to create a new copy of the list every time it is performed, and the intermediate results can be written in-place.
@@ -1502,6 +1652,9 @@ function combinationsOf2(min: integer, max: integer): (result: List<(integer, in
 	for x in min..max
 		for y in min..max
 			result |= (x, y)
+		end
+	end
+end
 ```
 
 ## List comprehensions
@@ -1509,13 +1662,13 @@ function combinationsOf2(min: integer, max: integer): (result: List<(integer, in
 **List comprehensions** allow building a list from `for`-like expressions.
 
 ```isl
-let l = [(for i in 1..5) => i^2]
+let l = [(for i in 1..5) => i ** 2]
 // l = [1, 4, 9, 16, 25]
 ```
 
 A **filtering predicate** can also be added, using the `where` clause:
 ```isl
-let l = [(for i in 1..5 where i mod 2 == 0) => i^2]
+let l = [(for i in 1..5 where i mod 2 == 0) => i ** 2]
 // l = [4, 16]
 ```
 
@@ -1555,20 +1708,23 @@ let sumsOfNaturalsUpTo5 = [(for initial = 1, i in 2..5) => prior + i]  // [1, 3,
 **Stream comprehensions** use syntax identical to stream comprehensions, excluding the brackets, and create a stream method instead:
 
 ```isl
-let squaresOfEvenNumbers = (for i in 1..infinity where i mod 2 == 0) => i^2
+let squaresOfEvenNumbers = (for i in 1..infinity where i mod 2 == 0) => i ** 2
 // The type of squaresOfEvenNumbers is 'stream () => integer'
 
 // (Note: since squaresOfEvenNumbers is a stream method with no parameters,
 //  the for..in syntax allows it to be optionally invoked without the parentheses '()')
 for n in squaresOfEvenNumbers
 	print(n) // prints 4, 16, 36, 64, ....
+end
 ```
 
 Now the factorial example can be simplified to a simple two line function:
 ```isl
 function factorial(num: 0..infinity)
 	 let facSequence = (for initial = 1, i in 1..num) => prior * i
+
 	 return facSequence().last
+end
 ```
 
 Here's the infamous "Fizz-Buzz" problem implemented using a stream comprehension and a `when` expression:
@@ -1601,8 +1757,12 @@ stream primesTo(max: integer)
 		if not n in nonprimes
 			yield n
 
-			let multiplesOfN = [(for initial = n^2 while prior < max) => prior + n]
+			let multiplesOfN = [(for initial = n ** 2 while prior < max) => prior + n]
+
 			continue nonprimes |= multiplesOfN
+		end
+	end
+end
 ```
 
 Wouldn't it be nice to make an infinite-length (unbounded) stream which enumerates all prime numbers? This can be achieved by, for each prime encountered, storing a stream enumerating its multiples, and at each step incrementally advancing the collected streams as needed:
@@ -1610,13 +1770,12 @@ Wouldn't it be nice to make an infinite-length (unbounded) stream which enumerat
 stream primes()
 	// Generates the integer sequence n^2, n^2 + n, n^2 + n + n, n^2 + n + n + n, ...
 	stream multiplesOf(n: integer) =
-		(for initial = n^2) => prior + n
+		(for initial = n ** 2) => prior + n
 
 	// For n in 2..infinity
 	// At each step, advance each stream until a value greater than or equal to n is reached
 	for n in 2..infinity, nonprimeStreams: List<Stream<integer>> = []
 	advance nonprimeStreams = [(for s in nonprimeStreams) => s.skipUntil(it >= n)]
-
 		// Search the stream object collection for a stream that reached exactly n
 		if not nonprimeStreams.includes(it.value == n)
 			// If none found then n is a prime - yield it
@@ -1625,6 +1784,9 @@ stream primes()
 			// Create a new (infinite-length) stream for the multiples of the prime just found
 			// and append it to the collection
 			continue nonprimeStreams |= multiplesOf(n)
+		end
+	end
+end
 ```
 
 List and stream comprehensions allow to easily implement common higher-order sequence processing functions like, `map`, `flatMap`, `filter`, `reduce` and `zip`, evaluated either eagerly (through list comprehensions) or lazily (through stream comprehensions). The generality of these operations requires type parameters, which would be introduced in a future chapter:
@@ -1660,7 +1822,9 @@ function quicksort(match items: List<integer>)
 		let pivot = items[items.length div 2]
 		let leftItems = quicksort([(for x in items where x < pivot) => x])
 		let rightItems = quicksort([(for x in items where x >= pivot) => x])
+
 		return leftItems | rightItems
+end
 ```
 
 Notice the two list comprehensions of the pattern `[(for x in items where <some condition>) => x]` employ a single auxiliary variable `x` only to represent the value selected by the loop. Using an abbreviated syntax, involving the `it` keyword, `quicksort` can be simplified to:
@@ -1672,6 +1836,7 @@ function quicksort(match items: List<integer>)
 		let leftItems = quicksort([items where it < pivot])
 		let rightItems = quicksort([items where it >= pivot])
 		return leftItems | rightItems
+end
 ```
 
 The expression:
@@ -1730,8 +1895,10 @@ So instead of:
 function factorial(num: integer)
 	for i in 1..num out result = 1
 		continue result *= i
+	end
 
 	return result
+end
 ```
 
 We can write:
@@ -1739,6 +1906,7 @@ We can write:
 function factorial(num: integer) = // Note the equals operator
 	for i in 1..num out result = 1
 		continue result *= i
+	end
 ```
 
 Loop variables marked with `out` would be treated as return values. If there are more than one, they would be returned as a tuple, arranged by their order of declaration.
@@ -1753,6 +1921,7 @@ class Person
 	firstName: string
 	lastName: string
 	age: integer
+end
 
 // Shorter syntax:
 class Person with firstName: string, lastName: string, age: integer
@@ -1773,6 +1942,7 @@ class Person
 	firstName = "Anonymous"
 	lastName = ""
 	age: integer
+end
 ```
 
 In addition to fields, classes may include functions, actions, computed fields, indexers and default streams:
@@ -1786,6 +1956,7 @@ class Person
 	// Function (long syntax)
 	function agePlusSomething(something: integer)
 		return age + something
+	end
 
 	// Function (short syntax)
 	agePlusSomething(something: integer) => age + something
@@ -1793,6 +1964,7 @@ class Person
 	// Action (long syntax)
 	action printDescription()
 		print(description)
+	end
 
 	// Action (short syntax)
 	action printDescription() => print(description)
@@ -1800,6 +1972,7 @@ class Person
 	// Computed field (long syntax)
 	computed description()
 		return "{firstName} {lastName}, of {age} years of age"
+	end
 
 	// Computed field (short syntax)
 	description => "{firstName} {lastName}, of {age} years of age"
@@ -1808,11 +1981,14 @@ class Person
 	this[match index]
 		case 0 => firstName
 		case 1 => lastName
+	end
 
 	// Default stream
 	stream this()
 		yield firstName
 		yield lastName
+	end
+end
 ```
 
 Member usage examples:
@@ -1826,6 +2002,7 @@ p[1] // returns "Jones"
 
 for m in p
 	print(m) // prints "Catherine" "Jones"
+end
 ```
 
 A class method can use the `this` object and the `with` operator to create a altered copy of its containing object:
@@ -1837,6 +2014,7 @@ class Person
 
 	getOlderPerson(yearsToAdd: integer) =>
 		this with age += yearsToAdd
+end
 ```
 
 Alterations can be applied deeply into the object hierarchy:
@@ -1844,13 +2022,14 @@ Alterations can be applied deeply into the object hierarchy:
 class Group
 	members: List<Person>
 	sharedInterest: string
+end
 
 let golfers = Group with
-	members = [Person("John", "Smith", 24), Person("Jane", "Doe", 42)]
+	members = [Person("John", "Smith", 24), Person("Jane", "Doe", 42)],
 	sharedInterest = "Golf"
 
 let deeplyAlteredGroup = golfers with
-	members[1].firstName = "Michael"
+	members[1].firstName = "Michael",
 	members[2].age = 45
 ```
 
@@ -1869,9 +2048,11 @@ class Person
 	firstName: string
 	lastName: string
 	age: integer
+end
 
 class PersonWithHeight extends Person
 	height: decimal
+end
 
 // Shorter syntax:
 class PersonWithHeight extends Person with height: decimal
@@ -1886,11 +2067,13 @@ class Person
 
 	description => "{firstName} {lastName}, of {age} years of age"
 	action printDescription() => print(description)
+end
 
 class PersonWithHeight extends Person
 	height: decimal
 
 	description => "{base.description} and {height} meters tall"
+end
 
 let james = PersonWithHeight("James", "Taylor", 19, 1.8)
 
@@ -1908,10 +2091,13 @@ abstract class AbstractPerson
 
 	computed description()
 	action printDescription()
+end
 
 class ConcretePerson extends AbstractPerson
 	description => "{firstName} {lastName}, of {age} years of age"
+
 	action printDescription() => print(description)
+end
 ```
 
 ## Features
@@ -1922,12 +2108,15 @@ A **feature** (roughly resembling a **mixin** in other languages) is an abstract
 feature Labeled
 	label: string
 	action printLabel() => print(label)
+end
 
 class Employee extends Labeled
 	fullName: string
+end
 
 action processLabeledObject(obj: Labeled)
 	obj.printLabel()
+end
 
 let someEmployee = Employee with fullName = "John Doe", label = "abc123"
 
@@ -1945,6 +2134,7 @@ class Employee extends Labeled
 	fullName: string
 
 	action printLabel() => print("Employee: {label}")
+end
 
 processLabeledObject(Employee("John Doe", label = "abc123")) // prints "Employee: abc123"
 ```
@@ -1953,18 +2143,23 @@ If several extended features have methods with **conflicting names or signatures
 ```isl
 feature Runner
 	action start(speed: decimal)
+end
 
 feature Processor
 	action start(speed: decimal)
+end
 
 class Example extends Runner, Processor
 	name: string
 
 	action Runner.start(speed: decimal)
 		....
+	end
 
 	action Processor.start(speed: decimal)
 		....
+	end
+end
 ```
 
 When a an method is overridden in this way, it is not possible to directly call it through the extending class:
@@ -1984,9 +2179,11 @@ When a similar conflict occurs between two or more fields, it can be resolved in
 ```isl
 feature FeatureA
 	index: integer
+end
 
 feature FeatureB
 	index: string
+end
 
 class ExampleClass extends FeatureA, FeatureB
 	name: string
@@ -1994,6 +2191,7 @@ class ExampleClass extends FeatureA, FeatureB
 	// 'Example' has no field named 'index', instead it has:
 	FeatureA.index = 10 // default value for FeatureA field
 	FeatureB.index = "10" // default value for FeatureB field
+end
 ```
 
 Initialization must prefix the field name with the feature it relates to:
@@ -2011,6 +2209,7 @@ class ExampleClass extends FeatureA, FeatureB
 
 	FeatureA.index => index
 	FeatureB.index => index.toString()
+end
 ```
 
 Now the object can be instantiated normally using the constructor syntax:
@@ -2023,19 +2222,26 @@ Features may **extend any number of other features**. A feature may override one
 feature Runner
 	action start(speed: decimal)
 		....
+	end
+end
 
 feature Processor
 	action start(speed: decimal)
 		....
+	end
+end
 
 feature ExampleFeature extends Runner, Processor
 	name: string
 
 	action Runner.start(speed: decimal)
 		....
+	end
 
 	action Processor.start(speed: decimal)
 		....
+	end
+end
 ```
 In this case, this means that `ExampleFeature` doesn't have its own `start` method. Instead it  modified the default implementations for members of the features it inherited from such that a class which extends `ExampleFeature` will have different default behaviors when it is cast to `Runner` or `Processor`:
 
@@ -2049,7 +2255,6 @@ let x = ExampleClass("Test")
 // not the original one specified in 'Runner'.
 ```
 
-
 ## Anonymous structures
 
 A **structure** is a simple object-like container, analogous to a dictionary, but with a fixed set of predefined fields and member types:
@@ -2061,6 +2266,7 @@ let myStructure = { url: "https://example.com", speed: 9000 }
 ```isl
 function giveMeSomeStructure(s: { url: string, speed: integer })
 	....
+end
 
 giveMeSomeStructure(myStructure)
 ```
@@ -2073,6 +2279,7 @@ class SomeClass
 	speed: integer
 	weight: decimal
 	....
+end
 
 let instanceOfSomeClass = SomeClass("SomeName", "https://example.com", 10000, 125.5)
 
@@ -2123,12 +2330,14 @@ The computed (or "lazy") nature of `c` is not reflected in the type - the type o
 class Vector2
 	x: decimal
 	y: decimal
+end
 
 object Vector2
 	zero = Vector2(0, 0)
 
 	distance(a: Vector2, b: Vector2) =>
-		sqrt((a.x - b.x)^2 + (a.y - b.y)^2)
+		sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+end
 
 let z = Vector2.zero // z = (0, 0)
 let d = Vector2.distance(Vector2(1, 3), Vector2(-5, 9)) // d = 8.485
@@ -2144,6 +2353,7 @@ object Point
 	operator +(a: Point, b: Point) => Point(a.x + b.x, a.y + b.y)
 	operator -(a: Point, b: Point) => Point(a.x - b.x, a.y - b.y)
 	operator -(a: Point) => Point(-a.x, -b.y)
+end
 
 let sumOfPoints = Point(1, 4) + Point(-2, 5)
 // sumOfPoints equals Point(-1, 9)
@@ -2159,6 +2369,7 @@ A **type feature** (also known as a **type class** in other languages) is a feat
 ```isl
 type feature Equatable<T>
 	operator ==(x: T, y: T): boolean
+end
 ```
 
 In the following example, both `Point` and `Person` implement the `Equatable` feature:
@@ -2167,18 +2378,22 @@ In the following example, both `Point` and `Person` implement the `Equatable` fe
 class Point
 	x: decimal
 	y: decimal
+end
 
 object Point extends Equatable<Point>
 	operator ==(a: Point, b: Point) =>
 		(a.x, a.y) == (b.x, b.y)
+end
 
 class Person
 	fullName: string
 	age: integer
+end
 
 object Person extends Equatable<Person>
 	operator ==(a: Person, b: Person) =>
 		(a.fullName, a.age) == (b.fullName, b.age)
+end
 
 function areEqual<T extends Equatable<T>>(a: T, b: T) => a == b
 
@@ -2192,6 +2407,7 @@ Here's a monoid type feature (representing an associative binary operation with 
 type feature Monoid
 	operator +(x: this, y: this): this
 	identity: this
+end
 ```
 _(Note the `this` type would contextually refer to the concrete type of the object implementing the feature, not to the `Monoid` abstraction)_
 
@@ -2207,9 +2423,11 @@ Using a type alias and a join type we can define a type that **combines both ins
 feature Person
 	firstName: string
 	lastName: string
+end
 
 type feature Equatable
 	operator ==(x: this, y: this): boolean
+end
 
 type EquatablePerson = Equatable and Person
 ```
@@ -2222,17 +2440,21 @@ class Person
 	firstName: string
 	lastName: string
 	age: integer
+end
 
 class expansion Person
 	fullname => "{firstName} {lastName}"
+end
 
 object Person
 	anonymous = Person("Anonymous", "", 0)
 	haveSameFirstName(p1: Person, p2: Person) => p1.firstName == p2.firstName
+end
 
 object expansion Person
 	operator ==(a: Person, b: Person) =>
 		(a.firstName, a.lastName, a.age) == (b.firstName, b.lastName, b.age)
+end
 ```
 
 Expansion can add any member kind apart from instance fields (though it can add type object fields):
@@ -2241,32 +2463,40 @@ class Person
 	firstName: string
 	lastName: string
 	age: integer
+end
 
 class expansion Person
 	favoriteNumber: integer // ERROR: This will not work
+end
 
 object Person
 	andy = Person("Andy", "Jones", 22)
+end
 
 object expansion Person
 	angela = Person("Anegla", "Jones", 25) // But this will work
+end
 
 object expansion Person
 	ben = Person("Ben", "Smith", 23) // And so will this
+end
 ```
 
 Class expansions can **extend features**, as well as override their default implementations:
 ```isl
 class Employee
 	fullName: string
+end
 
 feature Labeled
 	label: string
 	action printLabel() => print(label)
+end
 
 class expansion Employee extends Labeled
 	label => fullName
 	action printLabel() => print("Great Employee: {label}")
+end
 ```
 
 Expansions can **add members to features**, as long as they provide default values or implementations:
@@ -2274,9 +2504,11 @@ Expansions can **add members to features**, as long as they provide default valu
 feature Labeled
 	label: string
 	action printLabel() => print(label)
+end
 
 feature expansion Labeled
 	reversedLabel => label.reversed
+end
 ```
 
 Expansions are designed such that they never change the behavior of code outside of their own scope. This is ensured by several **precedence rules**.
@@ -2295,17 +2527,22 @@ This means that if `X` and `Y` are features, and `Z` extends both `X` and `Y`, a
 ```isl
 feature X
 	someField: string
+end
 
 feature expansion X
 	someFunction() => "X!"
+end
 
 feature Y
 	someFunction() => "Y!"
+end
 
 feature Z extends X, Y
+end
 
 function test(z: Z)
 	return z.someFunction() // There is no conflict here, this is will always return "Y!"
+end
 ```
 
 ## Generics
@@ -2318,6 +2555,7 @@ A **type parameter** is introduced using the `<T>` notation:
 class Pair<T>
 	a: T
 	b: T
+end
 ```
 
 The unknown type parameter (named `T` in this example) can accept any type:
@@ -2355,12 +2593,15 @@ Type parameters can have **constraints**, which enforce a minimum assignability 
 ```isl
 feature Named
 	name: string
+end
 
 class Person extends Named
 	age: integer
+end
 
 function loveAffair<T extends Named>(a: T, b: T) =>
 	"{a.name} loves {b.name}"
+end
 
 let l = loveAffair(Person("Angela", 21), Person("Mike", 20))
 // l = "Angela loves Mike"
@@ -2372,6 +2613,7 @@ Note that applying a type as a constraint is subtly different than specifying th
 class Fruit extends Named
 	name: string
 	weight: decimal
+end
 
 let l = loveAffair(Person("Angela", 21), Fruit("Apple", 1.5))
 // Error! could not find a binding for type parameter T.
@@ -2384,6 +2626,7 @@ Alternatively, if the `Named` feature was used directly as `a` and `b`'s paramet
 ```isl
 function loveAffair2(a: Named, b: Named) =>
 	"{a.name} loves {b.name}"
+end
 
 let l = loveAffair2(Person("Angela", 21), Fruit("Apple", 1.5)) // Works!
 // l = "Angela loves Apple"
@@ -2393,12 +2636,14 @@ let l = loveAffair2(Person("Angela", 21), Fruit("Apple", 1.5)) // Works!
 ```isl
 feature Printable
 	action printMe()
+end
 
 class Fruit extends Named, Printable
 	name: string
 	weight: decimal
 
 	action printMe() => print("A {a.name} weighing {weight}kg")
+end
 
 action printNamedThing<T extends Named and Printable>(a: T) => a.printMe()
 
@@ -2409,6 +2654,7 @@ Type parameters can have **default values**:
 ```isl
 function transformToPair<T, R = integer>(v1: T, v2: T): (R, R)
 	....
+end
 
 let result = transformToPair(42.53, -14.7) // 'T' inferred as decimal, 'R' defaults to integer
 // 'result' has the type '(integer, integer)'
@@ -2505,6 +2751,7 @@ Sometimes we may wish to constrain type parameters so that they can only be used
 ```isl
 class LookupTable<in K, out V>
 	function getValue(key: K): V
+end
 ```
 
 ## Fixed fields and partially constructed objects
@@ -2512,7 +2759,7 @@ class LookupTable<in K, out V>
 Consider this definition of the `Person` class :
 ```isl
 class Person
-	enumeration Gender with Male, Female
+	enum Gender with Male, Female
 
 	firstName: string
 	lastName: string
@@ -2522,6 +2769,7 @@ class Person
 	titleAndLastName => "{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
 	fullName => "{firstName} {lastName}"
 	fullNameAndAge => "{fullName}, of {age} years of age"
+end
 ```
 
 Say we wanted to derive a class for a person who must be male and whose last name must be "Smith". In the traditional object-oriented style this can be done by extending `Person` and fixing the `lastName` and `gender` fields to the constant values `"Smith"` and `Male`:
@@ -2529,6 +2777,7 @@ Say we wanted to derive a class for a person who must be male and whose last nam
 class MrSmith extends Person
 	final lastName = "Smith"
 	final gender = Gender.Male
+end
 ```
 
 A major limitation of this approach is that it can only work with values that are known at compile-time. What if we wanted to "partially apply" the `Person` class with some arbitrary values for `lastName` and `gender` that are only known at run-time?
@@ -2549,6 +2798,7 @@ class Person
 	titleAndLastName => "{when gender == Gender.Male: "Mr.", otherwise: "Ms."} {lastName}"
 	fullName => "{firstName} {lastName}"
 	fullNameAndAge => "{fullName}, of {age} years of age"
+end
 ```
 
 The computed field `titleAndLastName` can be called for `mrSmith`:
@@ -2565,11 +2815,13 @@ In case a member passes the `this` object explicitly, the receiving function mus
 ```isl
 function giveMePartialPerson(p: partial Person with gender, lastName)
 	....
+end
 
 class Person
 	....
 
 	somethingElse => giveMePartialPerson(this)
+end
 ```
 
 We could continue adding more information to the object:
@@ -2595,6 +2847,7 @@ An alternative, but more limited, way to achieve a similar effect is to partiall
 class Point
 	x: decimal
 	y: decimal
+end
 
 let pointWhereXEquals1 = Point(1, ...)
 // The type of 'pointWhereXEquals1' is 'partial Point with x'
@@ -2610,9 +2863,12 @@ class Database
 
 	action query(this, sql: string)
 		....
+	end
 
 	action verifyConnection({ connection }: this)
 		connection.verify(....)
+	end
+end
 ```
 
 For every new database object we wanted to create, we'd have to re-specify which server connection it uses:
@@ -2645,6 +2901,7 @@ class Person
 	firstName: string
 	lastName: string
 	planetResidence = "Earth"
+end
 
 let angelaFromUnknownPlanet = Person with firstName = "Angela", no planetResidence
 ```
@@ -2656,9 +2913,11 @@ feature Named
 	name: string
 	alias: string
 	id: string
+end
 
 action printThingName(thing: partial Named with name, id)
 	print("Name: {thing.name}, Id: {thing.id}")
+end
 ````
 
 # Concurrency, parallelism and lazy evaluation
@@ -2671,6 +2930,7 @@ class Person
 	firstName: string
 	lastName: string
 	fullName => "{firstName} {lastName}"
+end
 ```
 
 `fullName` is only evaluated when it is called (and possibly the result is then stored for subsequent calls).
@@ -2734,6 +2994,7 @@ function heavyCalculation()
 	// ....
 
 	return result
+end
 
 let x = spawn heavyCalculation() // The function heavyCalculations() starts on a seperate thread
 let y = somethingUnrelated(....) // This will execute even if heavyCalculations() has not completed
@@ -2766,10 +3027,13 @@ stream heavyCalculations()
 	for ....
 		....
 		yield result
+	end
+end
 
 for result in spawn heavyCalculations()
 	somethingUnrelated(....) // This will execute even if 'result' has not yet received a value
 	writeToDisk(result) // This will block until 'result' receives a value
+end
 ```
 
 Analogously to the single-value approach, we can spawn multiple streams and iterate both of them at the same time:
@@ -2777,6 +3041,7 @@ Analogously to the single-value approach, we can spawn multiple streams and iter
 for (result1, result2) in spawn (heavyCalculations1(), heavyCalculations2())
 	writeToDisk(result1) // This will block until result1 receives a value, and will execute even if result2 didn't
 	writeToDisk(result2) // This will block until result2 receives a value
+end
 ```
 
 Sometimes the lazy behavior isn't desirable, and it is preferred to wait until one or all of the streams produce a value before the body of the loop is entered. The `wait` keyword will cause execution to block until the reference variable(s) receive a value.
@@ -2788,6 +3053,7 @@ for (result1, result2) in spawn (heavyCalculations1(), heavyCalculations2())
 	// This will only execute once both result1 and result receive a value
 	print("Congratulations, we have new results!")
 	....
+end
 ```
 
 For convenience, the `wait` keyword can also be integrated as a modifier to the loop variable:
@@ -2796,6 +3062,7 @@ for (wait result1, wait result2) in spawn (heavyCalculations1(), heavyCalculatio
 	// This will only execute when both result1 and result receive a value
 	print("Congratulations, we have new results!")
 	....
+end
 ```
 
 Sometimes we want to allow for results to evaluate as soon as any one of several computations yields a value. By adding the `any` modifier to the variable, a single result is received whenever any one of the streams yields a value.
@@ -2805,6 +3072,7 @@ Sometimes we want to allow for results to evaluate as soon as any one of several
 // otherwise 'result' will receive a choice type (introduced at later chapter)
 for wait any result in spawn (heavyCalculations1(), heavyCalculations2())
 	writeToDisk(result)
+end
 ```
 
 The `spawn` keyword can also be used in stream and list comprehensions.
@@ -2827,6 +3095,7 @@ let y = anotherFunction(....)
 
 for a in someStream()
 	....
+end
 ```
 
 May be transformed to:
@@ -2836,6 +3105,7 @@ let y = spawn anotherFunction(....)
 
 for a in spawn someStream()
 	....
+end
 ```
 
 In the case of a stream, the compiler may also choose to precompute one or more future elements ahead of time (that is, in parallel to the execution of the loop body), since doing so would have no impact on the program's behavior (aside from possible slight increase in memory use).
@@ -2859,6 +3129,8 @@ action MyDelegate(): (in: string, out: string)
 	repeat
 		let name <- in
 		out <- "Hello {name}!"
+	end
+end
 ```
 
 The above delegate has both incoming and outgoing channels. An incoming one of type `string`, and an outgoing one, also of type `string`.
@@ -2885,9 +3157,12 @@ delegate MyDelegate(): (out: string)
 	// produce side-effects, by invoking actions or spawning further delegates.
 	for i in 1..infinity
 		greetingChan <- "Hello {i}"
+	end
+end
 
 for greeting in myDelegate()
 	print(greeting)
+end
 
 // Prints "Hello 1", "Hello 2", "Hello 3", ....
 ```
@@ -2896,9 +3171,11 @@ Similarly to how multiple parallel streams can be consumed using the `any` modif
 ```isl
 delegate KeyEvents(): (out: KeyEvent)
 	....
+end
 
 delegate MouseEvents(): (out: MouseEvent)
 	....
+end
 
 for match any inputEvent in (KeyEvents(), MouseEvents())
 	// 'inputEvent' has type 'KeyEvent or MouseEvent'
@@ -2906,6 +3183,7 @@ for match any inputEvent in (KeyEvents(), MouseEvents())
 		....
 	case MouseEvent
 		....
+end
 ```
 
 In real-world applications, however, it is sometimes the case that event sources are required to be dynamically subscribed and unsubscribed from throughout the program's runtime. This can be achieved by iterating over a dynamic collection of delegates (in this example a dictionary) and altering the collection in progressive iterations of the loop:
@@ -2918,17 +3196,21 @@ for eventSources = { "kEvents": KeyEvents() }, match any event in eventSources
 		continue eventSources with
 			no ["kEvents"]
 			["mEvents"] = MouseEvents()
+
 	case MouseEvent
 		print("Mouse event!")
+end
 ```
 
 Channel type references can be used to disambiguate messages from different channels sharing the same base type:
 ```isl
 delegate ProducesStrings(): (out: string)
 	....
+end
 
 delegate AlsoProducesStrings(): (out: string)
 	....
+end
 
 for match any stringMessage in (ProducesStrings(), AlsoProducesStrings())
 	// Superficially, 'stringMessage' has type 'string'. However, by matching over references
@@ -2937,6 +3219,7 @@ for match any stringMessage in (ProducesStrings(), AlsoProducesStrings())
 		....
 	case AlsoProducesStrings.out
 		....
+end
 ```
 
 A delegate executes in parallel to the calling thread, but is **bound to the lifetime of its object**. Once its object goes out of scope, its execution immediately terminates. It cannot be spawned and then "forgotten":
@@ -2945,6 +3228,7 @@ if someConditionIsTrue
 	let longRunningDelegate = LongRunningDelegate() // Delegate starts on a parallel thread
 	....
 	// 'longRunningDelegate' scope ends here
+end
 
 // The delegate execution's may have been abruptly terminated since its
 // object is no longer in scope!
@@ -2959,6 +3243,7 @@ delegate readTextFileInBackground(fileName: string): (out: string)
 
 	out <- fileContent
 	// 'return fileContent' can also be interchangably used here
+end
 
 // Execution waits until a message is received
 let text <- wait readTextFileInBackground("data.txt")
@@ -3003,6 +3288,7 @@ for match any inputEvent in (KeyEvents(), MouseEvents())
 		....
 	case Failure // Failure type can be further specialized, like to 'Failure<IO>'
 		....
+end
 ```
 
 # Contracts
@@ -3014,7 +3300,9 @@ The `assert` statement can evaluate arbitrary assertions. It is evaluated both d
 ```isl
 function divide(a: decimal, b: decimal)
 	assert b != 0
+
 	return a / b
+end
 
 let r1 = divide(10, 0) // compiler error
 
@@ -3037,7 +3325,9 @@ predicate nonzero(x: decimal) => x != 0
 
 function divide(a: decimal, b: decimal)
 	assert nonzero(b)
+
 	return a / b
+end
 ```
 
 It can reference the returned value as well, if declared as a named return variable (these types of assertions would always be evaluated after the function has returned):
@@ -3045,6 +3335,7 @@ It can reference the returned value as well, if declared as a named return varia
 function doSomeMath(x: decimal): (result: decimal)
 	assert result > x
 	....
+end
 ```
 
 The immutability property could potentially ease the analysis of more complex scenarios at compile-time, using a more advanced theorem prover:
@@ -3052,11 +3343,13 @@ The immutability property could potentially ease the analysis of more complex sc
 function someMath1(x: decimal): (result: decimal)
 	assert result > 5
 	....
+end
 
 function someMath2(a: decimal, b: decimal)
 	assert b >= 0
 	assert a + b < 5
 	....
+end
 
 // 'r1' is always greater than 5, regardless of argument passed to 'someMath1':
 let r1 = someMath1(???)
@@ -3077,11 +3370,13 @@ function someMath1(x: decimal): (result: decimal)
 	assert x >= -4.0 and x <= 4.0
 	assert result >= 16.0
 	....
+end
 ```
 
 ```isl
 function someMath1(x: -4.0..4.0): 16.0..infinity
 	....
+end
 ```
 
 Since Island values and variables are strictly read-only after initialization, only one assertion check is needed to ensure the validity of a contract throughout the lifetime of the object and its binding variable. Types of operations between refined types can be inferred during compile-time (if feasible):
@@ -3097,12 +3392,14 @@ Refinement types can include more complex Boolean expressions:
 ```isl
 function someMath2(x: -4..4 or 10..20): -16..16 and not 0
 	....
+end
 ```
 
 Refinement types can apply to strings, using regular expressions:
 ```isl
 function properIdentifiersOnly(id: /[a..zA..Z]+/)
 	....
+end
 ```
 
 More complex assertions can be included in a type by referencing a **predicate function**, which must accept a single argument and a return type of `boolean`. These kinds of types are called **assertion types**.
@@ -3114,6 +3411,7 @@ predicate MultipleOf10(num: integer) => num mod 10 == 0
 
 function something(x: MultipleOf10)
 	....
+end
 ```
 
 Since `MultipleOf10` represents both a method identifier and a type, it naturally lends for the `is` operator to be used as an alternative syntax to assert over its truth-value:
@@ -3126,6 +3424,7 @@ if val is MultipleOf10 // practical alternative to writing MultipleOf10(val)
 	....
 else
 	....
+end
 ```
 
 Like any other method, assertion types can accept type arguments:
@@ -3134,6 +3433,7 @@ predicate ShortList<T>(list: List<T>) => list.Length < 100
 
 function something(x: ShortList<string>)
 	....
+end
 ```
 
 A less powerful, but more concise way to define assertion types employs the `where` clause, used similarly to the `match` predicate syntax:
@@ -3141,18 +3441,22 @@ A less powerful, but more concise way to define assertion types employs the `whe
 ```isl
 function something(x: integer where x mod 10 == 0): (result: integer where result mod 2 == 0)
 	....
+end
 ```
 
 These capabilities enable overload resolution to include rudimentary `match`-like predicates:
 ```isl
 action doSomething(category: "Animal", isMammal: true, owner: Person where age >= 18)
 	print("Hello animal lover!")
+end
 
 action doSomething(category: "Animal", isMammal: false, owner: Person where age < 18)
 	print("Hello young animal lover!")
+end
 
 action doSomething(category: "Person", id: /[a..zA..Z]+/)
 	print("Hello random person!")
+end
 ```
 
 Using the compact overloading syntax would resemble more of the `match`/`case` structure. The following is semantically equivalent:
@@ -3160,12 +3464,16 @@ Using the compact overloading syntax would resemble more of the `match`/`case` s
 action doSomething
 	(category: "animal", isMammal: true, owner: Person where age >= 18)
 		print("Hello animal lover!")
+	end
 
 	(category: "animal", isMammal: false, owner: Person where age < 18)
 		print("Hello young animal lover!")
+	end
 
 	(category: "person", id: /[a..zA..Z]+/)
 		print("Hello random person!")
+	end
+end
 ```
 
 However, note that unlike `match` statements, overloading assumes the given argument set must satisfy one of the overloads, thus an analogous `otherwise` fallback is not needed. In case of a matching failure not caught during compile-time, a run-time error would be thrown.
@@ -3176,6 +3484,7 @@ function fibonacci
 	(num: 1) => 0
 	(num: 2) => 1
 	(num: 3..infinity) => fibonacci(num - 1) + fibonacci(num - 2)
+end
 ```
 
 Passing a number smaller than 1, e.g. `fibonacci(0)` would cause a runtime error (alternatively an overload like `(num: integer where num < 1) => throw ....` could be added to provide more specialized error handling).
@@ -3186,6 +3495,7 @@ function fibonacci(match num)
 	case 1 => 0
 	case 2 => 1
 	case it > 3 => fibonacci(num - 1) + fibonacci(num - 2)
+end
 ```
 
 Passing `fibonacci(0)`, would cause a compile-time error.
@@ -3203,12 +3513,16 @@ This would further simplify a previous example to:
 action doSomething
 	("animal", true, owner: Person where age >= 18)
 		print("Hello animal lover!")
+	end
 
 	("animal", false, owner: Person where age < 18)
 		print("Hello young animal lover!")
+	end
 
 	("person", id: /[a..zA..Z]+/)
 		print("Hello random person!")
+	end
+end
 ```
 
 Having no identifiers, the first two parameters can still accept named arguments by being referenced by their index:
@@ -3240,6 +3554,7 @@ type Euros = decimal
 
 function iWantDollars(money: Dollars)
 	....
+end
 
 let euros: Euros = 45.0
 iWantDollars(euros) // No error!
@@ -3252,6 +3567,7 @@ unique type Euros = decimal
 
 function iWantDollars(money: Dollars)
 	....
+end
 
 let euros: Euros = 45.0 as Euros // Explicit cast needed here
 iWantDollars(euros) // Error! incompatible types
@@ -3273,6 +3589,7 @@ if x is integer
 	print("integer!")
 else if x is string
 	print("string!")
+end
 ```
 
 Or using pattern matching:
@@ -3282,8 +3599,10 @@ let x: IntegerOrString = 3
 match x
 	case integer
 		print("integer!")
+
 	case string
 		print("string!")
+end
 ```
 
 Choice types may **include any type**, including primitives, templates, features, other choice types or even refinement types:
@@ -3314,9 +3633,9 @@ One issue with this approach is that pattern matching to discriminate between a 
 function leafOrInternal<T>(match tree: BinaryTree<T>)
 	case T
 		return "leaf!"
-
 	case (BinaryTree<T>?, BinaryTree<T>?)
 		return "internal!"
+end
 ```
 
 Wouldn't it be nicer if we could give those two possibilities names, to ease on pattern matching? It would be also nice to declare the type in a more organized way.
@@ -3328,13 +3647,14 @@ With a variant type, pattern matching over a binary tree becomes much easier:
 variant BinaryTree<V>
 	Leaf: V
 	Internal: (leftNode: BinaryTree<V>?, rightNode: BinaryTree<V>?)
+end
 
 function leafOrInternal<T>(match tree: BinaryTree<T>)
 	case Leaf
 		return "leaf!"
-
 	case Internal
 		return "internal!"
+end
 ```
 
 Values of variant members can be assigned, matched and extracted using the `VariantMemberName(value)` syntax:
@@ -3349,9 +3669,13 @@ stream traverseBinaryTree<T>(match tree: BinaryTree<T>)
 	case Internal(let left, let right)
 		if left is not nothing
 			yield stream traverseBinaryTree(left)
+		end
 
 		if right is not nothing
 			yield stream traverseBinaryTree(right)
+		end
+end
+
 ```
 
 Variant types allow for including members with **duplicate types**:
@@ -3360,6 +3684,7 @@ variant Currency
 	USDollar: decimal
 	Euro: decimal
 	Yen: decimal
+end
 
 let money: Currency = Euro(45.0)
 ```
@@ -3370,12 +3695,14 @@ Variant types with members of tuple types allow including a `where` clause, in w
 variant PersonOrCar
 	Person: (name: string, height: decimal)
 	Car: (brand: string, maxSpeed: decimal)
+end
 
 function getResponseString(match personOrCar: PersonOrCar)
 	case Person where name == "James" => "Hi James"
 	case Person where height >= 2.0 => "Tall person"
 	case Car where maxSpeed >= 200.0 => "Fast car"
 	otherwise => "Not interesting"
+end
 ```
 
 Same as above using the constructor-style syntax:
@@ -3385,6 +3712,7 @@ function getResponseString(match personOrCar: PersonOrCar)
 	case Person(any, here >= 2.0, ...) => "Tall person"
 	case Car(any, here >= 200, ...) => "Fast car"
 	otherwise => "Not interesting"
+end
 ```
 
 Members may individually include their own set of type parameters (this is related to the notion of a **generalized algebraic data type**):
@@ -3392,6 +3720,7 @@ Members may individually include their own set of type parameters (this is relat
 variant PairOrTriple
 	Pair<T>: (x: T, y: T)
 	Triple<V>: (x: V, y: V, z: V)
+end
 
 function matchPairOrTriple(match pairOrTriple: PairOrTriple)
 	case Pair<string>("James", any) => "Hi James"
@@ -3400,6 +3729,7 @@ function matchPairOrTriple(match pairOrTriple: PairOrTriple)
 	case Triple<integer>(any, any, 55) => "55"
 	case Triple<boolean>(any, false, true) => "OK!"
 	otherwise => "Not interesting"
+end
 ```
 
 Variant types can be **extended**:
@@ -3408,14 +3738,17 @@ variant Currency
 	USDollar: decimal
 	Euro: decimal
 	Yen: decimal
+end
 
 variant ExtendedCurrency extends Currency
 	CanadianDollar: decimal
 	PoundSterling: decimal
+end
 
 variant ExtendedMoreCurrency extends ExtendedCurrency
 	SwedishKrona: decimal
 	SwissFranc: decimal
+end
 ```
 
 An extended variant type is a **super-type** of the variant it inherits from. This is the opposite relationship when compared to class inheritance, which creates a subtype.
@@ -3424,6 +3757,7 @@ For example:
 ```isl
 function giveMeMoney(money: Currency)
 	....
+end
 
 giveMeMoney(Currency.Euro(10.0)) // works
 giveMeMoney(ExtendedCurrency.CanadianDollar(10.0)) // doesn't work
@@ -3433,6 +3767,7 @@ However:
 ```isl
 function giveMeMoney(money: ExtendedCurrency)
 	....
+end
 
 giveMeMoney(Currency.Euro(10.0)) // works
 giveMeMoney(ExtendedCurrency.CanadianDollar(10.0)) // works
@@ -3444,9 +3779,11 @@ An extending variant type may **override** one or more members, as long as the o
 variant WordKind
 	ActionWord: TransitiveVerb
 	ObjectWord: Noun
+end
 
 variant ExtendedWordKind extends WordKind
 	ActionWord: Verb // Verb is a super-type of TransitiveVerb
+end
 ```
 
 Variants may contain **untyped members**, which can be useful for representing possibilities or states that don't carry any data with them:
@@ -3456,6 +3793,7 @@ variant Currency
 	USDollar: decimal
 	Euro: decimal
 	Unknown
+end
 ```
 
 Variant types may **embed class declarations** for one or more of their members. Declaring `Internal` as an embedded class now allows to implement a specialized `traverse` method for the `Internal` member:
@@ -3472,27 +3810,34 @@ variant BinaryTree<V>
 		stream traverse()
 			yield stream leftNode?.traverse()
 			yield stream rightNode?.traverse()
+		end
+	end
+end
 ```
 
 Like classes, variants may have **companion type objects**, which also enable them to support type features:
 ```isl
 variant BinaryTree<V>
 	....
+end
 
 // Here, 'this' type substitutes for 'BinaryTree<V>':
 object BinaryTree<V> extends Comparable<this>, Equatable<this>
 	stream traverse(match tree: this)
 		case Leaf(let value)
 			yield value
-
 		case Internal
 			yield stream tree.iterate()
+	end
 
 	function compare(t1: this, t2: this): integer
 		....
+	end
 
 	operator ==(t1: this, t2: this): boolean
 		....
+	end
+end
 ```
 
 Individual members of the variant may also receive their own **dedicated type objects**:
@@ -3504,10 +3849,13 @@ object BinaryTree<V> extends Comparable<this>, Equatable<this>
 	// Here, 'this' type substitutes for 'BinaryTree<V>.Leaf'
 	object Leaf extends Comparable<this>, Equatable<this>
 		....
+	end
 
 	// And here, 'this' type substitutes for 'BinaryTree<V>.Internal'
 	object Internal extends Comparable<this>, Equatable<this>
 		....
+	end
+end
 ```
 
 ## Enumerations
@@ -3515,12 +3863,13 @@ object BinaryTree<V> extends Comparable<this>, Equatable<this>
 An **enumeration** is a type expressing a choice between a set of identifiers associated with constant values. By default, enumeration members receive integer values following the sequence `1, 2, 3, ...`
 
 ```isl
-enumeration StatusCode with Waiting, OK, Failed
+enum StatusCode with Waiting, OK, Failed
 
 action alertStatus (match status: StatusCode)
 	case Waiting => print("Still waiting..")
 	case OK => print("Everything is OK!")
 	case Failed => print("Damn, failed :(")
+end
 ```
 
 Enumerations are special forms of variant types where each member must receive a unique type (which can also be a literal type like `4`, `"hello"` or `true`).
@@ -3531,13 +3880,14 @@ variant StatusCode // 1, 2, 3 are literal *types*
 	Waiting: 1
 	OK: 2
 	Failed: 3
+end
 
 let status: StatusCode = StatusCode.OK
 ```
 
 Enumeration members can have integer values other than the `1, 2, 3, ...` sequence. If a member value is explicitly specified, all following members without explicit values are automatically incremented relative to it:
 ```isl
-enumeration HttpStatusCode
+enum HttpStatusCode
 	OK = 200
 	Created  // = 201
 	Accepted // = 202
@@ -3547,15 +3897,17 @@ enumeration HttpStatusCode
 	BadRequest = 400
 	Unauthorized	 // = 401
 	PaymentRequired  // = 402
+end
 ```
 
 Enumerations can have members of types other than `integer`, however, in this case all member values have to be explicitly specified:
 ```isl
-enumeration Direction
+enum Direction
 	Up = "UP"
 	Down = "DOWN"
 	Left = "LEFT"
 	Right = "RIGHT"
+end
 ```
 
 ## The `nothing` type and the `?` operator
@@ -3571,6 +3923,8 @@ function computeSomething(integer num): integer or nothing // can also be writte
 		return num * 2
 	else
 		return nothing // 'nothing' here acts somewhat like 'null'
+	end
+end
 
 let x = computeSomething(-1) // what type and value does 'x' receive?
 ```
@@ -3581,6 +3935,7 @@ Actions that don't return any value can be optionally annotated as returning `no
 ```isl
 action printHelloWorld(): nothing // 'nothing' here acts like 'void' in the C family of languages
 	print("Hello World!")
+end
 ```
 
 Trying the read the result of a method returning only `nothing` (either annotated as such or not) will fail, since the `nothing` type doesn't contain any useful information by itself:
@@ -3606,11 +3961,13 @@ class Address
 	city: string
 	street: string
 	houseNumber: integer
+end
 
 class Person
 	name: string
 	address: Address or nothing
 	petNames: List<string> or nothing
+end
 
 let person = Person with name = "Jimmy Jones", address = nothing, petNames = nothing
 
@@ -3634,6 +3991,7 @@ function whatIsThis(match x: any)
 	case boolean => "boolean!"
 	case List<boolean> => "list of booleans!"
 	otherwise => "I don't know?"
+end
 ```
 
 Assigning from a value having the `any` type could also be done using an explicit cast:
@@ -3658,8 +4016,10 @@ For example, if a `for` loop, running inside a `function` context, does not alte
 function neverEndingFunction(num: integer)
 	for i = 1, out result = 1
 		continue // never terminates!
+	end
 
 	return result
+end
 
 let x = neverEndingFunction(0) // what type is x?
 ```
@@ -3672,8 +4032,10 @@ Sometimes there are only particular cases where the function never returns:
 function maybeNeverEndingFunction(num: integer)
 	for i = 1, out result = 1 while num > 0
 		continue
+	end
 
 	return result
+end
 
 let mysteryValue: integer = mysteryFunction(....)
 let x = maybeNeverEndingFunction(mysteryValue) // what type is x?
@@ -3693,25 +4055,31 @@ If we wanted to write a function that accepts a parameter of a type implementing
 ```isl
 feature Named
 	name: string
+end
 
 feature Numbered
 	id: integer
+end
 
 feature NamedAndNumbered extends Named, Numbered
 
 function giveMeNamedAndNumbered(value: NamedAndNumbered)
 	....
+end
 ```
 Using a join type, this can be shortened to:
 ```isl
 feature Named
 	name: string
+end
 
 feature Numbered
 	id: integer
+end
 
 function giveMeNamedAndNumbered(value: Named and Numbered)
 	....
+end
 ```
 
 ## Member and parameter type references
@@ -3725,6 +4093,8 @@ class Person
 
 	action processMe(someData: integer, moreData: string): Set<string>
 		....
+	end
+end
 
 let n: Person.name // n receives the type string
 let d: Person.data[2] // d receives the type boolean
@@ -3739,6 +4109,7 @@ Same for methods outside of a class:
 ```isl
 function myFunc(p1: (integer, boolean)): List<string>
 	....
+end
 
 let t: myFunc.p1 // t gets the type (integer, boolean)
 let r: myFunc.p1.return // r gets the type List<string>
@@ -3748,6 +4119,7 @@ Referring to the types of companion object members is possible through the `(obj
 ```isl
 object Person
 	bestPerson: string = "Cleopatra"
+end
 
 let best: (object Person).bestPerson // best receives the type string
 ```
@@ -3766,6 +4138,7 @@ Consider this case:
 ```isl
 function divide(x: integer, y: integer)
 	return x div y
+end
 
 let r = divide(10, 0) // What should be the type of 'r'?
 ```
@@ -3775,6 +4148,7 @@ One approach would be to return `nothing` when `y` is 0:
 function divide(x: integer, y: integer): integer?
 	when y == 0 => nothing
 	otherwise => x div y
+end
 
 let r1 = divide(10, someInt) // 'r1' gets type integer or 'nothing'
 let r2 = divide(10, 0) // 'r2' gets type 'nothing'
@@ -3789,6 +4163,7 @@ However, that would mean that in every computation done with `divide` we would h
 let r3
 if r1 is not nothing
 	r3 = r1 + 10
+end
 ```
 
 Alternatively, the **Failure type** is a special type designated to represent failures.
@@ -3806,6 +4181,7 @@ The failure type possesses a special "vanishing" quality when included inside of
 function divide(x: integer, y: integer)
 	when y == 0 => Failure("Divide by zero!")
 	otherwise => x div y
+end
 
 let r1 = divide(10, someInt) // 'r1' gets type 'integer (or Failure<string>)'
 let r2 = divide(10, 0) // 'r2' gets type 'Failure<string>'
@@ -3820,6 +4196,7 @@ Note that if the result of the operation is immediately unpacked, the failure ca
 function getKeyOrFail(key: integer, dict: { string: (age: integer, bestFriend: string) })
 	when key in dict => dict[key]
 	otherwise => Failure("Key '{key}' not found!")
+end
 
 let someDictionary = { "Linda": (25, "Mary"),  "Alan": (34, "Anton") }
 
@@ -3827,6 +4204,7 @@ let (age, bestFriend) = getKeyOrFail("James", someDictionary)
 
 if age is Failure
 	print("Couldn't find "James" in the dictionary!: {age as Failure<string>}")
+end
 ```
 
 ## Using `try`..`detect` (action scopes only)
@@ -3837,8 +4215,10 @@ The second approach, available only in action scopes (due to its reliance on sid
 action readLineFromFile(f: File)
 	if not f.exists
 		fail IOFailure("File not found")
+	end
 
 	return f.ReadLine()
+end
 
 action example(f: File)
 	try
@@ -3846,6 +4226,7 @@ action example(f: File)
 		print(line)
 	detect failure: IOFailure
 		print(failure.message)
+	end
 ```
 
 # Patterns and parsers
@@ -3867,6 +4248,7 @@ match myList
 		....
 	case [..., let v > 5, ...]
 		....
+end
 ```
 
 **Pattern methods** generalize over this feature, and allow to define arbitrary pattern recognizers via special-purpose subroutine-like helpers.
@@ -3881,6 +4263,7 @@ let PhoneNumberRegExp = /^[\+]?[ ]?([0-9][0-9]?[0-9]?)[ ]?\(([0-9][0-9][0-9])\)[
 match str
 	case PhoneNumberRegExp of ("1", "800", any, let lineNumber)
 		....
+end
 ```
 
 With a pattern method, we could instead write:
@@ -3888,6 +4271,7 @@ With a pattern method, we could instead write:
 match str
 	case PhoneNumberPattern of ("1", "800", any, let lineNumber)
 		....
+end
 ```
 
 Where `PhoneNumberPattern` would be a pattern method defined as:
@@ -3904,6 +4288,7 @@ pattern PhoneNumberPattern() of (countryCode, areaCode, prefix, lineNumber) in s
 	accept "-"
 	lineNumber = accept Repeated(Digit, 4)
 	accept end
+end
 ```
 
 A pattern method is written similarly to a standard method only it employs the `accept` keyword which implicitly "advances" the recognizer whenever a pattern is matched:
@@ -3920,6 +4305,7 @@ In the above example, `Repeated` and `Digit` are references to secondary pattern
 ```isl
 pattern Digit() of (value) in string
 	value = accept if it in { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }
+end
 ```
 
 `accept if ....` will accept only if the given condition is satisfied. The `it` keyword represents the target captured value (in `string` it defaults to a single character). In general in `accept <pattern> if it ....` `it` would represent the subsequence captured by the pattern.
@@ -3947,14 +4333,18 @@ pattern Date() of (day, month, year) in string
 		accept "."
 		month = accept IntegerNumber(1, 12)
 		accept "."
+	end
 
 	year = accept IntegerNumber
 
 	accept end
+end
 
 match str
 	case Date of (1, 12, let year >= 2005)
 		....
+	end
+end
 ```
 
 Pattern methods can recognize and parse patterns that go well beyond the constraints of regular languages.
@@ -3972,10 +4362,13 @@ pattern Date(seperatorCharacterSet: Set<string>) of (day, month, year) in string
 	year = accept IntegerNumber
 
 	accept end
+end
 
 match str
 	case Date({"/", "-", "."}) of (1, 12, let year >= 2005)
 		....
+	end
+end
 ```
 
 ## Patterns in non-character streams
@@ -3988,8 +4381,10 @@ pattern ThreePrimes() in Stream<integer>
 
 	for _ in 1..3
 		accept if isPrime(it)
+	end
 
 	accept end
+end
 
 // Recognizes 2, 4, 6, 8, 10, ....
 pattern EvenNaturalNumberSeries() in Stream<integer>
@@ -4000,6 +4395,9 @@ pattern EvenNaturalNumberSeries() in Stream<integer>
 			accept if it == i
 		else try
 			accept end
+		end
+	end
+end
 
 // Recognizes a stream of ascending twin prime tuples like:
 // (3, 5), (5, 7), (11, 13), (29, 31), ....
@@ -4010,6 +4408,7 @@ pattern TwinPrimesSequence() in Stream<IntegerPair>
 
 	pattern TwinPrimes in Stream<IntegerPair>
 		accept if it.second == it.first + 2 and isPrime(it.first) and isPrime(it.second)
+	end
 
 	for previousLowPrime = -1
 		try
@@ -4018,6 +4417,9 @@ pattern TwinPrimesSequence() in Stream<IntegerPair>
 		else try
 			accept end
 			break
+		end
+	end
+end
 ```
 
 ## Lookahead
@@ -4037,8 +4439,11 @@ pattern TitleXMLElement() in string
 			break // break out of the loop without advancing the read position
 		else try
 			accept Letter
+		end
+	end
 
 	accept "</title>" // since the stream position has not advanced, this should always succeed
+end
 ```
 
 More generally, this approach can be used to define a pattern which would accept anything until a stop pattern is encountered. This example relies on a higher-order pattern, which is introduced in the next section:
@@ -4053,6 +4458,9 @@ pattern AnythingUntil<T>(StopPattern: pattern in Stream<T>) of (results: List<T>
 			// 'results' acts similarly to a named return variable
 			// It can be incrementally updated,
 			// However, it can only be read when assigned back to itself
+		end
+	end
+end
 ```
 
 ## Abstract and higher-order patterns
@@ -4073,6 +4481,9 @@ function recognizeThis(str: string, p: MyAbstractPattern, expectedValues: (integ
 			return true
 		otherwise
 			return false
+		end
+	end
+end
 
 pattern MyPattern() of (value, ok) in string
 	value = accept IntegerNumber
@@ -4084,8 +4495,10 @@ pattern MyPattern() of (value, ok) in string
 	else try
 		accept "No"
 		ok = false
+	end
 
 	accept end
+end
 
 recognizeThis("42 Yes", MyPattern, (42, true)) // returns true
 recognizeThis("10 No", MyPattern, (20, false)) // returns false
@@ -4101,15 +4514,21 @@ pattern Repeated<T>(p: AnyPattern<T>, minTimes: integer, maxTimes: integer)
 	if minTimes >= 1
 		for _ in 1..minTimes
 			results |= accept p
+		end
+	end
 
 	for _ in minTimes..maxTimes
 		try
 			results |= accept p
 		else
 			break
+		end
+	end
+end
 
 pattern Repeated<T>(p: AnyPattern<T>, times: integer) of (results: List<T> = []) in Stream<T>
 	results = accept Repeated(p, times, times)
+end
 ```
 
 ## Unpacking through a pattern method
@@ -4129,6 +4548,7 @@ if str matches Date of let (day, month, year)
 	....
 else
 	....
+end
 ```
 
 ## Wrapping pattern expressions in pattern methods
@@ -4137,18 +4557,21 @@ A simple pattern expression, like one that's used in `match` statements and expr
 ```isl
 case [let first < 0, let second != first, let ...rest]
 	....
+end
 ```
 
 can be made reusable by wrapping it in a pattern method:
 ```isl
 pattern SomeListPattern() of (first, second, rest) in List<integer> = // note the '=' operator
 	[first < 0, second != first, ...rest]
+end
 ```
 
 and then applied via its method name and signature:
 ```isl
 case SomeListPattern of let (first, second, rest)
 	....
+end
 ```
 
 ## Patterns in non-stream inputs
@@ -4170,6 +4593,7 @@ We can extend conventional pattern methods to support this as well, but that wou
 ```isl
 pattern SuccessiveNumbers() of (first, second) in (integer, integer)
 	(first, second) = accept if it[2] == it[1] + 1
+end
 ```
 
 Here's a pattern method that tests if a number is a composite (non-prime) and captures its prime factors:
@@ -4178,15 +4602,18 @@ pattern CompositeNumber(primeFactors, isHighlyComposite) in integer
 	let number = accept if not isPrime(it)
 	primeFactors = getPrimeFactors(number)
 	isHighlyComposite = isHighlyComposite(number)
+end
 
 action printPrimalityInfo(match someNumber: integer)
 	case PrimeNumber
 		print("Prime!")
 	case CompositeNumber of (let factors, false)
 		print("Composite! with prime factors {factors}")
+
 	// (CompositeNumber pattern doesn't need to be recomputed since previous result is cached)
 	case CompositeNumber of (let factors, true)
 		print("Highly composite! with prime factors {factors}")
+end
 
 printPrimalityInfo(97) // prints "Prime!"
 printPrimalityInfo(100) // prints "Composite! with prime factors 2, 5"
@@ -4208,6 +4635,9 @@ pattern FirstCharacterSameAsLast() of (first, last) in string
 		// Reject if first and last characters don't match
 		if first != last
 			reject
+		end
+	end
+end
 ```
 
 # Logic programming
@@ -4232,12 +4662,16 @@ class Family
 		fact ("Alice", "James")
 		fact ("Alice", "Angela")
 		fact ("Tom", "John")
+	end
 
 	relation Siblings
 		rule (sibiling1: string, sibling2: string)
 			Parent(let someParent, sibling1)
 			Parent(someParent, sibling2)
 			NotEqual(sibling1, sibling2)
+		end
+	end
+end
 
 let family = Family()
 
@@ -4268,6 +4702,7 @@ let alteredFamlily = family with
 
 for (sibling1, sibling2) in alteredFamlily.Siblings(?, ?).distinctUnorderedPairs()
 	print("({sibling1}, {sibling2})")
+end
 
 // prints "(Angela, Lea)", "(Angela, Chris)", "(Lea, Chris)"
 ```
@@ -4282,6 +4717,8 @@ relation Factorial
 		Subtraction(number, 1, let previousNumber)
 		Factorial(previousNumber, let previousFactorial)
 		Product(number, previousFactorial, result)
+	end
+end
 
 print(Factorial(5, ?).first) // Prints "(5, 120)"
 print(Factorial(5, ?).first.result) // Prints "120"
@@ -4307,6 +4744,7 @@ The `(in, in)` overload, in which both terms are known values is implemented usi
 ```isl
 relation GreaterThan
 	predicate (in num1: integer, in num2: integer) => num1 > num2
+end
 ```
 
 The `(in, out)` overload, in which the first term is a value and the second unknown, defines a stream method yielding a sequence of tuples where the first element is always (and must always be!) `num1` and the second enumerates all the values smaller than `num1`.
@@ -4315,8 +4753,11 @@ relation GreaterThan
 	stream (in num1: integer, out num2: integer)
 		for i = num1 - 1 advance i -= 1
 			yield (num1, i)
+		end
 
 		// yields (num1, num1 - 1), (num1, num1 - 2), (num1, num1 - 3), ...
+	end
+end
 ```
 
 The `(out, in)` overload defines a stream method yielding a sequence of tuples where the first element enumerates all the values greater than `num2` and the second is always `num2`.
@@ -4325,8 +4766,11 @@ relation GreaterThan
 	stream (out num1: integer, in num2: integer)
 		for i = num2 + 1 advance i += 1
 			yield (i, num2)
+		end
 
-	// yields (num2 + 1, num2), (num2 + 2, num2), (num2 + 3, num2), ...
+		// yields (num2 + 1, num2), (num2 + 2, num2), (num2 + 3, num2), ...
+	end
+end
 ```
 
 Since `in` parameters are always returned as-is in the resulting tuple, we can avoid stating them in the `yield` statement by using `continue`- like syntax, which allows omitting arguments that were not assigned by the function. The following is equivalent:
@@ -4335,6 +4779,9 @@ relation GreaterThan
 	stream (in num1: integer, out num2: integer)
 		for i = num2 + 1 advance i += 1
 			yield num2 = i // implicitly equivalent to yielding the tuple (num1, i)
+		end
+	end
+end
 ```
 
 _(An `(out, out)` overload might also be defined, in theory, though it would be significantly more challenging to implement as it would need to somehow "fairly" cover all possible combinations of two integers where the first one is greater than the second)_
@@ -4364,9 +4811,11 @@ relation Subtraction
 		for i = 1 advance i += 1
 			yield (i, i - difference, difference)
 			yield (-i, -i - difference, difference)
+		end
 
 		// For the case where difference = 2 this would yield:
 		// (0, -2, 2), (1, -1, 2), (-1, -3, 2), (2, 0, 2), (-2, -4, 2), ....
+	end
 ```
 
 The `if` keyword allows branch-like functionality for relation blocks:
@@ -4375,6 +4824,7 @@ Here's the infamous "Fizz-Buzz" problem, this time implemented using a relation:
 ```isl
 relation Divides
 	predicate (in x, in y) => x mod y == 0
+end
 
 relation FizzBuzz
 	rule (index: integer, output: string)
@@ -4388,6 +4838,9 @@ relation FizzBuzz
 			Equals(output, "Buzz")
 		else
 			Equals(output, "{index}")
+		end
+	end
+end
 
 FizzBuzz(30, "Buzz").exists // returns false
 FizzBuzz(30, ?).exists // returns true
@@ -4396,6 +4849,7 @@ FizzBuzz(30, "FizzBuzz").exists // returns true
 
 for (_, str) in FizzBuzz(?, ?)
 	print(str)
+end
 
 	// prints "1", "2", "Fizz", "4", "Buzz", "Fizz" ....
 ```
@@ -4409,6 +4863,7 @@ for (index, _) in FizzBuzzer.FizzBuzz(?, "Fizz")
 	print(index)
 
 	// prints 3, 6, 9, 12, 18, 21, ....
+end
 ```
 
 Here's the absolute value implemented as a relation using an `if` conditional:
@@ -4420,6 +4875,9 @@ relation Abs
 		else
 			Negation(number, let negation)
 			Equals(abs, negation)
+		end
+	end
+end
 
 Abs(-65, 100).exists // returns false
 Abs(-65, 65).exists // returns true
@@ -4435,6 +4893,7 @@ for (number, abs) in Abs(?, ?)
 	// (As a heuristic, the inference engine alternates between the unresolvable conditional
 	// branches to avoid getting "trapped" in case one of them produces an infinite
 	// amount of results)
+end
 ```
 
 Sometimes we would like to iterate over **all** the possible results of a relation. A common case would be when asserting over a property of a list:
@@ -4442,11 +4901,15 @@ Sometimes we would like to iterate over **all** the possible results of a relati
 relation MemberOf
 	predicate (in member, in list: List<integer>) => list.includes(member)
 	function (out member, in list: List<integer>) = for x in list => (x, list)
+end
 
 relation AllMembersGreaterThan
 	rule (in list: List<integer>, smallerValue: integer)
 		foreach MemberOf(let member, list)
 			GreaterThan(member, smallerValue)
+		end
+	end
+end
 
 AllMembersGreaterThan([3, 2, 4, 5], 3).exists // returns false
 AllMembersGreaterThan([3, 2, 4, 5], -5).exists // returns true
@@ -4476,6 +4939,7 @@ A more efficient way would be to to define an overload based on a `relation func
 relation AllMembersGreaterThan
 	function (in list: List<integer>, out smallerValue: integer) =
 		for i in (list.minimum() - 1)..(-infinity) => (list, i)
+end
 ```
 
 Note that to ensure that the `(in, out)` case is never processed by the slower, backtracking-based overload, its `smallerValue` parameter can be marked as `in`:
@@ -4483,6 +4947,7 @@ Note that to ensure that the `(in, out)` case is never processed by the slower, 
 relation AllMembersGreaterThan
 	rule (in list: List<integer>, in smallerValue: integer)
 	....
+end
 ```
 
 In the next section we'll show a purely rule-based way to efficiently implement the `AllMembersGreaterThan` relation, which makes use of the `reduce` higher-order relation.
@@ -4501,6 +4966,8 @@ relation Mapped<E, R>
 	rule ([head, ...tail]: List<E>, [resultHead,...resultTail]: List<R>, in mappingRelation: MappingRelation)
 		mappingRelation(head, resultHead)
 		Mapped(tail, resultTail)
+	end
+end
 ```
 
 Here's an example that represents a mapping between one list to a second list containing its members' preceding values:
@@ -4509,6 +4976,7 @@ relation Successor
 	predicate (in x: integer, in y: integer) => x == y + 1
 	function (in x: integer, out y: integer) => (x, y - 1)
 	function (out x: integer, in y: integer) => (y + 1, y)
+end
 
 let l1 = [2, 3, 4, 5]
 let l2 = [1, 2, 3, 4]
@@ -4536,6 +5004,9 @@ relation Reduced<E, R>
 			Equals(result, newResult)
 		else
 			Reduced(tail, reducer, newResult, result)
+		end
+	end
+end
 ```
 
 Using the `reduced` relation we now can provide a more efficient rule-based implementation for `AllMembersGreaterThan`:
@@ -4546,17 +5017,24 @@ relation MinimumOf2
 			Equals(minimum, val1)
 		else
 			Equals(minimum, val2)
+		end
+	end
+end
 
 relation SmallestValue
 	fact ([], nothing)
 
 	rule (in values: List<integer>, smallestValue: integer)
 		Reduced(values, MinimumOf2, infinity, smallestValue)
+	end
+end
 
 relation AllMembersGreaterThan
 	rule (in values: List<integer>, smallerValue: integer)
 		SmallestValue(list, let smallestValue)
 		SmallerThan(smallestValue, smallerValue)
+	end
+end
 ```
 
 ## Immutability and determinism in the logic programming subsystem
@@ -4601,6 +5079,7 @@ context BasicKinematics
 	distance given time, speed => time * speed
 	time given distance, speed => distance / speed
 	speed given distance, time => distance / time
+end
 ```
 
 `.... given ....` defines a mapping rule that specifies a method for a property to be computed given the knowledge of the values of other properties.
@@ -4616,6 +5095,7 @@ context BasicKinematics
 	distance => time * speed
 	time => distance / speed
 	speed => distance / time
+end
 ```
 
 A context may be instantiated similarly to a class, though unlike a class, it has no minimal set of required members. All of its properties are effectively "optional", in a sense, as they may be either provided or inferred using one or more of its mapping rules (or alternatively, they may not be knowable at all - yet the instantiation would still be perfectly valid).
@@ -4651,6 +5131,7 @@ context BasicKinematics
 
 	speedInMph => speed * 2.23694
 	speed => speedInMph / 2.23694
+end
 ```
 
 Now querying for `speedInMph`
@@ -4683,6 +5164,7 @@ context Speed
 	milesPerHour => metersPerSecond * 2.23694
 	metersPerSecond => kilometersPerHour / 3.6
 	kilometersPerHour => metersPerSecond * 3.6
+end
 ```
 
 But now we need some way to "combine" the knowledge we've expressed in this secondary context with the one in `BasicKinematics`.
@@ -4698,6 +5180,7 @@ context BasicKinematics
 	distance => time * speed.metersPerSecond
 	time => distance / speed.metersPerSecond
 	speed.metersPerSecond => distance / time
+end
 ```
 
 When a context is embedded in this way, its properties effectively become "namespaced" in the parent context, so they can be accessed from within mapping rules, or become their target - such as the rule that computes `speed.metersPerSecond` above, as if `metersPerSecond` was a part of the parent context itself.
@@ -4725,6 +5208,7 @@ Properties may be set with default values. Default values must be knowable at co
 context Person
 	name = "Anonymous" // type of 'name' is inferred as 'string'
 	age: integer
+end
 
 let person1 = Person with age = 20 // 'person1.name' gets te default value 'Anonymous'
 let person2 = Person with name = "Ines", age = 20 // 'person2.name' gets the value 'Ines'
@@ -4739,6 +5223,7 @@ context Person
 	nickname: string
 
 	name => nickname // This is invalid, since 'name' is assured to always have a value
+end
 ```
 
 ## Mapping rule preconditions
@@ -4756,6 +5241,7 @@ context AbsoluteValue
 
 	result given inputIsNegative == true => input * -1.0
 	result given inputIsNegative == false => input
+end
 ```
 `inputIsNegative` will receive `true` if `input` is greater or equal to 0 and `false` otherwise. Consequently, `result` will receive `input * -1` if `inputIsNegative` is true, and `input` otherwise.
 
@@ -4772,6 +5258,7 @@ context AbsoluteValue
 
 	result given input < 0 => input * -1.0
 	result given input => input // Having no precondition is interpreted as a fallback case
+end
 ```
 
 An ad-hoc precondition like `given input < 0` implicitly introduces a Boolean property and an associated mapping rule that computes its truth-value. The second rule (`given input`) does not include a predicate, and acts as a fallback to "absorb" the case when `input` is known but no other rule has been successfully matched to it.
@@ -4787,6 +5274,7 @@ context AbsoluteValue
 		result => input * -1.0
 	given input
 		result => input
+end
 ```
 
 ## Precondition pattern matching
@@ -4804,6 +5292,7 @@ context PhoneNumber
 		isValid, areaCode, number => true, area, num
 	given str
 		isValid, areaCode, number => false, "", ""
+end
 ```
 
 A second example defines a context that extracts the first and last elements of a list using a pattern expression:
@@ -4815,6 +5304,7 @@ context MyList
 		first, last => f, l
 	given items
 		first, last => nothing, nothing
+end
 ```
 
 Notice how **mapping rules can be shared by multiple properties** simultaneously. This also implies that in order to compute any single property that’s included in the rule, all remaining properties have to be computed as well.
@@ -4864,7 +5354,8 @@ Mappers help make contexts more usable by enabling them to be applied via functi
 For example:
 ```isl
 function context AddNumbers(num1: integer, num2: integer): (sum: integer)
-    sum = num1 + num2
+	sum = num1 + num2
+end
 ```
 
 Would be desugared to:
@@ -4875,6 +5366,7 @@ context AddNumbers
 	sum: integer => num1 + num2
 
 	mapper this(num1, num2) => sum
+end
 ```
 
 If the return variable name is not given, it can still be referenced via the default `out` property. For example:
@@ -4890,6 +5382,7 @@ context MultiplyByTwo
 	out: integer => num * 2
 
 	mapper this(num) => out
+end
 ```
 
 ## Recursive instantiation and embedding
@@ -4905,14 +5398,21 @@ context Factorial
 
 	given input == 0 or input == 1
 		result => 1
+	end
+
 	given input > 1
 		result
 			for i = 1, out output = 1 while i <= input advance i += 1
 				continue output *= i
 
 			return output
+		end
+	end
+
 	given input
 		result => Failure("Input must be nonnegative")
+	end
+end
 ```
 
 Well, that might work, but wouldn't it be nicer if we could write it in a manner that is more idiomatic of the knowledge-driven style? One approach would be to recursively create an instance of `Factorial` within the body of the mapping rule itself:
@@ -4924,12 +5424,19 @@ context Factorial
 
 	given input == 0 or input == 1
 		result => 1
+	end
+
 	given input > 1
 		result
 			let previousFactorial = Factorial with input = this.input - 1
 			return input * previousFactorial.result
+		end
+	end
+
 	given input
 		result => Failure("Input must be nonnegative")
+	end
+end
 ```
 
 This approach is called **recursive instantiation**, and works quite similarly to how functions may invoke themselves, or class members create an instance of their own class.
@@ -4948,11 +5455,14 @@ context Factorial
 
 	given input == 0 or input == 1
 		result => 1
+
 	given input > 1
 		previousFactorial.input => input - 1
 		result => input * previousFactorial.result
+
 	given input
 		result => Failure("Input must be nonnegative")
+end
 ```
 
 But how? why? Well that's because contexts are not the same as classes. They don't require a minimal amount of information to become materialized. A context instance represents a knowledge scope _possibly_ accommodating information artifacts of various semantic identities (some of which may actually lie outside the realm of the context's own schema, as you'll see on future sections). It is not primarily intended as a data structure or as an assortment of value-bound methods.
@@ -4992,17 +5502,20 @@ context Quicksort
 
 	given items == []
 		sortedItems => []
+
 	given items
 		pivot => items[items.length div 2] // 'pivot' declaration is combined with a mapping rule
 		smallerThanPivot.items => [items where it < pivot]
 		greaterOrEqualToPivot.items => [items where it >= pivot]
 		sortedItems => smallerThanPivot.sortedItems | greaterOrEqualToPivot.sortedItems
+end
 ```
 
 Here are natural language translations of the mapping rules included in `Quicksort`, described in an altered order:
 ```isl
 given items == []
 	sortedItems => []
+end
 ```
 means: _'When the input is an empty list, the sorted items list is empty as well'_.
 
@@ -5011,6 +5524,7 @@ and
 given items
 	....
 	sortedItems => smallerThanPivot.sortedItems | greaterOrEqualToPivot.sortedItems
+end
 ```
 means: _'When the input item list is nonempty, the sorted items list is a concatenation of the sorted versions of the items that are smaller than the pivot and greater or equal to the pivot'_.
 
@@ -5020,6 +5534,7 @@ given items
 	....
 	smallerThanPivot.items =>  [items where it < pivot]
 	greaterOrEqualToPivot.items => [items where it >= pivot]
+end
 ```
 
 means: _'The items fed to the "smaller than pivot" context are the input items, filtered to the ones that are smaller than the pivot. Similarly, the "greater or equal to the pivot" context is fed the items that are greater or equal to the pivot'_.
@@ -5029,6 +5544,7 @@ and finally:
 ```isl
 given items
 	pivot => items[items.length div 2]
+end
 ```
 means: _'The pivot is the value in the middle of the item list'_.
 
@@ -5061,6 +5577,7 @@ With an approach analogous to the semantic web, we could also define identities 
 context Sort
 	items: List<integer>
 	sortedItems: List<integer>
+end
 ```
 And it will similarly receive URIs like:
 ```isl
@@ -5080,6 +5597,7 @@ context Quicksort
 	items <=> <publisher.com/lib/Sort.isl#Sort.items>
 	sortedItems <=> <publisher.com/lib/Sort.isl#Sort.sortedItems>
 	....
+end
 ```
 These connections are called **semantic links**. What they mean is that every mapping rule that applies to `Quicksort.items`, would also apply to `Sort.items`, and vice-versa: every mapping rule that applies to `Sort.items` would apply back to `Quicksort.items`. Same between `Sort.sortedItems` and `Quicksort.sortedItems`.
 
@@ -5108,6 +5626,7 @@ context CommonsenseKinematics
 	time <=> <publisher.com/lib/Units.isl#Time.seconds>
 
 	distance <=> speed * time
+end
 ```
 `distance <=> speed * time` is an example of a **bidirectional mapping rule**. It shares the same notation as a semantic link, but it isn't really the same thing. It is an abbreviated way to define multiple complementary mapping rules that are composed of simple, invertible, algebraic operations like addition, multiplication and division.
 
@@ -5121,16 +5640,19 @@ context Distance
 	feet <=> meters * 0.3048
 	yards <=> feet * 3
 	miles <=> yards * 1760
+end
 
 context Speed
 	metersPerSecond: decimal
 	kilometersPerHour <=> metersPerSecond * 3.6
 	milesPerHour <=> metersPerSecond * 2.23694
+end
 
 context Time
 	seconds: decimal
 	minutes <=> seconds * 60
 	hours <=> minutes * 60
+end
 ```
 
 Now we can write something like:
@@ -5159,6 +5681,7 @@ context AdHocContext
 	distanceYards: Distance.yards
 	speedMph: Speed.milesPerHour
 	timeMinutes: Time.minutes
+end
 
 let speedMph = (AdHocContext with distanceYards = 1500, timeMinutes = 3).speedMph
 ```
@@ -5183,11 +5706,13 @@ context Uppercase
 	plain: string
 	uppercase: string
 	....
+end
 
 context Lowercase
 	plain: string
 	lowercase: string
 	....
+end
 ```
 
 Next define the main context. We'll use some helper mappers to simplify the code:
@@ -5199,6 +5724,7 @@ context Name
 	name: string
 	nameUppercase: string => uppercase(name)
 	nameLowercase: string => lowercase(name)
+end
 ```
 
 That is okay, but there's a simpler way. We can use semantic roles to say that the `name` property "pretends" to be a plain (unprocessed) string, with respect to the semantics of `Uppercase` and `Lowercase`, and that `nameUppercase` and `nameLowercase` "pretend" to act like their respective processed properties (`Uppercase.uppercase` and `Lowercase.lowercase`):
@@ -5208,6 +5734,7 @@ context Name
 	name: Uppercase.plain, Lowercase.plain
 	nameUppercase: Uppercase.uppercase
 	nameLowercase: Lowercase.lowercase
+end
 ```
 This looks much simpler.
 
@@ -5224,14 +5751,17 @@ Consider this classic example used to demonstrate object-oriented hierarchical r
 ```isl
 context Shape
 	area: decimal
+end
 
 context Circle
-    area: decimal => Pi * (radius^2)
-    radius: decimal
+	area: decimal => Pi * (radius ** 2)
+	radius: decimal
+end
 
 context Square
-    area: decimal => side^2
-    side: decimal
+	area: decimal => side ** 2
+	side: decimal
+end
 ```
 
 We want to describe something called `Shape` that has an `area` property. And two other things called `Circle` and `Square` that also have an `area` property, as well as other properties we don't necessarily care about here (`radius` and `side`).
@@ -5243,14 +5773,17 @@ What we'll do instead is say that the `area` property of `Circle` and `Square` "
 ```isl
 context Shape
 	area: decimal
+end
 
 context Circle
-    area: Shape.area => Pi * (radius^2)
-    radius: decimal
+	area: Shape.area => Pi * (radius ** 2)
+	radius: decimal
+end
 
 context Square
-    area: Shape.area => side^2
-    side: decimal
+	area: Shape.area => side ** 2
+	side: decimal
+end
 ```
 
 Now let's pose a scenario that will help us understand the meaning of this relationship. Say we define another context that holds two Shapes, and contains a property, together with a mapping rule that computes their total area:
@@ -5260,6 +5793,7 @@ context TwoShapes
 	shape1: Shape
 	shape2: Shape
 	totalArea: decimal => shape1.area + shape2.area
+end
 ```
 
 Now I write something like this:
@@ -5334,9 +5868,11 @@ context Person
 	firstName: string
 	lastName: string
 	age: integer
+end
 
 context Example
 	personInfo: Person with firstName, age
+end
 
 let validInstance = Example with personInfo = (Person with firstName = "Miguel", age = 57) // Okay
 let invalidInstance = Example with personInfo = (Person with age = 34) // Fails to compile
@@ -5346,6 +5882,7 @@ Instance types may also explicitly state members that must _not_ be provided dur
 ```isl
 context Example
 	personInfo: Person with firstName, lastName, no age
+end
 ```
 
 ## Incremental instance initialization
@@ -5367,6 +5904,7 @@ if ....someCondition....
 	kinematics.time = 5.0
 else
 	kinematics.time = 7.0 // This branch must also initialize a value for 'time'
+end
 
 // Its type has changed again, now to 'BasicKinematics with distance, time'.
 // The value for the 'time' property was set within a conditional, but that's
@@ -5382,6 +5920,7 @@ A **property that has a default value cannot be late-initialized**. To remedy th
 context Person
 	name = "Anonymous"
 	age: integer
+end
 
 let person = Person with age = 20 // 'person.name' gets the default value "Anonymous"
 
@@ -5408,13 +5947,16 @@ context Name
 		plain: Uppercase.plain, Lowercase.plain
 		uppercase: Uppercase.uppercase
 		lowercase: Lowercase.lowercase
+	end
 
 	lastName: context
 		plain: Uppercase.plain, Lowercase.plain
 		uppercase: Uppercase.uppercase
 		lowercase: Lowercase.lowercase
+	end
 
-	fullNameUpperCase => firstName.uppercase | “ “ | lastName.upperCase
+	fullNameUpperCase => firstName.uppercase | " " | lastName.upperCase
+end
 ```
 
 A variant of this syntax can also be used to **integrate an ad-hoc context instance directly into the local procedural scope**, such that via incremental initialization, its properties can be used as if they were plain local variables:
@@ -5434,6 +5976,7 @@ context
 		greeting => "Hello {name} of {age} years of age!"
 	given age
 		greeting => "Hello young {name} of {age} years of age!"
+end
 
 name = "Luna" // This assigns directly into the anonymous instance's 'name' property.
 
@@ -5443,6 +5986,7 @@ if someCondition
 else
 	age = 15 // This branch must also assign a value for the 'age' property
 	print(greeting) // prints "Hello young Luna of 15 years of age!"
+end
 ```
 
 ## Conditionally knowable properties
@@ -5472,6 +6016,7 @@ age = getAgeFromSomewhere()
 
 if age == 18 or age - 9 > age / 2
 	print(greeting) // is 'greeting' always knowable?
+end
 ```
 
 The thing is, with the exception of "toy" examples like the above, which may be solved using an "off-the-shelf" theorem prover (though with some amount of extra computational effort), it is not very easy for the compiler to statically ensure that some arbitrary user-provided formula logically entails the expected one (here `age >= 18`).. So, sadly, that's not really a viable option, at least not in general.. :(
@@ -5484,6 +6029,7 @@ case
 	print(greeting)
 otherwise
 	print("I don't know what to do?!")
+end
 ```
 
 What is going on here?? Looks like a skeletal `match` body with a `case` clause having no conditions attached? Is this some sort of an April fools' joke?
@@ -5499,6 +6045,7 @@ case ??? // the compiler automatically fills in 'age >= 18' in place of ???
 	print(greeting)
 otherwise
 	print("I don't know what to do?!")
+end
 ```
 
 This example wasn't very illustrative since it only had one case. Here's a different one:
@@ -5524,10 +6071,13 @@ context
 
 	given userInput matches PhoneNumberPattern of (let countryCode, ...)
 		phoneCountryCode = countryCode
+
 	given userInput matches LicensePlatePattern of (let prefixChars, ...)
 		licensePlatePrefixChars = prefixChars
+
 	given userInput matches CreditCardPattern of (_, _, _, let fourLastDigits)
 		creditCardLastDigits = fourLastDigits
+end
 
 	// No fallback is given for the case where 'userInput' doesn't match
 	// any of the other rules.
@@ -5577,6 +6127,7 @@ context
 
 	given secondUserInput matches ContinentPattern of (let continent)
 		continentCategory => continent
+end
 
 firstUserInput = readUserInput()
 
@@ -5597,6 +6148,7 @@ case
 		print("Hello African!")
 	otherwise
 		print("I could not understand your input :(")
+	end
 case
 	....
 case
@@ -5635,6 +6187,7 @@ context PhoneNumberPattern
 	given in
 		countryCode, areaCode, prefix, lineNumber =>
 			<.... recognizer body ....>
+end
 ```
 _(note this is only an illustrative translation, since mapping rule bodies can't directly contain recognizer code)_
 
@@ -5647,6 +6200,7 @@ context
 	phoneCountryCode: PhoneNumberPattern.countryCode
 	licensePlatePrefixChars: LicensePlatePattern.prefixChars
 	creditCardLastChars: CreditCardPattern.lastFourChars
+end
 ```
 
 ## Anonymous contexts as loop state
@@ -5659,11 +6213,13 @@ repeat
 		next i => i + 1
 
 	print("Hello World! {i}")
+end
 ```
 
 ```isl
 repeat with i = 0, next i => i + 1
 	print("Hello World! {i}")
+end
 ```
 
 ```isl
@@ -5672,6 +6228,7 @@ print("I'll ask you a series of simple questions until I'm able to guess what it
 
 context
 	result: integer
+end
 
 repeat
 	context
@@ -5682,15 +6239,18 @@ repeat
 
 		given userResponse == true
 			next max => mid
+
 		given userResponse == false
 			next min => mid
 
 		given min == max
 			result => mid
 			end => true
+	end
 
 	print("Is the number smaller than {mid}?")
 	userResponse = receiveUserInput() // User input is received as a Boolean value
+end
 
 print("The number you thought of was {result}!")
 ```
@@ -5704,11 +6264,13 @@ context StringifiedNumber
 	source: decimal
 	stringified: string
 	....
+end
 
 context NumberSquare
 	number: decimal
 	squared: decimal
 	....
+end
 ```
 
 For the context that describes the main computation we'll define three properties, taking up four different roles:
@@ -5723,6 +6285,7 @@ context StringifiedNumberSquared
 	stringified: StringifiedNumber.stringified
 	unstringified: StringifiedNumber.number, NumberSquare.number
 	squared: NumberSquare.squared
+end
 ```
 
 We had to explicitly introduce the intermediate property `unstringified` in order to "pipe" the two computations together. Hadn't we done that, there was no way for the compiler to know for certain if that was what we wanted to do. It is true that both `StringifiedNumber.number` and `NumberSquare.number` share the same type - `decimal`, but that fact is not sufficient to deductively infer that these two must be bound together.
@@ -5734,6 +6297,7 @@ context StringifiedNumberSquared
 	stringified: StringifiedNumber.stringified
 	StringifiedNumber.number =:= NumberSquare.number // This is called a "coupling rule"
 	squared: NumberSquare.squared
+end
 ```
 So how and why this works?
 
@@ -5779,6 +6343,7 @@ context BasicKinematics
 	speed: decimal
 
 	distance <=> time * speed
+end
 ```
 
 We would like to add a second speed property that measures in miles per hour. However, this time, let's say we can't directly edit the context declaration, as it was provided by an external source.
@@ -5791,6 +6356,7 @@ A property paired with a bidirectional mapping rule containing a semantic query:
 ```isl
 context expansion BasicKinematics
 	speedInMilesPerHour <=> Speed.milesPerHour given Speed.metersPerSecond = speed
+end
 ```
 
 Roles:
@@ -5799,6 +6365,7 @@ context expansion BasicKinematics
 	speedInMetersPerSecond: Speed.metersPerSecond => speed
 	speedInMilesPerHour: Speed.milesPerHour
 	speedInKilometersPerHour: Speed.kilometersPerHour
+end
 ```
 
 Embed `Speed` context directly and map its `metersPerSecond` property to the value of `speed`:
@@ -5806,6 +6373,7 @@ Embed `Speed` context directly and map its `metersPerSecond` property to the val
 context expansion BasicKinematics
 	speedInOtherUnits: Speed
 	speedInOtherUnits.metersPerSecond => speed
+end
 ```
 
 ## Stream properties
@@ -5825,6 +6393,7 @@ context TriviallyContradictory
 
 	num => 0
 	num => 1 // This is technically legal code, but is obviously bogus.
+end
 ```
 
 Contradictions may also happen between mapping rules going in different directions:
@@ -5835,6 +6404,7 @@ context BidirectionallyContradictory
 
 	propertyA given propertyB => propertyB / 2
 	propertyB given propertyA => propertyA * 3 // Should this be allowed?
+end
 ```
 
 In the case that both mapping rules only contain trivial algebraic operations, contradictions can be detected at compile time.
@@ -6089,6 +6659,7 @@ The `recurse` keyword acts a lot like `continue` by allowing to only state the a
 function repeatAandB(match count: integer): (param r1 = "", param r2 = "")
 	case 0 => return
 	otherwise => recurse count -= 1, r1 |= "a", r2 |= "b"
+end
 
 let (r1, r2) = repeatAandB(4) // r1 = "aaaa", r2 = "bbbb"
 ```
@@ -6112,8 +6683,12 @@ function binarySearch(values: List<integer>, target: integer)
 				case target => return
 				case it < target => recurse low = mid + 1
 				otherwise => recurse high = mid - 1
+			end
+		end
+	end
 
 	return iterate()
+end
 ```
 
 ## Deep comparison
@@ -6159,7 +6734,7 @@ On issue is with multi-line block opening statements (e.g. `for ....`, `if ....`
 
 ```isl
 if  something1 and something2 and something3 and something4 and
-    something5 and something6 and something7 and something8
+	something5 and something6 and something7 and something8
 	doSomething() // It's not visually clear this statement is within the body of the conditional.
 ```
 
@@ -6171,8 +6746,11 @@ context Example
 	val
 		for i in 1..10
 			....
+		end
 
 		return something
+	end
+end
 ```
 
 Overload block syntax also feels a bit too sparse to me, especially when the overload bodies are written as statement blocks:
@@ -6180,12 +6758,15 @@ Overload block syntax also feels a bit too sparse to me, especially when the ove
 action doSomething
 	(category: "animal", isMammal: true, owner: Person where age >= 18)
 		print("Hello animal lover!")
+	end
 
 	(category: "animal", isMammal: false, owner: Person where age < 18)
 		print("Hello young animal lover!")
+	end
 
 	(category: "person", id: /[a..zA..Z]+/)
 		print("Hello random person!")
+	end
 ```
 
 ---
@@ -6229,6 +6810,7 @@ but I'm not sure if I want to make it a reserved keyword.
 This work would not have been possible without ideas inspired by or built-upon the collective design effort invested towards many contemporary and past languages. In particular:
 
 * **TypeScript**: class member syntax, anonymous method syntax, type annotation syntax, generics syntax, type alias syntax, method type syntax, optional type syntax, `this` type semantics, join (intersection) types, `any` type, `never` type, type cast and assertion syntax.
+* **Lua** block syntax
 * **C#**: expansions (called "extension everything" by the C# designers), some query syntax (LINQ), computed fields (properties), `in` and `out` type modifiers, disambiguation of conflicting inherited members by type prefixing.
 * **JavaScript**: array syntax, destructuring and rest parameter syntax, `arguments` keyword.
 * **Python**: indent-based blocks, generators and comprehensions.
@@ -6245,14 +6827,7 @@ The repository is located at [github.com/island-lang/island-lang.github.io](http
 
 Feel free to ask questions, report errors or make constructive suggestions.
 
-## Who wrote this?
-
-Hi, my name is Rotem Dan (IPA: ˈʁɒːtem ˈdän). I'm a software developer who loves designing programming languages!
-
-You can contact me via email at <span id="email-address-1"><span id="email-address-2"><span id="email-address-3">.
-
-
 ## Copyrights
 
 Copyright © Rotem Dan<br />
-2017 - 2022
+2017 - 2025

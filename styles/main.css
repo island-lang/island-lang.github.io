@@ -9,13 +9,13 @@ html {
 body {
   margin: 0rem auto;
   padding: 0rem;
-  background-color: #f8f8f8;
+  background-color: rgb(248, 248, 248);
 }
 
 #main-content {
   max-width: 52rem;
   margin: 0rem auto;
-  background-color: white;
+  background-color: rgb(255, 255, 255);
 }
 @media screen and (max-width: 55rem) {
   #main-content {
@@ -29,22 +29,22 @@ body {
   #main-content {
     margin-top: 1rem;
     margin-bottom: 0.5rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
     padding-top: 3rem;
     padding-bottom: 1rem;
     border-style: solid;
     border-width: 1px;
-    border-color: #e4e4e4;
+    border-color: rgb(228, 228, 228);
     border-radius: 0.6rem;
-    box-shadow: 0rem 0rem 0rem #d1d1d1;
+    box-shadow: 0rem 0rem 0rem rgb(209, 209, 209);
     border-radius: 1.35rem;
-    box-shadow: 0rem 0rem 0.2rem #d1d1d1;
+    box-shadow: 0rem 0rem 0.2rem rgb(209, 209, 209);
   }
 }
 
 a {
-  color: #0059e8;
+  color: rgb(0, 89, 232);
   text-decoration: none;
 }
 a:hover {
@@ -61,16 +61,16 @@ h1#top-heading {
   text-transform: capitalize;
   letter-spacing: 0.02ch;
   line-height: 1.4em;
-  color: #292929;
-  text-shadow: 0ch 0ch 0ch #dadada;
+  color: rgb(41, 41, 41);
+  text-shadow: 0ch 0ch 0ch rgb(218, 218, 218);
   text-align: center;
   margin-top: 1em;
   margin-bottom: 0.75em;
   border: none;
 }
-h1#top-heading span#top-heading-island-word {
-  color: #248524;
-  text-shadow: 0ch 0ch 0.15ch #dadada;
+h1#top-heading span#top-heading-highlighted-word {
+  color: rgb(32, 120, 90);
+  text-shadow: 0ch 0ch 0.15ch rgb(218, 218, 218);
 }
 
 h2 {
@@ -80,7 +80,7 @@ h2 {
 h2#top-subheading {
   font-size: 1.45em;
   font-weight: 800;
-  color: #3d3d3d;
+  color: rgb(61, 61, 61);
   line-height: 1.4em;
   text-align: center;
   margin-top: 0em;
@@ -90,7 +90,7 @@ h2#top-subheading {
 h2#top-subheading-2 {
   font-size: 1.15em;
   font-weight: 700;
-  color: #4d4d4d;
+  color: rgb(77, 77, 77);
   line-height: 1.4em;
   text-align: center;
   font-style: normal;
@@ -104,7 +104,7 @@ h2 {
   line-height: 1.2em;
   margin-top: 1.25em;
   padding-bottom: 0.16em;
-  border-bottom: 1px solid #e4e4e4;
+  border-bottom: 1px solid rgb(228, 228, 228);
 }
 
 h3 {
@@ -123,7 +123,7 @@ h4,
 h5,
 h6 {
   position: relative;
-  color: #1f1f1f;
+  color: rgb(31, 31, 31);
 }
 h1 .header-anchor,
 h2 .header-anchor,
@@ -131,7 +131,7 @@ h3 .header-anchor,
 h4 .header-anchor,
 h5 .header-anchor,
 h6 .header-anchor {
-  color: #0059e8;
+  color: rgb(0, 89, 232);
   text-decoration: none;
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
@@ -159,14 +159,14 @@ h6:hover .header-anchor:hover {
 hr {
   border-style: solid;
   border-width: 2px;
-  border-color: #e4e4e4;
+  border-color: rgb(228, 228, 228);
   border-radius: 0em;
-  background-color: #e4e4e4;
+  background-color: rgb(228, 228, 228);
 }
 
 p,
 li {
-  color: #2c2c2c;
+  color: rgb(44, 44, 44);
 }
 
 li {
@@ -176,7 +176,7 @@ li {
 nav.table-of-contents {
   font-size: 0.97em;
   font-weight: normal;
-  background-color: #f8f8f8;
+  background-color: rgb(248, 248, 248);
   padding: 0.5rem;
   border-radius: 0.5rem;
   line-height: 1.6em;
@@ -195,13 +195,12 @@ nav.table-of-contents li::before {
 
 pre,
 code {
-  background-color: #f8f8f8 !important;
+  background-color: rgb(248, 248, 248) !important;
 }
 
 code {
   font-size: 0.88em;
   font-family: "Fira Code", monospace;
-  font-variant-ligatures: none;
   line-height: 1.5em;
   -o-tab-size: 4;
      tab-size: 4;
@@ -218,9 +217,9 @@ nav.table-of-contents {
   padding: 1em;
   border-style: solid;
   border-width: 1px;
-  border-color: #e4e4e4;
+  border-color: rgb(228, 228, 228);
   border-radius: 0.6rem;
-  box-shadow: 0rem 0rem 0rem #d1d1d1;
+  box-shadow: 0rem 0rem 0rem rgb(209, 209, 209);
 }
 
 footer {
@@ -235,8 +234,8 @@ footer #last-modified {
   font-size: 0.8em;
   font-weight: 350;
   text-align: right;
-  color: #7a7a7a;
-  text-shadow: 0ch 0ch 0.2ch #d1d1d1;
+  color: rgb(122, 122, 122);
+  text-shadow: 0ch 0ch 0.2ch rgb(209, 209, 209);
   margin: 0rem;
 }
 

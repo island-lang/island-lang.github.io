@@ -1,0 +1,28 @@
+{
+	"name": "island-readme",
+	"version": "0.1.0",
+	"description": "Multiparadigm general-purpose programming language, fusing aspects of functional, imperative, object-oriented, and various forms of declarative programming.",
+	"author": "Rotem Dan",
+	"license": "MIT",
+	"main": "watch.js",
+	"type": "module",
+	"scripts": {
+		"start": "node dist/watch.js"
+	},
+	"private": true,
+	"devDependencies": {
+		"@types/node": "^22.10.2",
+		"@types/express": "^5.0.0",
+		"@types/live-server": "^1.2.3",
+		"@types/serve-static": "^1.15.7",
+		"express": "^4.21.2",
+		"live-server": "^1.2.2",
+		"markdown-it": "^14.1.0",
+		"markdown-it-anchor": "^9.2.0",
+		"markdown-it-header-sections": "^1.0.0",
+		"markdown-it-toc-done-right": "^4.2.0",
+		"monotonic-timestamp": "^0.0.9",
+		"serve-static": "^1.16.2",
+		"shiki": "^0.14.5"
+	}
+}

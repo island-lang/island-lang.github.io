@@ -1,7 +1,7 @@
-notes
 .vscode
 watch.js
 node_modules
-*.json
 *.temp
 *.cmd
+notes
+dist

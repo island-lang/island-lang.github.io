@@ -4,7 +4,7 @@ $headerTextColor: rgb(31, 31, 31);
 $topHeadingColor: rgb(41, 41, 41);
 $topHeadingShadowColor: rgb(218, 218, 218);
 
-$topHeadingIslandWordColor:rgb(36, 133, 36);
+$topHeadingIslandWordColor:rgb(32, 120, 90);
 
 $topSubheadingColor: rgb(61, 61, 61);// rgba(204, 122, 255, 0.795);
 $topSubheadingShadowColor: rgb(145, 145, 145);
@@ -74,8 +74,8 @@ body {
 		margin-top: 1rem;
 		margin-bottom: 0.5rem;
 
-		padding-left: 2rem;
-		padding-right: 2rem;
+		padding-left: 2.5rem;
+		padding-right: 2.5rem;
 		padding-top: 3rem;
 		padding-bottom: 1rem;
 
@@ -113,7 +113,7 @@ h1 {
 		margin-bottom: 0.75em;
 		border: none;
 
-		span#top-heading-island-word {
+		span#top-heading-highlighted-word {
 			color: $topHeadingIslandWordColor;
 			text-shadow: 0.0ch 0.0ch 0.15ch $topHeadingShadowColor;
 		}
@@ -255,7 +255,7 @@ code {
 code {
 	font-size: 0.88em;
 	font-family: "Fira Code", monospace;
-	font-variant-ligatures: none;
+	//font-variant-ligatures: none;
 	line-height: 1.5em;
 
 	tab-size: 4;
